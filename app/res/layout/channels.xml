@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/main_color" >
+
+    <TextView
+        android:id="@+id/connect"
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"
+        android:paddingLeft="15dp"
+        android:background="@drawable/gen_sel"
+        android:gravity="center_vertical"
+        android:text="@string/connect"
+        android:textColor="@color/white"
+        android:textSize="22sp" />
+
+    <ListView
+        android:id="@+id/list_private"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@+id/disconnect"
+        android:layout_below="@id/connect"
+        android:dividerHeight="1px"
+        android:listSelector="@null"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp" />
+
+    <TextView
+        android:id="@+id/disconnect"
+        android:layout_width="fill_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:paddingLeft="15dp"
+        android:background="@drawable/gen_sel"
+        android:gravity="center_vertical"
+        android:text="@string/disconnect"
+        android:textColor="@color/white"
+        android:textSize="22sp" />
+
+</RelativeLayout>

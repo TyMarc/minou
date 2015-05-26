@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">minou</string>
+    <string name="title_activity_public_chat">Public Chat</string>
+    <string name="title_activity_connect_facebook">Connect Facebook</string>
+    <string name="app_id">750374798414544</string>
+    <string name="location_not_found">Your location has not been found.\nPlease try again.</string>
+    <string name="no_network">No network is available.\nPlease try again later.</string>
+    <string name="lost_connectivity">You are currently disconnected</string>
+    <string name="server_error">There was an error during authentification.\nPlease try again later.</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="ok">OK</string>
+    <string name="title_activity_private_chat">Private Chat</string>
+    <string name="title_activity_slideshow">SlideshowActivity</string>
+    <string name="authenticating">Authenticating...</string>
+    <string name="title_activity_image_viewer">ImageViewerActivity</string>
+    <string name="retry">Retry</string>
+    <string name="close">Close</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+</resources>

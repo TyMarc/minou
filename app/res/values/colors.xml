@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="main_color">#0097fd</color>
+    <color name="dark_main_color">#006AB0</color>
+    <color name="dark_main_color_semi_trans">#80006AB0</color>
+    <color name="white">#FCFCFC</color>
+    <color name="grey">#c2c2c2</color>
+    <color name="faded_black">#26000000</color>
+    <color name="darker_grey">#a2a2a2</color>
+    <color name="black">#000000</color>
+    <color name="pale_green">#8000E600</color>
+    <color name="darker_green">#CC00E600</color>
+    <color name="pale_red">#80DD0000</color>
+    <color name="darker_red">#CCDD0000</color>
+    <color name="pink">#FFCCFF</color>
+    <color name="gray">#e2e2e2</color>
+    <color name="transparent">#00000000</color>
+    <color name="red">#FF6666</color>
+    <color name="faded_white">#26FFFFFF</color>
+    
+     <color name="bg_color_transparent">#AA000000</color>
+    <color name="bg_overlay">#99000000</color>
+    <color name="bg_chat">#F0F7FF</color>
+    <color name="bg_main">@color/brown_light</color>
+    <color name="bg_profile">@color/brown_light</color>
+
+    <!-- Black -->
+    <color name="black_transparent">#44000000</color>
+
+    <!-- Browns -->
+    <color name="brown_light">#FBEDDE</color>
+    <color name="brown_dark">#FF44130C</color>
+    <color name="brown">#FFC18E80</color>
+    <!-- /Browns -->
+
+
+    <!-- Blue -->
+    <color name="blue_link">#FF3366BB</color>
+
+    <!-- /Blue -->
+</resources>
