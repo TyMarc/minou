@@ -20,4 +20,6 @@
     <string name="close">Close</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
+    <string name="channels">Channels</string>
+    <string name="private_message">Private Messages</string>
 </resources>

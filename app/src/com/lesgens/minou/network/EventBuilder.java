@@ -7,9 +7,7 @@ import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.models.City;
 import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.IDestination;
-import com.lesgens.minou.models.Match;
 import com.lesgens.minou.models.Message;
-import com.lesgens.minou.models.User;
 import com.lesgens.minou.models.Message.Gender;
 
 public class EventBuilder {
@@ -37,10 +35,6 @@ public class EventBuilder {
 					gender = Gender.Female;
 			}
 			return new Message(id, timestamp, destinationObj, Controller.getInstance().getUser(userId), message, fakeName, gender, true, realName);
-		} else if(type.equals("match")) {
-			if (destinationObj instanceof User)
-				return new Match(id, timestamp, destinationObj, Controller.getInstance().getUser(userId), true, realName, fakeName);
-			
 		}
 		
 		return null;

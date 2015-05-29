@@ -2,7 +2,6 @@ package com.lesgens.minou.controllers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
@@ -11,7 +10,6 @@ import android.content.SharedPreferences;
 import com.checkin.avatargenerator.AvatarGenerator;
 import com.facebook.Session;
 import com.lesgens.minou.models.City;
-import com.lesgens.minou.models.Match;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.Utils;
 
@@ -20,7 +18,6 @@ public class Controller {
 	private HashMap<String, User> users;
 	private Session session;
 	private User myselfUser;
-	private ArrayList<Match> matches;
 	private int dimensionAvatar;
 
 	private static Controller controller;
@@ -28,7 +25,6 @@ public class Controller {
 	private Controller(){
 		city = new City("");
 		users = new HashMap<String, User>();
-		matches = new ArrayList<Match>();
 	}
 
 	public static Controller getInstance(){
@@ -78,19 +74,6 @@ public class Controller {
 		return myselfUser.getId().substring(0, myselfUser.getId().indexOf("."));
 	}
 
-	public void setMatches(List<Match> matches){
-		this.matches.clear();
-		this.matches.addAll(matches);
-	}
-
-	public void addMatch(Match match){
-		this.matches.add(match);
-	}
-
-	public ArrayList<Match> getMatches(){
-		return matches;
-	}
-
 	public void setDimensionAvatar(Context context) {
 		dimensionAvatar = Utils.dpInPixels(context, 50);
 	}
@@ -131,38 +114,6 @@ public class Controller {
 
 		return blockedPeople;
 
-	}
-
-	public boolean containsMatch(Match match) {
-		for(Match m : matches){
-			if(m.getId() != null){
-				if(m.getId().equals(match.getId())){
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	public Match removeOldIfPendingMatch(Match match) {
-		for(Match m : matches){
-			if(!m.isMutual() && m.getMatchedUser().getId().equals(match.getMatchedUser().getId())){
-				matches.remove(m);
-				return m;
-			}
-		}
-		return null;
-	}
-
-	public boolean checkIfMutualWith(String fakeName){
-		if(fakeName != null){
-			for(Match m : matches){
-				if(m.isMutual() && fakeName.equals(m.getFakeName())){
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 
 }

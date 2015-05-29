@@ -192,7 +192,7 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 	}
 
 	public void goToPublicChat(){
-		Intent i = new Intent(SplashscreenActivity.this, PublicChatActivity.class);
+		Intent i = new Intent(SplashscreenActivity.this, ChannelChatActivity.class);
 		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		startActivity(i);
 		finish();

@@ -2,8 +2,7 @@ package com.lesgens.minou;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -24,47 +23,56 @@ import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Base64;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.OnOpenListener;
 import com.lesgens.minou.adapters.ChannelChatAdapter;
+import com.lesgens.minou.adapters.ChannelsAdapter;
 import com.lesgens.minou.controllers.Controller;
-import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.listeners.EventsListener;
+import com.lesgens.minou.models.City;
 import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
-import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.receivers.NetworkStateReceiver;
 import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverListener;
 import com.lesgens.minou.utils.Utils;
 
-public class ChannelChatActivity extends Activity implements OnClickListener, EventsListener, NetworkStateReceiverListener {
-
+public class ChannelChatActivity extends Activity implements OnClickListener, EventsListener, OnOpenListener, NetworkStateReceiverListener {
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 	private Typeface tf;
 	private ImageView sendBt;
 	private ChannelChatAdapter chatAdapter;
 	private StickyListHeadersListView listMessages;
 	private EditText editText;
+	private ImageView menuPrivate;
+	private SlidingMenu slidingMenu;
+	private ListView listChannels;
+	private ListView listPrivate;
+	private ChannelsAdapter channelsAdapter;
+	private ChannelsAdapter privatesAdapter;
 	private ScheduledExecutorService scheduler;
 	private Future<?> future;
-	private User remoteUser;
 	private TextView tvConnectionProblem;
 	private NetworkStateReceiver networkStateReceiver;
 	private Uri imageUri;
-	private boolean isComingBackFromTakingPhoto;
+	private String channelName;
 
-	public static void show(Context context, String tokenId, String realName){
+	public static void show(final Context context, final String channelName){
 		Intent i = new Intent(context, ChannelChatActivity.class);
-		i.putExtra("tokenId", tokenId);
-		i.putExtra("realName", realName);
+		i.putExtra("channelName", channelName);
 		context.startActivity(i);
 	}
 
@@ -75,57 +83,80 @@ public class ChannelChatActivity extends Activity implements OnClickListener, Ev
 		//Remove title bar
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-		setContentView(R.layout.private_chat);
+		setContentView(R.layout.public_chat_container);
 
-		isComingBackFromTakingPhoto = false;
+		channelName = getIntent().getStringExtra("channelName");
+		if(channelName == null) {
+			channelName = "";
+		} else{
+			channelName = "/" + channelName;
+		}
 
-		remoteUser = Controller.getInstance().getUser(getIntent().getStringExtra("tokenId"));
-		TextView fbName = (TextView) findViewById(R.id.fbName);
+		TextView city = (TextView) findViewById(R.id.city_name);
+
+		tvConnectionProblem = (TextView) findViewById(R.id.connection_problem);
 
 		tf = Typeface.createFromAsset(getAssets(), "fonts/Raleway_Thin.otf");
-		fbName.setTypeface(tf);
-		fbName.setText(getIntent().getStringExtra("realName"));
+		city.setTypeface(tf);
+		if(channelName.isEmpty()){
+			city.setText(Controller.getInstance().getCity().getId());
+		} else{
+			city.setText(channelName.substring(1));
+		}
+		editText = (EditText) findViewById(R.id.editText);
+		editText.clearFocus();
 
-		((ImageView) findViewById(R.id.avatar)).setImageBitmap(remoteUser.getAvatar());
-		findViewById(R.id.back).setOnClickListener(this);
+		slidingMenu = (SlidingMenu) findViewById(R.id.slidingmenulayout);
+		slidingMenu.setOnOpenListener(this);
+
+		sendBt = (ImageView) findViewById(R.id.send);
+		sendBt.setOnClickListener(this);
+
 
 		if(getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA) == false){
 			findViewById(R.id.send_picture).setVisibility(View.GONE);
 		} else{
 			findViewById(R.id.send_picture).setOnClickListener(this);
 		}
+		
+		findViewById(R.id.add_channel).setOnClickListener(this);
+		findViewById(R.id.add_private).setOnClickListener(this);
 
-		editText = (EditText) findViewById(R.id.editText);
-		editText.clearFocus();
+		menuPrivate = (ImageView) findViewById(R.id.menu_private);
+		menuPrivate.setOnClickListener(this);
 
-		sendBt = (ImageView) findViewById(R.id.send);
-		sendBt.setOnClickListener(this);
-
-		tvConnectionProblem = (TextView) findViewById(R.id.connection_problem);
-
-		chatAdapter = new ChannelChatAdapter(this, DatabaseHelper.getInstance().getPrivateMessages(remoteUser));
+		chatAdapter = new ChannelChatAdapter(this, new ArrayList<Message>());
 		listMessages = (StickyListHeadersListView) findViewById(R.id.list);
 		listMessages.setAdapter(chatAdapter);
 		listMessages.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
+
+		channelsAdapter = new ChannelsAdapter(this, PreferencesController.getChannels(this));
+		listChannels = (ListView) findViewById(R.id.list_channels);
+		listChannels.setAdapter(channelsAdapter);
+		listChannels.setOnItemClickListener(new OnItemClickListenerChannel());
+
+		privatesAdapter = new ChannelsAdapter(this, PreferencesController.getPrivates(this));
+		listPrivate = (ListView) findViewById(R.id.list_private);
+		listPrivate.setAdapter(privatesAdapter);
+		listPrivate.setOnItemClickListener(new OnItemClickListenerPrivate());
+
+		networkStateReceiver = new NetworkStateReceiver(this);
+
 
 		Server.addEventsListener(this);
 
 		scheduler = Executors.newSingleThreadScheduledExecutor();
 
-		networkStateReceiver = new NetworkStateReceiver(this);
 	}
 
 	@Override
 	public void onResume(){
 		super.onResume();
-		if(!isComingBackFromTakingPhoto){
-			Server.getUserEvents(remoteUser);
-		}
 		if(scheduler != null){
 			future = scheduler.scheduleAtFixedRate
 					(new Runnable() {
 						public void run() {
-							Server.getEvents();
+							Server.getEvents(channelName);
 						}
 					}, 0, 5, TimeUnit.SECONDS);
 		}
@@ -155,6 +186,64 @@ public class ChannelChatActivity extends Activity implements OnClickListener, Ev
 	}
 
 	@Override
+	public void onBackPressed(){
+		if(slidingMenu.isMenuShowing()){
+			slidingMenu.toggle(true);
+		} else{
+			super.onBackPressed();
+		}
+	}
+
+	@Override
+	public void onClick(View v) {
+		if(v.getId() == R.id.send){
+			final String text = editText.getText().toString();
+			if(!text.isEmpty()){
+				Message message = new Message(Controller.getInstance().getMyself(), text, false);
+				chatAdapter.addMessage(message);
+				chatAdapter.notifyDataSetChanged();
+				Server.sendPublicMessage(Controller.getInstance().getCity(), message.getMessage());
+				editText.setText("");
+				scrollMyListViewToBottom();
+			}
+		} else if(v.getId() == R.id.menu_private){
+			hideKeyboard();
+			new Handler(getMainLooper()).postDelayed(new Runnable(){
+
+				@Override
+				public void run() {
+					slidingMenu.toggle(true);
+				}}, 200);
+
+		} else if(v.getId() == R.id.send_picture){
+			takePhoto();
+		} else if(v.getId() == R.id.add_channel){
+			Toast.makeText(this, "Add a channel conversation", Toast.LENGTH_SHORT).show();
+		} else if(v.getId() == R.id.add_private){
+			Toast.makeText(this, "Add a private conversation", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private void scrollMyListViewToBottom() {
+		listMessages.post(new Runnable() {
+			@Override
+			public void run() {
+				// Select the last row so it will scroll into view...
+				listMessages.setSelection(chatAdapter.getCount() - 1);
+			}
+		});
+	}
+
+	public void takePhoto() {
+		Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
+		File photo = new File(Environment.getExternalStorageDirectory(),  "Pic.jpg");
+		intent.putExtra(MediaStore.EXTRA_OUTPUT,
+				Uri.fromFile(photo));
+		imageUri = Uri.fromFile(photo);
+		startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+	}
+
+	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
@@ -179,121 +268,75 @@ public class ChannelChatActivity extends Activity implements OnClickListener, Ev
 							Message message = new Message(Controller.getInstance().getMyself(), encoded, false);
 							chatAdapter.addMessage(message);
 							chatAdapter.notifyDataSetChanged();
-							Server.sendChannelMessage(remoteUser, message.getMessage());
-							editText.setText("");
-							scrollMyListViewToTheBottomNowWeHere();
+							Server.sendPublicMessage(Controller.getInstance().getCity(), message.getMessage());
+							scrollMyListViewToBottom();
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
 					}});
-
-
-
-
 			}
 		}   
 	}
 
-	public void takePhoto() {
-		Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
-		File photo = new File(Environment.getExternalStorageDirectory(),  "Pic.jpg");
-		intent.putExtra(MediaStore.EXTRA_OUTPUT,
-				Uri.fromFile(photo));
-		imageUri = Uri.fromFile(photo);
-		isComingBackFromTakingPhoto = true;
-		startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-	}
 
-	@Override
-	public void onClick(View v) {
-		if(v.getId() == R.id.send){
-			final String text = editText.getText().toString();
-			if(!text.isEmpty()){
-				Message message = new Message(Controller.getInstance().getMyself(), text, false);
-				chatAdapter.addMessage(message);
-				chatAdapter.notifyDataSetChanged();
-				Server.sendChannelMessage(remoteUser, message.getMessage());
-				DatabaseHelper.getInstance().addMessage(message, remoteUser.getId());
-				editText.setText("");
-				scrollMyListViewToTheBottomNowWeHere();
-			}
-		} else if(v.getId() == R.id.back){
-			onBackPressed();
-		} else if(v.getId() == R.id.send_picture){
-			takePhoto();
-		}
-	}
-
-	private void scrollMyListViewToTheBottomNowWeHere() {
-		listMessages.post(new Runnable() {
-			@Override
-			public void run() {
-				// Select the last row so it will scroll into view...
-				listMessages.setSelection(chatAdapter.getCount() - 1);
-			}
-		});
+	private void hideKeyboard(){
+		InputMethodManager imm = (InputMethodManager)getSystemService(
+				Context.INPUT_METHOD_SERVICE);
+		imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
 	}
 
 	@Override
 	public void onEventsReceived(List<Event> events) {
 		for(Event e : events){
-			android.util.Log.i("Minou", "New event=" + e);
-			if(e instanceof Message && e.getDestination() instanceof User){
-				if(((User) e.getDestination()).getId().equals(Controller.getInstance().getMyId())){
-					if(chatAdapter.addMessage((Message) e)){
-						DatabaseHelper.getInstance().addMessage((Message) e, remoteUser.getId());
-					}
+			if(e instanceof Message && e.getDestination() instanceof City){
+				if(!Controller.getInstance().getBlockedPeople(this).contains(((Message) e).getUser().getId())){
+					chatAdapter.addMessage((Message) e);
 					chatAdapter.notifyDataSetChanged();
-					scrollMyListViewToTheBottomNowWeHere();
+					scrollMyListViewToBottom();
 				}
 			}
 		}
 
+	}
+
+	private class OnItemClickListenerPrivate implements OnItemClickListener{
+		@Override
+		public void onItemClick(AdapterView<?> adapter, View v, int position, long arg3) {
+			String user = ((String) adapter.getItemAtPosition(position));
+			PrivateChatActivity.show(ChannelChatActivity.this, user	, user);
+			slidingMenu.toggle(true);
+		}
+	}
+
+	private class OnItemClickListenerChannel implements OnItemClickListener{
+		@Override
+		public void onItemClick(AdapterView<?> adapter, View v, int position, long arg3) {
+			String channel = ((String) adapter.getItemAtPosition(position));
+			if(!channelName.endsWith(channel)){
+				ChannelChatActivity.show(ChannelChatActivity.this, channel);
+				slidingMenu.toggle(true);
+			}
+		}
 	}
 
 	@Override
 	public void onUserHistoryReceived(List<Event> events) {
-		Collections.sort(events, dateComparator);
-		for(Event e : events){
-			if(e instanceof Message && e.getDestination() instanceof User){
-				if((e.getUser()).getId().equals(Controller.getInstance().getMyId())){
-					((Message) e).setIsIncoming(false);
-				}
-				if(chatAdapter.addMessage((Message) e)){
-					Log.i("ChannelChatActivity", "adding message to db");
-					DatabaseHelper.getInstance().addMessage((Message) e, remoteUser.getId());
-				}
-				chatAdapter.notifyDataSetChanged();
-				scrollMyListViewToTheBottomNowWeHere();
-			}
-		}
 	}
 
-	Comparator<Event> dateComparator = new Comparator<Event>()
-			{
-		@Override
-		public int compare(Event lhs, Event rhs)
-		{
-			try
-			{
-				return lhs.getTimestamp().compareTo(rhs.getTimestamp());
-			}
-			catch (Exception e)
-			{
-				return 0;
-			}
-		}
-			};
+	@Override
+	public void onOpen() {
+		hideKeyboard();
+	}
 
-			@Override
-			public void onNetworkAvailable() {
-				tvConnectionProblem.setVisibility(View.GONE);
-				sendBt.setEnabled(true);
-			}
+	@Override
+	public void onNetworkAvailable() {
+		tvConnectionProblem.setVisibility(View.GONE);
+		sendBt.setEnabled(true);
+	}
 
-			@Override
-			public void onNetworkUnavailable() {
-				tvConnectionProblem.setVisibility(View.VISIBLE);
-				sendBt.setEnabled(false);
-			}
+	@Override
+	public void onNetworkUnavailable() {
+		tvConnectionProblem.setVisibility(View.VISIBLE);
+		sendBt.setEnabled(false);
+	}
 }

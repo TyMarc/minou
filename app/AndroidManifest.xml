@@ -41,7 +41,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.lesgens.minou.PublicChatActivity"
+            android:name="com.lesgens.minou.ChannelChatActivity"
             android:configChanges="orientation|keyboard|screenSize"
             android:label="@string/title_activity_public_chat" >
         </activity>
@@ -51,7 +51,7 @@
             android:theme="@android:style/Theme.Holo.NoActionBar.Fullscreen" >
         </activity>
         <activity
-            android:name="com.lesgens.minou.ChannelChatActivity"
+            android:name="com.lesgens.minou.PrivateChatActivity"
             android:configChanges="orientation|keyboard|screenSize"
             android:label="@string/title_activity_private_chat" >
         </activity>

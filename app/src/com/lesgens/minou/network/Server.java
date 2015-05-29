@@ -79,7 +79,7 @@ public class Server {
 		request.execute(authenticationToken);
 	}
 
-	public static void getEvents() {
+	public static void getEvents(final String channelName) {
 
 		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
 
@@ -87,7 +87,7 @@ public class Server {
 			protected String doInBackground(String... arg0) {
 				String finalAddress = address + "events";
 				Log.i(TAG, "Events address: " + finalAddress);
-				Log.i("SERVER+INFOS", "Events city: " + arg0[1]);
+				Log.i("SERVER+INFOS", "Events channel: " + arg0[1]);
 
 				List<NameValuePair> data = new ArrayList<NameValuePair>();
 				data.add(new BasicNameValuePair("city", arg0[1]));
@@ -120,7 +120,7 @@ public class Server {
 
 		};
 
-		request.execute(Controller.getInstance().getMyself().getId(), Controller.getInstance().getCity().getName());
+		request.execute(Controller.getInstance().getMyself().getId(), Controller.getInstance().getCity().getName() + channelName);
 	}
 
 	public static void sendChannelMessage(User destination, String message) {

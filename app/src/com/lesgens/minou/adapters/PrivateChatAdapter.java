@@ -23,13 +23,10 @@ import android.widget.TextView;
 
 import com.lesgens.minou.ImageViewerActivity;
 import com.lesgens.minou.R;
-import com.lesgens.minou.adapters.ChannelChatAdapter.HeaderViewHolder;
-import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.models.Message;
-import com.lesgens.minou.models.Message.Gender;
 import com.lesgens.minou.utils.Utils;
 
-public class PublicChatAdapter extends ArrayAdapter<Message> implements StickyListHeadersAdapter, OnClickListener{
+public class PrivateChatAdapter extends ArrayAdapter<Message> implements StickyListHeadersAdapter, OnClickListener {
 	private Context mContext;
 	private LayoutInflater mInflater = null;
 
@@ -43,9 +40,9 @@ public class PublicChatAdapter extends ArrayAdapter<Message> implements StickyLi
 	private Calendar sameYear;
 	private Typeface tf;
 
-	public PublicChatAdapter(Context context, ArrayList<Message> chatValue) {  
+	public PrivateChatAdapter(Context context, ArrayList<Message> chatValue) {  
 		super(context,-1, chatValue);
-		mContext = context;     
+		mContext = context;
 		messages = chatValue;
 		sameYear = Calendar.getInstance();
 		sameYear.add(Calendar.DAY_OF_MONTH, -7);
@@ -56,12 +53,14 @@ public class PublicChatAdapter extends ArrayAdapter<Message> implements StickyLi
 	}
 
 	static class ViewHolder {
-		public TextView name;
-		public ImageView avatar;
 		public TextView message;
 		public TextView time;
-		public TextView timePicture;
 		public ImageView picture;
+		public TextView timePicture;
+	}
+
+	static class HeaderViewHolder {
+		public TextView day;
 	}
 
 
@@ -69,21 +68,17 @@ public class PublicChatAdapter extends ArrayAdapter<Message> implements StickyLi
 		if(mInflater == null)
 			mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-		return mInflater;       
+		return mInflater;
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		View rowView;
 		Message message = messages.get(position);
-
-		android.util.Log.i("Blindr", "isIncoming="+message.isIncoming() + " message=" + message.getMessage());
 		if(!message.isIncoming()){
 			rowView = getInflater().inflate(R.layout.chat_odd, parent, false);
 
 			ViewHolder viewHolder = new ViewHolder();
-			viewHolder.name = null;
-			viewHolder.avatar = null;
 			viewHolder.message = (TextView) rowView.findViewById(R.id.message);
 			viewHolder.time = (TextView) rowView.findViewById(R.id.time);
 			viewHolder.timePicture = (TextView) rowView.findViewById(R.id.time_picture);
@@ -93,8 +88,6 @@ public class PublicChatAdapter extends ArrayAdapter<Message> implements StickyLi
 			rowView = getInflater().inflate(R.layout.chat_even, parent, false);
 
 			ViewHolder viewHolder = new ViewHolder();
-			viewHolder.name = (TextView) rowView.findViewById(R.id.name);
-			viewHolder.avatar = (ImageView) rowView.findViewById(R.id.avatar);
 			viewHolder.message = (TextView) rowView.findViewById(R.id.message);
 			viewHolder.time = (TextView) rowView.findViewById(R.id.time);
 			viewHolder.timePicture = (TextView) rowView.findViewById(R.id.time_picture);
@@ -109,52 +102,43 @@ public class PublicChatAdapter extends ArrayAdapter<Message> implements StickyLi
 
 		if(message.getMessage().startsWith(Utils.MINOU_IMAGE_BASE)){
 			holder.message.setVisibility(View.GONE);
+			holder.picture.setVisibility(View.VISIBLE);
 			holder.time.setVisibility(View.GONE);
 			holder.timePicture.setVisibility(View.VISIBLE);
 			holder.timePicture.setText(sdfMessage.format(message.getTimestamp()));
-			holder.picture.setVisibility(View.VISIBLE);
 			String encoded = message.getMessage().substring(Utils.MINOU_IMAGE_BASE.length());
-			byte[] bytes = Base64.decode(encoded, Base64.DEFAULT);
-			Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-			holder.picture.setImageBitmap(bitmap);
-			holder.picture.setOnClickListener(this);
+			byte[] bytes;
+			try{
+				bytes = Base64.decode(encoded, Base64.DEFAULT);
+				Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+				holder.picture.setImageBitmap(bitmap);
+				holder.picture.setOnClickListener(this);
+			} catch(Exception e){
+				e.printStackTrace();
+			}
+			
 		} else{
 			holder.message.setVisibility(View.VISIBLE);
+			holder.message.setText(message.getMessage());
 			holder.time.setVisibility(View.VISIBLE);
 			holder.timePicture.setVisibility(View.GONE);
-			holder.message.setText(message.getMessage());
+			holder.picture.setVisibility(View.GONE);
 			holder.time.setText(sdfMessage.format(message.getTimestamp()));
-		}
-
-		if(holder.name != null){
-			if(Controller.getInstance().checkIfMutualWith(message.getFakeName())){
-				holder.name.setText(message.getRealName());	
-			} else{
-				holder.name.setText(message.getFakeName());
-			}
-			if(message.getGender() == Gender.Female){
-				holder.name.setTextColor(mContext.getResources().getColor(R.color.pink));
-			} else if(message.getGender() == Gender.Male){
-				holder.name.setTextColor(mContext.getResources().getColor(R.color.main_color));
-			} else{
-				holder.name.setTextColor(mContext.getResources().getColor(R.color.grey));
-			}
-		}
-
-		if(holder.avatar != null){
-			holder.avatar.setImageBitmap(message.getUser().getAvatar());
 		}
 
 		return rowView;
 	}
 
-	public void addMessage(Message message){
+	public boolean addMessage(Message message){
 		if(!messages.isEmpty()){
 			if(!messages.contains(message)){
 				super.add(message);
+				return true;
 			}
+			return false;
 		} else{
 			super.add(message);
+			return true;
 		}
 	}
 
@@ -216,4 +200,5 @@ public class PublicChatAdapter extends ArrayAdapter<Message> implements StickyLi
 			ImageViewerActivity.show(getContext(), bitmap);
 		}
 	}
+
 }

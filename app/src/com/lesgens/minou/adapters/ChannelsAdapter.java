@@ -7,28 +7,24 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.lesgens.minou.R;
-import com.lesgens.minou.models.Match;
 
-public class ChannelsAdapter extends ArrayAdapter<Match>{
+public class ChannelsAdapter extends ArrayAdapter<String>{
 	private Context mContext;
 	private LayoutInflater mInflater = null;
 
-	private ArrayList<Match> matches;
+	private ArrayList<String> channels;
 
-	public ChannelsAdapter(Context context, ArrayList<Match> chatValue) {  
+	public ChannelsAdapter(Context context, ArrayList<String> chatValue) {  
 		super(context,R.layout.chat_even, chatValue);
 		mContext = context;     
-		matches = chatValue;     
+		channels = chatValue;     
 	}
 	
 	static class ViewHolder {
 	    public TextView name;
-	    public TextView mutual;
-	    public ImageView avatar;
 	  }
 
 	private LayoutInflater getInflater(){
@@ -47,29 +43,15 @@ public class ChannelsAdapter extends ArrayAdapter<Match>{
 			
 			ViewHolder holder = new ViewHolder();
 			holder.name = (TextView) rowView.findViewById(R.id.name);
-			holder.mutual = (TextView) rowView.findViewById(R.id.mutual);
-			holder.avatar = (ImageView) rowView.findViewById(R.id.avatar);
 			rowView.setTag(holder);
 		} else{
 			rowView = convertView;
 		}
 		
 		ViewHolder holder = (ViewHolder) rowView.getTag();
-		final Match match = matches.get(position);
+		final String channelName = channels.get(position);
 		
-		if(match.isMutual()){
-			holder.name.setText(match.getRealName());
-		} else{
-			holder.name.setText(match.getFakeName());
-		}
-		holder.avatar.setImageBitmap(match.getMatchedUser().getAvatar());
-		
-		if(match.isMutual()){
-			holder.mutual.setText("Click here to chat");
-		} else{
-			holder.mutual.setText("Pending request");
-		}
-		
+		holder.name.setText(channelName);
 
 		return rowView;
 	}
