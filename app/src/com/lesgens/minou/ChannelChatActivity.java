@@ -203,6 +203,7 @@ public class ChannelChatActivity extends Activity implements OnClickListener, Ev
 				chatAdapter.addMessage(message);
 				chatAdapter.notifyDataSetChanged();
 				Server.sendPublicMessage(Controller.getInstance().getCity(), message.getMessage());
+				Server.sendMessage(message.getMessage());
 				editText.setText("");
 				scrollMyListViewToBottom();
 			}
@@ -269,6 +270,7 @@ public class ChannelChatActivity extends Activity implements OnClickListener, Ev
 							chatAdapter.addMessage(message);
 							chatAdapter.notifyDataSetChanged();
 							Server.sendPublicMessage(Controller.getInstance().getCity(), message.getMessage());
+							Server.sendMessage(message.getMessage());
 							scrollMyListViewToBottom();
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -286,17 +288,21 @@ public class ChannelChatActivity extends Activity implements OnClickListener, Ev
 	}
 
 	@Override
-	public void onEventsReceived(List<Event> events) {
-		for(Event e : events){
-			if(e instanceof Message && e.getDestination() instanceof City){
-				if(!Controller.getInstance().getBlockedPeople(this).contains(((Message) e).getUser().getId())){
-					chatAdapter.addMessage((Message) e);
-					chatAdapter.notifyDataSetChanged();
-					scrollMyListViewToBottom();
-				}
-			}
-		}
+	public void onEventsReceived(final List<Event> events) {
+		runOnUiThread(new Runnable(){
 
+			@Override
+			public void run() {
+				for(Event e : events){
+					if(e instanceof Message && e.getDestination() instanceof City){
+						if(!Controller.getInstance().getBlockedPeople(ChannelChatActivity.this).contains(((Message) e).getUser().getId())){
+							chatAdapter.addMessage((Message) e);
+							chatAdapter.notifyDataSetChanged();
+							scrollMyListViewToBottom();
+						}
+					}
+				}
+			}});
 	}
 
 	private class OnItemClickListenerPrivate implements OnItemClickListener{

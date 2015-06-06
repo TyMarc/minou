@@ -19,6 +19,8 @@ public class Controller {
 	private Session session;
 	private User myselfUser;
 	private int dimensionAvatar;
+	
+
 
 	private static Controller controller;
 
@@ -46,7 +48,7 @@ public class Controller {
 	public void addUser(User user){
 		users.put(user.getId(), user);
 	}
-	
+
 	public User getUser(String tokenId){
 		if(users.get(tokenId) == null){
 			users.put(tokenId, new User("user" + tokenId, AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), tokenId));

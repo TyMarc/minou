@@ -59,6 +59,14 @@
             android:name="com.lesgens.minou.ImageViewerActivity"
             android:label="@string/title_activity_image_viewer" >
         </activity>
+
+        <service
+            android:name=".MinouMessagesService"
+            android:process=":remote" >
+            <intent-filter>
+                <action android:name="com.lesgens.minou.services.MinouMessagesService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>
