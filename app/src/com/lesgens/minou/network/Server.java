@@ -8,6 +8,8 @@ import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -51,7 +53,13 @@ public class Server {
 	private static String TAG = "Server";
 	private static WampClient client;
 	private static HashMap<String, Observable<PubSubData>> subscribedChannels = new HashMap<String, Observable<PubSubData>>();
-
+	private static class PokeCrossbarServer extends TimerTask {
+	    public void run() {
+	       sendStayAliveMessage();
+	    }
+	 }
+	private static Timer timer;
+	
 	public static void connect(String authenticationToken) {
 		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
 
@@ -131,6 +139,9 @@ public class Server {
 						for(User user : DatabaseHelper.getInstance().getPrivateChannels()){
 							subscribeToPrivateChannel(context, user.getId());
 						}
+						
+						 timer = new Timer();
+						 timer.schedule(new PokeCrossbarServer(), 0, 35000);
 					}
 					else if (t1 == WampClient.Status.Disconnected) {
 						closeSubscriptions();
@@ -215,7 +226,7 @@ public class Server {
 			return;
 		}
 
-		String fullChannelName = "minou." + channel.toLowerCase();
+		String fullChannelName = "minou." + channel.toLowerCase().replace(".", "_").replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "Subscribing to: " + fullChannelName);
@@ -271,9 +282,13 @@ public class Server {
 		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName + " channel=" + channel);
 		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(picture));
 	}
+	
+	public static void sendStayAliveMessage(){
+		client.publish("minou.ping", new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(""));
+	}
 
 	public static void sendPrivateMessage(final String message, final String remoteId){
-		String fullChannelName = "minou." + remoteId.toLowerCase();
+		String fullChannelName = "minou." + remoteId.toLowerCase().replace(".", "_").replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=" + message + " fullChannelName=" + fullChannelName);
@@ -282,7 +297,7 @@ public class Server {
 	}
 	
 	public static void sendPrivateMessage(final byte[] picture, final String remoteId){
-		String fullChannelName = "minou." + remoteId.toLowerCase();
+		String fullChannelName = "minou." + remoteId.toLowerCase().replace(".", "_").replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName);
