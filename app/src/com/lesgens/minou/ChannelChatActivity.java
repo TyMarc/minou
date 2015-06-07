@@ -42,7 +42,6 @@ import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.listeners.EventsListener;
-import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
@@ -82,7 +81,7 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 		i.putExtra("channelName", channelName);
 		context.startActivity(i);
 	}
-	
+
 	public static void show(final Context context, final String channelName, final String remoteId){
 		Intent i = new Intent(context, ChannelChatActivity.class);
 		i.putExtra("channelName", channelName);
@@ -98,7 +97,7 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		setContentView(R.layout.public_chat_container);
-		
+
 		channelTextView = (TextView) findViewById(R.id.city_name);
 
 		tvConnectionProblem = (TextView) findViewById(R.id.connection_problem);
@@ -106,8 +105,6 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 		tf = Typeface.createFromAsset(getAssets(), "fonts/Raleway_Thin.otf");
 		channelTextView.setTypeface(tf);
 
-		setChannelName(getIntent().getStringExtra("channelName"), getIntent().getStringExtra("remoteId"));
-		
 		editText = (EditText) findViewById(R.id.editText);
 		editText.clearFocus();
 
@@ -117,13 +114,14 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 		sendBt = (ImageView) findViewById(R.id.send);
 		sendBt.setOnClickListener(this);
 
+		initChannelName(getIntent().getStringExtra("channelName"), getIntent().getStringExtra("remoteId"));
 
 		if(getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA) == false){
 			findViewById(R.id.send_picture).setVisibility(View.GONE);
 		} else{
 			findViewById(R.id.send_picture).setOnClickListener(this);
 		}
-		
+
 		findViewById(R.id.add_channel).setOnClickListener(this);
 		findViewById(R.id.add_private).setOnClickListener(this);
 
@@ -159,8 +157,22 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 
 	}
 	
-	
-	
+	public void initChannelName(final String channelName, final String remoteId){
+		this.channelName = channelName;
+		this.remoteId = remoteId;
+		if(this.channelName == null) {
+			this.channelName = "";
+		}
+
+		if(this.channelName.isEmpty()){
+			channelTextView.setText(Controller.getInstance().getCity().getName());
+		} else{
+			channelTextView.setText(this.channelName);
+		}
+	}
+
+
+
 	public void setChannelName(final String channelName, final String remoteId){
 		this.channelName = channelName;
 		this.remoteId = remoteId;
@@ -174,7 +186,9 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 			channelTextView.setText(this.channelName);
 		}
 		
-		Server.setEventsListener(this);
+		chatAdapter.clear();
+		chatAdapter.addAll(DatabaseHelper.getInstance().getMessages(remoteId != null ? remoteId : channelName));
+		slidingMenu.toggle(true);
 	}
 
 	@Override
@@ -194,7 +208,7 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 
 		networkStateReceiver.removeListener(this);
 		this.unregisterReceiver(networkStateReceiver);
-		
+
 	}
 
 	@Override
@@ -220,16 +234,18 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 		if(v.getId() == R.id.send){
 			final String text = editText.getText().toString();
 			if(!text.isEmpty()){
-				Log.i(TAG, "Sending message to channel=" + channelName);
 				Message message = new Message(Controller.getInstance().getMyself(), text, false);
 				chatAdapter.addMessage(message);
 				chatAdapter.notifyDataSetChanged();
 				if(!isPrivate()){
+					Log.i(TAG, "Sending message to channel=" + channelName);
 					Server.sendMessage(message.getMessage(), channelName);
+					DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getMyId(), channelName);
 				} else{
+					Log.i(TAG, "Sending message to channel=" + remoteId);
 					Server.sendPrivateMessage(message.getMessage(), remoteId);
+					DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getMyId(), remoteId);
 				}
-				DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getMyId(), channelName);
 				editText.setText("");
 				scrollMyListViewToBottom();
 			}
@@ -294,7 +310,7 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 							Message message = new Message(Controller.getInstance().getMyself(), byteArray, false);
 							chatAdapter.addMessage(message);
 							chatAdapter.notifyDataSetChanged();
-							
+
 							if(!isPrivate()){
 								Server.sendMessage(byteArray, channelName);
 							} else{
@@ -320,7 +336,7 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 			}
 		}
 	}
-	
+
 	private boolean isPrivate(){
 		return remoteId != null;
 	}
@@ -342,16 +358,14 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 			@Override
 			public void run() {
 				for(Event e : events){
-					if(e instanceof Message && e.getDestination() instanceof Channel){
-						if(!Controller.getInstance().getBlockedPeople(ChannelChatActivity.this).contains(((Message) e).getUser().getId())){
-							chatAdapter.addMessage((Message) e);
-							chatAdapter.notifyDataSetChanged();
-							scrollMyListViewToBottom();
-						}
+					if(!Controller.getInstance().getBlockedPeople(ChannelChatActivity.this).contains(((Message) e).getUser().getId())){
+						chatAdapter.addMessage((Message) e);
+						chatAdapter.notifyDataSetChanged();
+						scrollMyListViewToBottom();
 					}
 				}
 			}});
-		
+
 		return true;
 	}
 
@@ -362,9 +376,6 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 			if(!channelName.endsWith(user.getName())){
 				Log.i(TAG, "New channel name=" + user.getName());
 				setChannelName(user.getName(), user.getId());
-				chatAdapter.clear();
-				chatAdapter.addAll(DatabaseHelper.getInstance().getMessages(user.getId()));
-				slidingMenu.toggle(true);
 			}
 		}
 	}
@@ -376,20 +387,17 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 			if(!channelName.endsWith(channel)){
 				Log.i(TAG, "New channel name=" + channel);
 				setChannelName(channel, null);
-				chatAdapter.clear();
-				chatAdapter.addAll(DatabaseHelper.getInstance().getMessages(channel));
-				slidingMenu.toggle(true);
 			}
 		}
 	}
-	
+
 	private class OnItemLongClickListenerChannel implements OnItemLongClickListener{
 
 
 		@Override
 		public boolean onItemLongClick(final AdapterView<?> arg0, final View arg1,
 				final int arg2, final long arg3) {
-			if(arg2 <= Controller.getInstance().getCityList().size()){
+			if(arg2 < Controller.getInstance().getCityList().size()){
 				return false;
 			}
 			CustomYesNoDialog dialog = new CustomYesNoDialog(ChannelChatActivity.this){
@@ -399,6 +407,12 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 					super.onPositiveClick();
 					final String channel = ((TextView) arg1.findViewById(R.id.name)).getText().toString();
 					PreferencesController.removeChannel(ChannelChatActivity.this, channel);
+					DatabaseHelper.getInstance().deleteAllMessages(channel);
+					if(channel.toLowerCase().equals(channelName.toLowerCase())){
+						setChannelName(Controller.getInstance().getCity().getName(), null);
+					} else{
+						slidingMenu.toggle(true);
+					}
 					channelsAdapter.remove(channel);
 				}
 
@@ -408,9 +422,9 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 			dialog.setDialogText(R.string.delete_channel);			
 			return true;
 		}
-		
+
 	}
-	
+
 	private class OnItemLongClickListenerUser implements OnItemLongClickListener{
 
 		@Override
@@ -418,16 +432,18 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 				final int arg2, final long arg3) {
 
 			final Message message = chatAdapter.getItem(arg2);
+			if(message.getUser().getId().equals(Controller.getInstance().getMyId()) || 
+					DatabaseHelper.getInstance().getPrivateChannels().contains(message.getUser())){
+				return true;
+			}
 			CustomYesNoDialog dialog = new CustomYesNoDialog(ChannelChatActivity.this){
 
 				@Override
 				public void onPositiveClick() {
 					super.onPositiveClick();
-					DatabaseHelper.getInstance().addPrivateChannel(message.getUserName(), message.getDestination().getId());
-					Server.subscribeToPrivateChannel(ChannelChatActivity.this, message.getDestination().getId());
-					ChannelChatActivity.show(ChannelChatActivity.this, message.getDestination().getId());
-					finish();
-					
+					DatabaseHelper.getInstance().addPrivateChannel(message.getUser().getName(), message.getUser().getId());
+					Server.subscribeToPrivateChannel(ChannelChatActivity.this, message.getUser().getId());
+					setChannelName(message.getUserName(), message.getDestination().getId());
 				}
 
 			};
@@ -436,9 +452,9 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 			dialog.setDialogText(R.string.add_channel);			
 			return true;
 		}
-		
+
 	}
-	
+
 	private class OnItemLongClickListenerPrivateChannel implements OnItemLongClickListener{
 
 		@Override
@@ -452,6 +468,12 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 				public void onPositiveClick() {
 					super.onPositiveClick();
 					DatabaseHelper.getInstance().removePrivateChannel(user.getId());
+					DatabaseHelper.getInstance().deleteAllMessages(user.getId());
+					if(user.getName().toLowerCase().equals(channelName.toLowerCase())){
+						setChannelName(Controller.getInstance().getCity().getName(), null);
+					} else{
+						slidingMenu.toggle(true);
+					}
 					privatesAdapter.remove(user);
 				}
 
@@ -461,9 +483,9 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 			dialog.setDialogText(R.string.delete_channel);			
 			return true;
 		}
-		
+
 	}
-	
+
 	@Override
 	public void onUserHistoryReceived(List<Event> events) {
 	}

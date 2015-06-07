@@ -7,6 +7,7 @@
     realm: 'minou'
   });
 
+  var number = 0;
   var messageTpl = _.template($('#message-tpl').text());
 
 
@@ -30,7 +31,8 @@
     }
 
     function sendMessage(message) {
-      session.publish('minou.montreal', [], {from:'3ui45389fj43', fake_name:'Angry Plot' , content: message});
+      session.publish('minou.montreal', [], {from:'3ui45389fj43', fake_name:'Cat Searching' , content: 'hey' + number});
+	  number = number + 1;
       appendMessage('self', message);
     }
 

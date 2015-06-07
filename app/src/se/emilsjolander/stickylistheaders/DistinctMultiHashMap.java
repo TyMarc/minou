@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * a hash map can maintain an one-to-many relationship which the value only belongs to one “one” part
+ * a hash map can maintain an one-to-many relationship which the value only belongs to one â€œoneâ€� part
  * and the map also support getKey by value quickly
  *
  * @author lsjwzh
@@ -32,7 +32,8 @@ class DistinctMultiHashMap<TKey,TItemValue> {
                  return key;
              }
 
-             @Override
+             @SuppressWarnings("unchecked")
+			@Override
              public TKey keyIdToKey(Object keyId) {
                  return (TKey) keyId;
              }
@@ -42,7 +43,8 @@ class DistinctMultiHashMap<TKey,TItemValue> {
                  return value;
              }
 
-             @Override
+             @SuppressWarnings("unchecked")
+			@Override
              public TItemValue valueIdToValue(Object valueId) {
                  return (TItemValue) valueId;
              }

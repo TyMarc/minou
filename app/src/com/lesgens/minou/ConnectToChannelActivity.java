@@ -56,7 +56,12 @@ public class ConnectToChannelActivity extends MinouActivity implements OnClickLi
 			}
 		};
 		((EditText) findViewById(R.id.editText)).setFilters(new InputFilter[]{filter}); 
-		findViewById(R.id.currently_written).setOnClickListener(this);
+
+		if(!isPrivateChannelPicker){
+			findViewById(R.id.currently_written).setOnClickListener(this);
+		} else {
+			findViewById(R.id.currently_written).setVisibility(View.GONE);
+		}
 
 		adapter = new ChannelsAdapter(this, Server.getTrendingTopics());
 		((ListView) findViewById(R.id.list_view)).setAdapter(adapter);
@@ -69,7 +74,7 @@ public class ConnectToChannelActivity extends MinouActivity implements OnClickLi
 			final String text = ((TextView) v).getText().toString().trim();
 			if(!text.trim().isEmpty() && !text.trim().toLowerCase().equals(Controller.getInstance().getCity()
 					.getName().toLowerCase())){
-				if(isPrivateChannelPicker && 1 == 0){
+				if(isPrivateChannelPicker){
 					final User user = Controller.getInstance().getUserByName(text);
 					DatabaseHelper.getInstance().addPrivateChannel(user.getName(), user.getId());
 					Server.subscribeToPrivateChannel(this, user.getId());

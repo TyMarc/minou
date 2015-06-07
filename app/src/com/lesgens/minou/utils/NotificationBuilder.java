@@ -4,6 +4,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
 
@@ -16,6 +17,7 @@ public class NotificationBuilder {
 	public static void notify(final Context context, final String channel, final User user, final String content){
 		NotificationCompat.Builder mBuilder =
 				new NotificationCompat.Builder(context)
+		.setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.minou_notif))
 		.setSmallIcon(R.drawable.mail)
 		.setContentTitle(user.getName())
 		.setContentText(content)

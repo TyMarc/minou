@@ -178,7 +178,7 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 		Log.i("SplashscreenActivity", "onUserAuthenticated");
 		authenticated = true;
 		if(geolocated){
-			Server.connectToCrossbar(this, Controller.getInstance().getCity().getName());
+			Server.connectToCrossbar(this);
 			goToPublicChat();
 		}
 	}
@@ -218,7 +218,7 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 				Controller.getInstance().setCity(new City(city, state, country));
 				geolocated = true;
 				if(authenticated){
-					Server.connectToCrossbar(this, city);
+					Server.connectToCrossbar(this);
 					goToPublicChat();
 				}
 			} catch (IOException e) {

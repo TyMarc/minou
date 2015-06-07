@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.sql.Timestamp;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -98,7 +99,7 @@ public class Server {
 		request.execute(authenticationToken);
 	}
 
-	public static void connectToCrossbar(final Context context, final String city){
+	public static void connectToCrossbar(final Context context){
 		try {
 			// Create a builder and configure the client
 			disconnect();
@@ -118,7 +119,10 @@ public class Server {
 					Log.i(TAG, "Session status changed to " + t1);
 
 					if (t1 == WampClient.Status.Connected) {
-						subscribeToPrivateChannel(context, city);
+						
+						for(String channel : Controller.getInstance().getCityList()){
+							subscribeToPrivateChannel(context, channel);
+						}
 
 						for(String channel : PreferencesController.getChannels(context)){
 							subscribeToChannel(context, channel);
@@ -171,7 +175,9 @@ public class Server {
 		if(subscribedChannels.containsKey(channel)){
 			return;
 		}
-		final String fullChannelName = "minou." + Controller.getInstance().getCity().getName().toLowerCase() + "." + channel.toLowerCase().replace(" ", "_");
+		String fullChannelName = "minou." + Controller.getInstance().getCity().getName().toLowerCase() + "." + channel.toLowerCase().replace(" ", "_");
+		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
+		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "Subscribing to: " + fullChannelName);
 		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName);
 		channelSubscription.forEach(new Action1<PubSubData>(){
@@ -208,7 +214,10 @@ public class Server {
 		if(subscribedChannels.containsKey(channel)){
 			return;
 		}
-		final String fullChannelName = "minou." + channel.toLowerCase();
+
+		String fullChannelName = "minou." + channel.toLowerCase();
+		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
+		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "Subscribing to: " + fullChannelName);
 		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName);
 		channelSubscription.forEach(new Action1<PubSubData>(){
@@ -231,7 +240,7 @@ public class Server {
 				if(eventsListeners != null){
 					isGoodChannel = eventsListeners.onEventsReceived(events, channel);
 				}
-				DatabaseHelper.getInstance().addMessage(m, user.getId(), fullChannelName);
+				DatabaseHelper.getInstance().addMessage(m, user.getId(), channel);
 				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
 					Log.i(TAG, "Application not visible, should send notification");
 					NotificationBuilder.notify(context, channel, user, content);
@@ -243,6 +252,8 @@ public class Server {
 
 	public static void sendMessage(final String message, final String channel){
 		String fullChannelName = "minou." + Controller.getInstance().getCity().getName().toLowerCase() + "." + channel.toLowerCase();
+		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
+		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		if(Controller.getInstance().getCity().getName().toLowerCase().equals(channel.toLowerCase())){
 			fullChannelName = "minou." + Controller.getInstance().getCity().getName().toLowerCase();
 		}
@@ -252,6 +263,8 @@ public class Server {
 	
 	public static void sendMessage(final byte[] picture, final String channel){
 		String fullChannelName = "minou." + Controller.getInstance().getCity().getName().toLowerCase() + "." + channel.toLowerCase();
+		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
+		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		if(Controller.getInstance().getCity().getName().toLowerCase().equals(channel.toLowerCase())){
 			fullChannelName = "minou." + Controller.getInstance().getCity().getName().toLowerCase();
 		}
@@ -261,6 +274,8 @@ public class Server {
 
 	public static void sendPrivateMessage(final String message, final String remoteId){
 		String fullChannelName = "minou." + remoteId.toLowerCase();
+		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
+		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=" + message + " fullChannelName=" + fullChannelName);
 
 		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message));
@@ -268,6 +283,8 @@ public class Server {
 	
 	public static void sendPrivateMessage(final byte[] picture, final String remoteId){
 		String fullChannelName = "minou." + remoteId.toLowerCase();
+		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
+		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName);
 
 		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(picture));

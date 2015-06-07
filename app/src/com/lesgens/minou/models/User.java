@@ -24,4 +24,18 @@ public class User implements IDestination{
 	public String getId() {
 		return tokenId;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if(o instanceof User){
+			if(((User) o).getId() != null && tokenId != null){
+				if(((User) o).getId().toLowerCase().equals(tokenId.toLowerCase())){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	
 }

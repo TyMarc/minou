@@ -9,6 +9,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.models.Message;
@@ -16,6 +17,7 @@ import com.lesgens.minou.models.User;
 
 public class DatabaseHelper extends SQLiteOpenHelper
 {
+	private static final String TAG = "DatabaseHelper";
 	private static DatabaseHelper instance;
 	
 	private DatabaseHelper(Context context) {
@@ -51,6 +53,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public void addMessage(Message m, String userToken, String channel){
 		SQLiteDatabase db = this.getWritableDatabase();
 
+		Log.i(TAG, " adding message to database to channel=" + channel.toLowerCase());
 		ContentValues cv = new ContentValues();
 		cv.put("message_id",m.getId().toString());
 		cv.put("userName", m.getUserName());
@@ -59,7 +62,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		cv.put("isIncoming", m.isIncoming() ? 1 : 0);
 		cv.put("timestamp", m.getTimestamp().getTime());
 		cv.put("userToken", userToken);
-		cv.put("channel", channel);
+		cv.put("channel", channel.toLowerCase());
 		db.insert("minou_message", null, cv);
 		
 		cv = new ContentValues();
@@ -76,8 +79,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public ArrayList<Message> getMessages(String channel){
 		ArrayList<Message> messages = new ArrayList<Message>();
 		SQLiteDatabase db = this.getReadableDatabase();
+		Log.i(TAG, "get Messages for channel=" + channel.toLowerCase());
 
-		Cursor c = db.rawQuery("SELECT message_id, timestamp, userName, message, isIncoming, data, userToken FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel} );
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, userName, message, isIncoming, data, userToken FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel.toLowerCase()} );
 		
 		Message message;
 		while(c.moveToNext()){
@@ -89,12 +93,18 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			byte[] data = c.getBlob(5);
 			String userToken = c.getString(6);
 			User user = Controller.getInstance().getUser(userToken, userName);
-			message = new Message(id, timestamp, user, 
-					null, text, userName, isIncoming, data);
+			message = new Message(id, timestamp, Controller.getInstance().getCity(), 
+					user, text, userName, isIncoming, data);
 			messages.add(message);
 		}
 		
 		return messages;
+	}
+	
+	public void deleteAllMessages(final String channel){
+		SQLiteDatabase db = this.getWritableDatabase();
+		
+		db.delete("minou_message", "channel = ?", new String[]{channel.toLowerCase()});
 	}
 	
 	public void addPrivateChannel(String userName, String userToken){
@@ -136,7 +146,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public void removePrivateChannel(String remoteId) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
-		db.delete("minou_private", "remoteId = ?", new String[]{remoteId});
+		db.delete("minou_private", "userToken = ?", new String[]{remoteId});
 	}
 	
 	public long getLastMessageFetched(String channel){
