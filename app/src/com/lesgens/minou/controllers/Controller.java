@@ -11,7 +11,6 @@ import android.util.Log;
 import com.checkin.avatargenerator.AvatarGenerator;
 import com.facebook.Session;
 import com.lesgens.minou.models.City;
-import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.Utils;
 
@@ -22,16 +21,12 @@ public class Controller {
 	private Session session;
 	private User myselfUser;
 	private int dimensionAvatar;
-	private HashMap<String, ArrayList<Message>> messages;
-	
-
 
 	private static Controller controller;
 
 	private Controller(){
 		city = new City("", null, null);
 		users = new HashMap<String, User>();
-		messages = new HashMap<String, ArrayList<Message>>();
 	}
 
 	public static Controller getInstance(){
@@ -53,19 +48,38 @@ public class Controller {
 	public void addUser(User user){
 		users.put(user.getId(), user);
 	}
+	
+	public ArrayList<String> getCityList(){
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(city.getCountry());
+		list.add(city.getState());
+		list.add(city.getName());
+		
+		return list;
+	}
 
 	public User getUser(String tokenId){
 		if(users.get(tokenId) == null){
-			users.put(tokenId, new User("user" + tokenId, AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), tokenId));
+			users.put(tokenId, new User(tokenId, AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), tokenId));
 		}
 		return users.get(tokenId);
 	}
 	
-	public User getUser(final String tokenId, final String fakeName){
-		if(users.get(tokenId) == null){
-			users.put(tokenId, new User(fakeName, AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), tokenId));
+	public User getUserByName(String name){
+		for(User user : users.values()){
+			if(user.getName() != null && user.getName().toLowerCase().equals(name.toLowerCase())){
+				return user;
+			}
 		}
-		return users.get(tokenId);
+		
+		return null;
+	}
+	
+	public User getUser(final String remoteId, final String userName){
+		if(users.get(remoteId) == null){
+			users.put(remoteId, new User(userName, AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), remoteId));
+		}
+		return users.get(remoteId);
 	}
 
 	public Session getSession() {
@@ -94,21 +108,6 @@ public class Controller {
 
 	public int getDimensionAvatar() {
 		return dimensionAvatar;
-	}
-	
-	public ArrayList<Message> getMessages(final String channel){
-		Log.i(TAG, "getting messages from=" + channel + " messages=" + messages.get(channel));
-		return messages.get(channel) != null ? messages.get(channel) : new ArrayList<Message>();
-	}
-	
-	public void addMessage(final String channel, final Message message){
-		if(messages.get(channel) != null){
-			messages.get(channel).add(message);
-		} else{
-			ArrayList<Message> newMessage = new ArrayList<Message>();
-			newMessage.add(message);
-			messages.put(channel, newMessage);
-		}
 	}
 
 	public void addBlockPerson(Activity activity, String id){

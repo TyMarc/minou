@@ -1,6 +1,6 @@
 package com.lesgens.minou;
 
-import android.content.Context;
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -17,16 +17,18 @@ import android.widget.TextView;
 import com.lesgens.minou.adapters.ChannelsAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
+import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 
 public class ConnectToChannelActivity extends MinouActivity implements OnClickListener, TextWatcher{
 	private boolean isPrivateChannelPicker;
 	private ChannelsAdapter adapter;
 
-	public static void show(final Context context, final boolean isPrivateChannelPicker) {
-		Intent i = new Intent(context, ConnectToChannelActivity.class);
+	public static void show(final Activity activity, final boolean isPrivateChannelPicker, final int requestCode) {
+		Intent i = new Intent(activity, ConnectToChannelActivity.class);
 		i.putExtra("isPrivateChannelPicker", isPrivateChannelPicker);
-		context.startActivity(i);
+		activity.startActivityForResult(i, requestCode);
 	}
 
 	@Override
@@ -67,14 +69,18 @@ public class ConnectToChannelActivity extends MinouActivity implements OnClickLi
 			final String text = ((TextView) v).getText().toString().trim();
 			if(!text.trim().isEmpty() && !text.trim().toLowerCase().equals(Controller.getInstance().getCity()
 					.getName().toLowerCase())){
-				if(isPrivateChannelPicker){
-					PreferencesController.addPrivateChannel(this, text);
-					Server.subscribeToPrivateChannel(this, text);
-					finish();
+				if(isPrivateChannelPicker && 1 == 0){
+					final User user = Controller.getInstance().getUserByName(text);
+					DatabaseHelper.getInstance().addPrivateChannel(user.getName(), user.getId());
+					Server.subscribeToPrivateChannel(this, user.getId());
+					if(user != null){
+						setResult(RESULT_OK, new Intent(user.getId()));
+						finish();
+					}
 				} else{
 					PreferencesController.addChannel(this, text);
 					Server.subscribeToChannel(this, text);
-					ChannelChatActivity.show(this, text);
+					setResult(RESULT_OK, new Intent(text));
 					finish();
 				}
 			}
@@ -89,14 +95,10 @@ public class ConnectToChannelActivity extends MinouActivity implements OnClickLi
 	@Override
 	public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
 			int arg3) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-		// TODO Auto-generated method stub
-
 	}
 
 

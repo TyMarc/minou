@@ -35,67 +35,114 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 	public void onCreate(SQLiteDatabase db)
 	{
-		db.execSQL("CREATE TABLE blindr_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, conversation TEXT, fakeName TEXT, realName TEXT, message TEXT, timestamp LONG, isIncoming INTEGER DEFAULT 0);");
-		db.execSQL("CREATE TABLE blindr_last_message (id INTEGER PRIMARY KEY AUTOINCREMENT, remoteId TEXT, timestamp LONG);");
+		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userToken TEXT, userName TEXT, message TEXT, data BLOB, timestamp LONG, isIncoming INTEGER DEFAULT 0);");
+		db.execSQL("CREATE TABLE minou_last_message (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT, timestamp LONG);");
+		db.execSQL("CREATE TABLE minou_private (id INTEGER PRIMARY KEY AUTOINCREMENT, userToken TEXT, userName TEXT);");
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		db.execSQL("DROP TABLE if exists blindr_message");
-		db.execSQL("DROP TABLE if exists blindr_last_message");
+		db.execSQL("DROP TABLE if exists minou_message");
+		db.execSQL("DROP TABLE if exists minou_last_message");
+		db.execSQL("DROP TABLE if exists minou_private");
 		onCreate(db);
 	}
 
-	public void addMessage(Message m, String remoteId){
+	public void addMessage(Message m, String userToken, String channel){
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		ContentValues cv = new ContentValues();
 		cv.put("message_id",m.getId().toString());
-		cv.put("fakeName", m.getFakeName());
-		cv.put("realName", m.getRealName());
+		cv.put("userName", m.getUserName());
 		cv.put("message", m.getMessage());
+		cv.put("data", m.getData());
 		cv.put("isIncoming", m.isIncoming() ? 1 : 0);
 		cv.put("timestamp", m.getTimestamp().getTime());
-		cv.put("conversation", remoteId);
-		db.insert("blindr_message", null, cv);
+		cv.put("userToken", userToken);
+		cv.put("channel", channel);
+		db.insert("minou_message", null, cv);
 		
 		cv = new ContentValues();
 		cv.put("timestamp", m.getTimestamp().getTime());
-		if(getLastMessageFetched(remoteId) == 0){
-			cv.put("remoteId", remoteId);
-			db.insert("blindr_last_message", null, cv);
+		if(getLastMessageFetched(channel) == 0){
+			cv.put("channel", channel);
+			db.insert("minou_last_message", null, cv);
 		} else{
-			db.update("blindr_last_message", cv, "remoteId = ?", new String[]{m.getUser().getId()});
+			db.update("minou_last_message", cv, "channel = ?", new String[]{channel});
 		}
 		
 	}
 
-	public ArrayList<Message> getPrivateMessages(User user){
+	public ArrayList<Message> getMessages(String channel){
 		ArrayList<Message> messages = new ArrayList<Message>();
 		SQLiteDatabase db = this.getReadableDatabase();
 
-		Cursor c = db.rawQuery("SELECT message_id, timestamp, realName, fakeName, message, isIncoming FROM blindr_message WHERE conversation = ? ORDER BY timestamp ASC;", new String[]{user.getId()} );
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, userName, message, isIncoming, data, userToken FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel} );
 		
 		Message message;
 		while(c.moveToNext()){
 			UUID id = UUID.fromString(c.getString(0));
 			Timestamp timestamp = new Timestamp(c.getLong(1));
-			String realName = c.getString(2);
-			String fakeName = c.getString(3);
-			String text = c.getString(4);
-			boolean isIncoming = c.getInt(5) == 1;
-			message = new Message(id, timestamp, isIncoming ? user : Controller.getInstance().getMyself(), 
-					realName, fakeName, text, isIncoming, null);
+			String userName = c.getString(2);
+			String text = c.getString(3);
+			boolean isIncoming = c.getInt(4) == 1;
+			byte[] data = c.getBlob(5);
+			String userToken = c.getString(6);
+			User user = Controller.getInstance().getUser(userToken, userName);
+			message = new Message(id, timestamp, user, 
+					null, text, userName, isIncoming, data);
 			messages.add(message);
 		}
 		
 		return messages;
 	}
 	
-	public long getLastMessageFetched(String remoteId){
+	public void addPrivateChannel(String userName, String userToken){
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		ContentValues cv = new ContentValues();
+		cv.put("userToken", userToken);
+		cv.put("userName", userName);
+		db.insert("minou_private", null, cv);
+	}
+	
+	public User getPrivateChannel(String userName){
 		SQLiteDatabase db = this.getReadableDatabase();
 
-		Cursor c = db.rawQuery("SELECT timestamp FROM blindr_last_message WHERE remoteId = ?;", new String[]{remoteId} );
+		Cursor c = db.rawQuery("SELECT userToken FROM minou_private WHERE userName = ?;", new String[]{userName} );
+		
+		if(c.moveToFirst()){
+			User user = Controller.getInstance().getUser(c.getString(0), userName);
+			return user;
+		}
+		
+		return null;		
+	}
+	
+	public ArrayList<User> getPrivateChannels(){
+		ArrayList<User> users = new ArrayList<User>();
+		SQLiteDatabase db = this.getReadableDatabase();
+
+		Cursor c = db.rawQuery("SELECT userToken, userName FROM minou_private;", null);
+		
+		while(c.moveToNext()){
+			User user = Controller.getInstance().getUser(c.getString(0), c.getString(1));
+			users.add(user);
+		}
+		
+		return users;		
+	}
+	
+	public void removePrivateChannel(String remoteId) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		
+		db.delete("minou_private", "remoteId = ?", new String[]{remoteId});
+	}
+	
+	public long getLastMessageFetched(String channel){
+		SQLiteDatabase db = this.getReadableDatabase();
+
+		Cursor c = db.rawQuery("SELECT timestamp FROM minou_last_message WHERE channel = ?;", new String[]{channel} );
 		
 		if(c.moveToFirst()){
 			return c.getLong(0);

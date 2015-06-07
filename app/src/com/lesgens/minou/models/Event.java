@@ -10,16 +10,14 @@ public abstract class Event {
 	private Timestamp timestamp;
 	private IDestination destination;
 	private User sourceUser;
-	private String realName;
-	private String fakeName;
+	private String userName;
 	
-	public Event(UUID id, Timestamp timestamp, IDestination destination, User user, String realName, String fakeName) {
+	public Event(UUID id, Timestamp timestamp, IDestination destination, User user, String userName) {
 		this.id = id;
 		this.timestamp = timestamp;
 		this.destination = destination;
 		this.sourceUser = user;
-		this.realName = realName;
-		this.fakeName = fakeName;
+		this.userName = userName;
 	}
 	
 	public UUID getId(){
@@ -38,12 +36,8 @@ public abstract class Event {
 		return sourceUser;
 	}
 	
-	public String getRealName() {
-		return realName;
-	}
-	
-	public String getFakeName() {
-		return fakeName;
+	public String getUserName() {
+		return userName;
 	}
 	
 }

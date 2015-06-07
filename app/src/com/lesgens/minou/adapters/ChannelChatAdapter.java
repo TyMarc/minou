@@ -22,7 +22,6 @@ import android.widget.TextView;
 
 import com.lesgens.minou.ImageViewerActivity;
 import com.lesgens.minou.R;
-import com.lesgens.minou.adapters.PrivateChatAdapter.HeaderViewHolder;
 import com.lesgens.minou.models.Message;
 
 public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyListHeadersAdapter, OnClickListener{
@@ -38,8 +37,9 @@ public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyL
 	private Date sameWeek;
 	private Calendar sameYear;
 	private Typeface tf;
+	private boolean isPrivate;
 
-	public ChannelChatAdapter(Context context, ArrayList<Message> chatValue) {  
+	public ChannelChatAdapter(Context context, ArrayList<Message> chatValue, boolean isPrivate) {  
 		super(context,-1, chatValue);
 		mContext = context;     
 		messages = chatValue;
@@ -48,6 +48,7 @@ public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyL
 		sameWeek = sameYear.getTime();
 		sameYear.add(Calendar.DAY_OF_MONTH, +7);
 		sameYear.set(Calendar.DAY_OF_YEAR, 0);
+		this.isPrivate = isPrivate;
 		tf = Typeface.createFromAsset(context.getAssets(), "fonts/Raleway_Thin.otf");
 	}
 
@@ -58,6 +59,10 @@ public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyL
 		public TextView time;
 		public TextView timePicture;
 		public ImageView picture;
+	}
+	
+	static class HeaderViewHolder {
+		public TextView day;
 	}
 
 
@@ -121,11 +126,19 @@ public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyL
 		}
 
 		if(holder.name != null){
-			holder.name.setText(message.getFakeName());
+			if(!isPrivate){
+				holder.name.setText(message.getUserName());
+			} else{
+				holder.name.setVisibility(View.GONE);
+			}
 		}
 
-		if(holder.avatar != null){
-			holder.avatar.setImageBitmap(message.getUser().getAvatar());
+		if(holder.avatar != null && !isPrivate){
+			if(!isPrivate){
+				holder.avatar.setImageBitmap(message.getUser().getAvatar());
+			} else{
+				holder.avatar.setVisibility(View.GONE);
+			}
 		}
 
 		return rowView;

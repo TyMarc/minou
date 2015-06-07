@@ -8,39 +8,33 @@ import java.util.UUID;
 
 public class Message extends Event{
 
-	public enum Gender {
-		Male, Female, Custom
-	};
-
 	private String message;
 	private ArrayList<UUID> idsMessage;
 	private boolean isIncoming;
-	private Gender gender;
 	private byte[] data;
 
 	public Message(User user, String message, boolean isIncoming){
-		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, message, null, Gender.Custom, isIncoming, null, null);
+		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, message, null,  isIncoming, null);
 	}
 	
 	public Message(User user, byte[] data, boolean isIncoming){
-		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, null, null, Gender.Custom, isIncoming, null, data);
+		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, null, null,  isIncoming, data);
 	}
 	
-	public Message(User user, String message, String fakeName, IDestination iDestionation, boolean isIncoming, byte[] data){
-		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), iDestionation, user, message, fakeName, Gender.Custom, isIncoming, null, data);
+	public Message(User user, String message, String userName, IDestination iDestionation, boolean isIncoming, byte[] data){
+		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), iDestionation, user, message, userName,  isIncoming, data);
 	}
 	
-	public Message(UUID id, Timestamp timestamp, User user, String realName, String fakeName, String message, boolean isIncoming, byte[] data){
-		this(id, timestamp, null, user, message, fakeName, Gender.Custom, isIncoming, realName, data);
+	public Message(UUID id, Timestamp timestamp, User user, String userName, String message, boolean isIncoming, byte[] data){
+		this(id, timestamp, null, user, message, userName, isIncoming, data);
 	}
 
-	public Message(UUID id, Timestamp timestamp, IDestination destination, User user, String message, String fakeName, Gender gender, boolean isIncoming, String realName, byte[] data) {
-		super(id, timestamp, destination, user, realName, fakeName);
+	public Message(UUID id, Timestamp timestamp, IDestination destination, User user, String message, String userName, boolean isIncoming, byte[] data) {
+		super(id, timestamp, destination, user, userName);
 		this.message = message;
 		this.isIncoming = isIncoming;
 		idsMessage = new ArrayList<UUID>();
 		idsMessage.add(id);
-		this.gender = gender;
 		this.data = data;
 	}
 
@@ -77,10 +71,6 @@ public class Message extends Event{
 		}
 
 		return false;
-	}
-
-	public Gender getGender() {
-		return gender;
 	}
 
 	public void setIsIncoming(boolean b) {

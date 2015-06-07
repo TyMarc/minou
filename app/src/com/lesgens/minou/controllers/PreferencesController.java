@@ -15,7 +15,6 @@ public class PreferencesController {
 	public static final String LAST_CONNECTION = "USER_PREF_LAST_CONNECTION";
 	public static final String FIRST_TIME_USE = "USER_PREF_FIRST_TIME_USE";
 	public static final String CHANNELS = "USER_PREF_CHANNELS";
-	public static final String PRIVATE_CHANNELS = "USER_PREF_PRIVATES";
 
 	public static void setPreference(final Context context, final String preference, final String value){
 		SharedPreferences.Editor editor = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
@@ -48,13 +47,6 @@ public class PreferencesController {
 		return new ArrayList<String>(Arrays.asList(restoredText.split("/")));
 	}
 
-	public static ArrayList<String> getPrivateChannels(final Context context){
-		SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE); 
-		String restoredText = prefs.getString(PRIVATE_CHANNELS, null);
-		if(restoredText == null || restoredText.isEmpty()) return new ArrayList<String>();
-		return new ArrayList<String>(Arrays.asList(restoredText.split("/")));
-	}
-
 	public static boolean isFirstUse(final Context context){
 		SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE); 
 		boolean firstUse = prefs.getBoolean(FIRST_TIME_USE, true);
@@ -69,24 +61,10 @@ public class PreferencesController {
 		}
 	}
 
-	public static void addPrivateChannel(final Context context, final String channel){
-		ArrayList<String> channels = getPrivateChannels(context);
-		if(!channels.contains(channel)){
-			channels.add(channel);
-			setPreference(context, PRIVATE_CHANNELS, Utils.transformArrayListToString(channels));
-		}
-	}
-
 	public static void removeChannel(final Context context, final String channel){
 		ArrayList<String> channels = getChannels(context);
 		channels.remove(channel);
 		setPreference(context, CHANNELS, Utils.transformArrayListToString(channels));
-	}
-
-	public static void removePrivateChannel(final Context context, final String channel){
-		ArrayList<String> channels = getPrivateChannels(context);
-		channels.remove(channel);
-		setPreference(context, PRIVATE_CHANNELS, Utils.transformArrayListToString(channels));
 	}
 
 }

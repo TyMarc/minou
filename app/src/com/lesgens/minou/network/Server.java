@@ -124,8 +124,8 @@ public class Server {
 							subscribeToChannel(context, channel);
 						}
 
-						for(String channel : PreferencesController.getPrivateChannels(context)){
-							subscribeToChannel(context, channel);
+						for(User user : DatabaseHelper.getInstance().getPrivateChannels()){
+							subscribeToPrivateChannel(context, user.getId());
 						}
 					}
 					else if (t1 == WampClient.Status.Disconnected) {
@@ -194,7 +194,7 @@ public class Server {
 				if(eventsListeners != null){
 					isGoodChannel = eventsListeners.onEventsReceived(events, channel);
 				}
-				Controller.getInstance().addMessage(channel, m);
+				DatabaseHelper.getInstance().addMessage(m, user.getId(), channel);
 				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
 					Log.i(TAG, "Application not visible, should send notification");
 					NotificationBuilder.notify(context, channel, user, content);
@@ -231,9 +231,7 @@ public class Server {
 				if(eventsListeners != null){
 					isGoodChannel = eventsListeners.onEventsReceived(events, channel);
 				}
-				if(channel.equals(Controller.getInstance().getCity().getName())){
-					Controller.getInstance().addMessage(channel, m);
-				}
+				DatabaseHelper.getInstance().addMessage(m, user.getId(), fullChannelName);
 				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
 					Log.i(TAG, "Application not visible, should send notification");
 					NotificationBuilder.notify(context, channel, user, content);
@@ -464,9 +462,7 @@ public class Server {
 		Timestamp timestamp = null;
 		String userId = null;
 		String message = null;
-		String gender = null;
-		String fakeName = null;
-		String realName = null;
+		String userName = null;
 
 		reader.beginObject();
 		while(reader.hasNext()) {
@@ -483,18 +479,14 @@ public class Server {
 				userId = reader.nextString();
 			} else if (name.equals("message")) {
 				message = reader.nextString();
-			} else if(name.equals("src_gender")) {
-				gender = reader.nextString();
 			} else if(name.equals("src_fake_name")) {
-				fakeName = reader.nextString();
-			} else if(name.equals("src_real_name")) {
-				realName = reader.nextString();
-			}else {
+				userName = reader.nextString();
+			} else {
 				reader.skipValue();
 			}
 		}
 		reader.endObject();
 
-		return EventBuilder.buildEvent(id, type, destination, timestamp, userId, message, gender, fakeName, realName);
+		return EventBuilder.buildEvent(id, type, destination, timestamp, userId, message, userName);
 	}
 }

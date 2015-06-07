@@ -8,11 +8,10 @@ import com.lesgens.minou.models.City;
 import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.IDestination;
 import com.lesgens.minou.models.Message;
-import com.lesgens.minou.models.Message.Gender;
 
 public class EventBuilder {
 	
-	public static Event buildEvent(UUID id, String type, String destination, Timestamp timestamp, String userId, String message, String genderStr, String fakeName, String realName){
+	public static Event buildEvent(UUID id, String type, String destination, Timestamp timestamp, String userId, String message, String fakeName){
 		
 		IDestination destinationObj;
 		String[] parts = destination.split(":");
@@ -27,14 +26,7 @@ public class EventBuilder {
 		
 		
 		if(type.equals("message")) {
-			Gender gender = Gender.Custom;
-			if(genderStr != null) {
-				if(genderStr.toLowerCase().equals("m"))
-					gender = Gender.Male;
-				else if(genderStr.toLowerCase().equals("f"))
-					gender = Gender.Female;
-			}
-			return new Message(id, timestamp, destinationObj, Controller.getInstance().getUser(userId), message, fakeName, gender, true, realName, null);
+			return new Message(id, timestamp, destinationObj, Controller.getInstance().getUser(userId), message, fakeName, true, null);
 		}
 		
 		return null;
