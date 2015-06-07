@@ -6,27 +6,32 @@ import java.util.HashMap;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.checkin.avatargenerator.AvatarGenerator;
 import com.facebook.Session;
 import com.lesgens.minou.models.City;
+import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.Utils;
 
 public class Controller {
+	private static final String TAG = "Controller";
 	private City city;
 	private HashMap<String, User> users;
 	private Session session;
 	private User myselfUser;
 	private int dimensionAvatar;
+	private HashMap<String, ArrayList<Message>> messages;
 	
 
 
 	private static Controller controller;
 
 	private Controller(){
-		city = new City("");
+		city = new City("", null, null);
 		users = new HashMap<String, User>();
+		messages = new HashMap<String, ArrayList<Message>>();
 	}
 
 	public static Controller getInstance(){
@@ -52,6 +57,13 @@ public class Controller {
 	public User getUser(String tokenId){
 		if(users.get(tokenId) == null){
 			users.put(tokenId, new User("user" + tokenId, AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), tokenId));
+		}
+		return users.get(tokenId);
+	}
+	
+	public User getUser(final String tokenId, final String fakeName){
+		if(users.get(tokenId) == null){
+			users.put(tokenId, new User(fakeName, AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), tokenId));
 		}
 		return users.get(tokenId);
 	}
@@ -82,6 +94,21 @@ public class Controller {
 
 	public int getDimensionAvatar() {
 		return dimensionAvatar;
+	}
+	
+	public ArrayList<Message> getMessages(final String channel){
+		Log.i(TAG, "getting messages from=" + channel + " messages=" + messages.get(channel));
+		return messages.get(channel) != null ? messages.get(channel) : new ArrayList<Message>();
+	}
+	
+	public void addMessage(final String channel, final Message message){
+		if(messages.get(channel) != null){
+			messages.get(channel).add(message);
+		} else{
+			ArrayList<Message> newMessage = new ArrayList<Message>();
+			newMessage.add(message);
+			messages.put(channel, newMessage);
+		}
 	}
 
 	public void addBlockPerson(Activity activity, String id){
@@ -114,6 +141,7 @@ public class Controller {
 			blockedPeople.add(b);
 		}
 
+		Log.i(TAG, "blockedPeople=" + blockedPeople.toString());
 		return blockedPeople;
 
 	}

@@ -1,12 +1,20 @@
 package com.lesgens.minou.utils;
 
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.TypedValue;
 
 public class Utils {
 	
-	public static final String MINOU_IMAGE_BASE = "BLINDR_IMAGE_BASE:";
+	public static final String MINOU_IMAGE_BASE = "MINOU_IMAGE_BASE:";
 
 	public static int dpInPixels(Context context, int dp) {
 		return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources()
@@ -26,6 +34,21 @@ public class Utils {
 	    return newBitmap;
 	}
 	
+	public static String transformArrayListToString(final ArrayList<String> array){
+		String str = "";
+		int i = 0;
+		for(String s : array){
+			if(i > 0){
+				str += "/";
+			}
+			
+			str += s;
+			i++;
+		}
+		
+		return str;
+	}
+	
 	public static byte[] getByteArrayFromString(String str){
 		String[] splitted = str.split(",");
 		
@@ -36,6 +59,30 @@ public class Utils {
 		}
 		
 		return byteArray;
+	}
+	
+	public static String hmacSha1(String value, String key)
+	        throws UnsupportedEncodingException, NoSuchAlgorithmException,
+	        InvalidKeyException {
+	    String type = "HmacSHA1";
+	    SecretKeySpec secret = new SecretKeySpec(key.getBytes(), type);
+	    Mac mac = Mac.getInstance(type);
+	    mac.init(secret);
+	    byte[] bytes = mac.doFinal(value.getBytes());
+	    return bytesToHex(bytes);
+	}
+
+	public final static char[] hexArray = "0123456789abcdef".toCharArray();
+
+	public static String bytesToHex(byte[] bytes) {
+	    char[] hexChars = new char[bytes.length * 2];
+	    int v;
+	    for (int j = 0; j < bytes.length; j++) {
+	        v = bytes[j] & 0xFF;
+	        hexChars[j * 2] = hexArray[v >>> 4];
+	        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+	    }
+	    return new String(hexChars);
 	}
 
 }

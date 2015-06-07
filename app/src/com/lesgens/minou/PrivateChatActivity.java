@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 import android.app.Activity;
@@ -45,7 +44,7 @@ import com.lesgens.minou.receivers.NetworkStateReceiver;
 import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverListener;
 import com.lesgens.minou.utils.Utils;
 
-public class PrivateChatActivity extends Activity implements OnClickListener, EventsListener, NetworkStateReceiverListener {
+public class PrivateChatActivity extends MinouActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener {
 
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 	private Typeface tf;
@@ -108,7 +107,7 @@ public class PrivateChatActivity extends Activity implements OnClickListener, Ev
 		listMessages.setAdapter(chatAdapter);
 		listMessages.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
 
-		Server.addEventsListener(this);
+		Server.setEventsListener(this);
 
 		scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -118,16 +117,9 @@ public class PrivateChatActivity extends Activity implements OnClickListener, Ev
 	@Override
 	public void onResume(){
 		super.onResume();
+		
 		if(!isComingBackFromTakingPhoto){
 			Server.getUserEvents(remoteUser);
-		}
-		if(scheduler != null){
-			future = scheduler.scheduleAtFixedRate
-					(new Runnable() {
-						public void run() {
-							Server.getEvents("");
-						}
-					}, 0, 5, TimeUnit.SECONDS);
 		}
 
 		networkStateReceiver.addListener(this);
@@ -143,6 +135,7 @@ public class PrivateChatActivity extends Activity implements OnClickListener, Ev
 
 		networkStateReceiver.removeListener(this);
 		this.unregisterReceiver(networkStateReceiver);
+		
 	}
 
 	@Override
@@ -235,7 +228,10 @@ public class PrivateChatActivity extends Activity implements OnClickListener, Ev
 	}
 
 	@Override
-	public void onEventsReceived(List<Event> events) {
+	public boolean onEventsReceived(List<Event> events, final String channel) {
+		if(channel.equals(remoteUser.getId())){
+			return false;
+		}
 		for(Event e : events){
 			android.util.Log.i("Minou", "New event=" + e);
 			if(e instanceof Message && e.getDestination() instanceof User){
@@ -248,7 +244,7 @@ public class PrivateChatActivity extends Activity implements OnClickListener, Ev
 				}
 			}
 		}
-
+		return true;
 	}
 
 	@Override

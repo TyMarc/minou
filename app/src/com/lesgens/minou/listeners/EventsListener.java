@@ -6,7 +6,7 @@ import com.lesgens.minou.models.Event;
 
 public interface EventsListener {
 	
-	public void onEventsReceived(List<Event> events);
+	public boolean onEventsReceived(List<Event> events, final String channel);
 	
 	public void onUserHistoryReceived(List<Event> events);
 	

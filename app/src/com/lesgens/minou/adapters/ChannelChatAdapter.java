@@ -12,7 +12,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
-import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,8 +24,6 @@ import com.lesgens.minou.ImageViewerActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.PrivateChatAdapter.HeaderViewHolder;
 import com.lesgens.minou.models.Message;
-import com.lesgens.minou.models.Message.Gender;
-import com.lesgens.minou.utils.Utils;
 
 public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyListHeadersAdapter, OnClickListener{
 	private Context mContext;
@@ -76,7 +73,7 @@ public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyL
 		View rowView;
 		Message message = messages.get(position);
 
-		android.util.Log.i("Blindr", "isIncoming="+message.isIncoming() + " message=" + message.getMessage());
+		android.util.Log.i("ChannelChatAdapter", "isIncoming="+message.isIncoming() + " message=" + message.getMessage());
 		if(!message.isIncoming()){
 			rowView = getInflater().inflate(R.layout.chat_odd, parent, false);
 
@@ -106,15 +103,13 @@ public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyL
 		// fill data
 		ViewHolder holder = (ViewHolder) rowView.getTag();
 
-		if(message.getMessage().startsWith(Utils.MINOU_IMAGE_BASE)){
+		if(message.getData() != null){
 			holder.message.setVisibility(View.GONE);
 			holder.time.setVisibility(View.GONE);
 			holder.timePicture.setVisibility(View.VISIBLE);
 			holder.timePicture.setText(sdfMessage.format(message.getTimestamp()));
 			holder.picture.setVisibility(View.VISIBLE);
-			String encoded = message.getMessage().substring(Utils.MINOU_IMAGE_BASE.length());
-			byte[] bytes = Base64.decode(encoded, Base64.DEFAULT);
-			Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+			Bitmap bitmap = BitmapFactory.decodeByteArray(message.getData(), 0, message.getData().length);
 			holder.picture.setImageBitmap(bitmap);
 			holder.picture.setOnClickListener(this);
 		} else{
@@ -127,14 +122,6 @@ public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyL
 
 		if(holder.name != null){
 			holder.name.setText(message.getFakeName());
-			
-			if(message.getGender() == Gender.Female){
-				holder.name.setTextColor(mContext.getResources().getColor(R.color.pink));
-			} else if(message.getGender() == Gender.Male){
-				holder.name.setTextColor(mContext.getResources().getColor(R.color.main_color));
-			} else{
-				holder.name.setTextColor(mContext.getResources().getColor(R.color.grey));
-			}
 		}
 
 		if(holder.avatar != null){

@@ -85,7 +85,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			String text = c.getString(4);
 			boolean isIncoming = c.getInt(5) == 1;
 			message = new Message(id, timestamp, isIncoming ? user : Controller.getInstance().getMyself(), 
-					realName, fakeName, text, isIncoming);
+					realName, fakeName, text, isIncoming, null);
 			messages.add(message);
 		}
 		

@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
+        android:name="com.lesgens.minou.application.MinouApplication"
         android:allowBackup="true"
         android:icon="@drawable/minou_logo"
         android:label="@string/app_name"
@@ -59,14 +60,10 @@
             android:name="com.lesgens.minou.ImageViewerActivity"
             android:label="@string/title_activity_image_viewer" >
         </activity>
-
-        <service
-            android:name=".MinouMessagesService"
-            android:process=":remote" >
-            <intent-filter>
-                <action android:name="com.lesgens.minou.services.MinouMessagesService" />
-            </intent-filter>
-        </service>
+        <activity
+            android:name="com.lesgens.minou.ConnectToChannelActivity" >
+            
+        </activity>
     </application>
 
 </manifest>

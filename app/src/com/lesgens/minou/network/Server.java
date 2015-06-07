@@ -5,6 +5,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -13,13 +14,14 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
 import rx.Observable;
-import rx.Subscription;
 import rx.functions.Action0;
 import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 import ws.wamp.jawampa.PubSubData;
 import ws.wamp.jawampa.WampClient;
 import ws.wamp.jawampa.WampClientBuilder;
 import ws.wamp.jawampa.WampError;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.JsonReader;
 import android.util.Log;
@@ -28,24 +30,26 @@ import com.checkin.avatargenerator.AvatarGenerator;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.lesgens.minou.application.MinouApplication;
 import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
-import com.lesgens.minou.models.City;
 import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.HTTPRequest.RequestType;
+import com.lesgens.minou.utils.NotificationBuilder;
 
 public class Server {
 
 	private static List<UserAuthenticatedListener> userAuthenticatedListeners = new ArrayList<UserAuthenticatedListener>();
-	private static List<EventsListener> eventsListeners = new ArrayList<EventsListener>();
+	private static EventsListener eventsListeners = null;
 	private static String address = "https://blindr-backend.herokuapp.com/";
-	private static String TAG = "Blindr_Server";
+	private static String TAG = "Server";
 	private static WampClient client;
-	private static Subscription onMinouSubscription;
+	private static HashMap<String, Observable<PubSubData>> subscribedChannels = new HashMap<String, Observable<PubSubData>>();
 
 	public static void connect(String authenticationToken) {
 		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
@@ -73,7 +77,6 @@ public class Server {
 					fakeName = auth[1];
 					Log.i(TAG, "Auth response's userId: "+ userId + " fake name:" + fakeName);
 					Controller.getInstance().setMyOwnUser(new User(fakeName, AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), userId));
-					connectToCrossbar();
 					for(UserAuthenticatedListener listener: userAuthenticatedListeners) {
 						listener.onUserAuthenticated();
 					}
@@ -94,10 +97,11 @@ public class Server {
 		};
 		request.execute(authenticationToken);
 	}
-	
-	private static void connectToCrossbar(){
+
+	public static void connectToCrossbar(final Context context, final String city){
 		try {
 			// Create a builder and configure the client
+			disconnect();
 			WampClientBuilder builder = new WampClientBuilder();
 			builder.withUri("wss://minou-crossbar.herokuapp.com/ws")
 			.withRealm("minou")
@@ -111,30 +115,18 @@ public class Server {
 			.subscribe(new Action1<WampClient.Status>() {
 				@Override
 				public void call(WampClient.Status t1) {
-					android.util.Log.i("Controller", "Session status changed to " + t1);
+					Log.i(TAG, "Session status changed to " + t1);
 
 					if (t1 == WampClient.Status.Connected) {
+						subscribeToPrivateChannel(context, city);
 
-						Observable<PubSubData> minouTest = client.makeSubscription("minou.test");
-						minouTest.forEach(new Action1<PubSubData>(){
+						for(String channel : PreferencesController.getChannels(context)){
+							subscribeToChannel(context, channel);
+						}
 
-							@Override
-							public void call(PubSubData msg) {
-								android.util.Log.i("Controller", "Received new message " + msg);
-								Message m = new Message(Controller.getInstance().getUser(msg.keywordArguments().get("from").asText()), msg.keywordArguments().get("content").asText(), Controller.getInstance().getCity(), true);
-								ArrayList<Event> events = new ArrayList<Event>();
-								events.add(m);
-								for(EventsListener el: eventsListeners){
-									el.onEventsReceived(events);
-								}
-							}});
-						
-					
-						
-						ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
-						ob.put("from", Controller.getInstance().getMyself().getName());
-						ob.put("content", "just connected");
-						client.publish("minou.test", new ArrayNode(JsonNodeFactory.instance), ob);
+						for(String channel : PreferencesController.getPrivateChannels(context)){
+							subscribeToChannel(context, channel);
+						}
 					}
 					else if (t1 == WampClient.Status.Disconnected) {
 						closeSubscriptions();
@@ -143,12 +135,12 @@ public class Server {
 			}, new Action1<Throwable>() {
 				@Override
 				public void call(Throwable t) {
-					android.util.Log.i("Controller", "Session ended with error " + t);
+					Log.i(TAG, "Session ended with error " + t);
 				}
 			}, new Action0() {
 				@Override
 				public void call() {
-					android.util.Log.i("Controller", "Session ended normally");
+					Log.i(TAG, "Session ended normally");
 				}
 			});
 
@@ -156,66 +148,195 @@ public class Server {
 
 		} catch (WampError e) {
 			// Catch exceptions that will be thrown in case of invalid configuration
-			android.util.Log.i("Controller", e.getMessage());
+			Log.i(TAG, e.getMessage());
 			return;
 		}
 	}
-	
+
 	private static void closeSubscriptions() {
-		if (onMinouSubscription != null)
-			onMinouSubscription.unsubscribe();
-		onMinouSubscription = null;
+		for(Observable<PubSubData> obs : subscribedChannels.values()){
+			obs.unsubscribeOn(Schedulers.immediate());
+		}
+		subscribedChannels.clear();
 	}
 
-	public static void sendMessage(final String message){
-		ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
-		ob.put("from", Controller.getInstance().getMyself().getName());
-		ob.put("content", message);
-		client.publish("minou.test", new ArrayNode(JsonNodeFactory.instance), ob);
+	public static void disconnect(){
+		if(client != null){
+			closeSubscriptions();
+			client.close();
+		}
 	}
 
-	public static void getEvents(final String channelName) {
-
-		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
-
-			@Override
-			protected String doInBackground(String... arg0) {
-				String finalAddress = address + "events";
-				Log.i(TAG, "Events address: " + finalAddress);
-				Log.i("SERVER+INFOS", "Events channel: " + arg0[1]);
-
-				List<NameValuePair> data = new ArrayList<NameValuePair>();
-				data.add(new BasicNameValuePair("city", arg0[1]));
-
-				List<NameValuePair> headers = new ArrayList<NameValuePair>();
-				headers.add(new BasicNameValuePair("X-User-Token", arg0[0]));
-
-				HTTPRequest request = new HTTPRequest(finalAddress, RequestType.GET, data, headers);
-				return request.getOutput();
-			}
+	public static void subscribeToChannel(final Context context, final String channel){
+		if(subscribedChannels.containsKey(channel)){
+			return;
+		}
+		final String fullChannelName = "minou." + Controller.getInstance().getCity().getName().toLowerCase() + "." + channel.toLowerCase().replace(" ", "_");
+		Log.i(TAG, "Subscribing to: " + fullChannelName);
+		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName);
+		channelSubscription.forEach(new Action1<PubSubData>(){
 
 			@Override
-			protected void onPostExecute(String result) {
-				super.onPostExecute(result);
-				List<Event> events = null;
-				Log.i(TAG, "Events response's json: "+ result);
+			public void call(PubSubData msg) {
+				Log.i(TAG, "Received new message " + msg);
+				final User user = Controller.getInstance().getUser(msg.keywordArguments().get("from").asText(), msg.keywordArguments().get("fake_name").asText());
+				final String content = msg.keywordArguments().get("content").asText();
+				byte[] data = null;
 				try {
-					events = readEvents(new StringReader(result));
-					for(EventsListener listener:eventsListeners){
-						listener.onEventsReceived(events);
-					}
+					data = msg.keywordArguments().get("picture") != null ? msg.keywordArguments().get("picture").binaryValue() : null;
 				} catch (IOException e) {
-					Log.i(TAG, "Error while receiving events: ");
-					e.printStackTrace();
-				} catch (Exception e) {
-					Log.i(TAG, "Something went wrong when fetching the events.");
 					e.printStackTrace();
 				}
-			}
+				Message m = new Message(user, content, user.getName(), Controller.getInstance().getCity(), true, data);
+				ArrayList<Event> events = new ArrayList<Event>();
+				events.add(m);
+				boolean isGoodChannel = true;
+				if(eventsListeners != null){
+					isGoodChannel = eventsListeners.onEventsReceived(events, channel);
+				}
+				Controller.getInstance().addMessage(channel, m);
+				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
+					Log.i(TAG, "Application not visible, should send notification");
+					NotificationBuilder.notify(context, channel, user, content);
+				}
+			}});
 
-		};
+		subscribedChannels.put(fullChannelName, channelSubscription);
+	}
 
-		request.execute(Controller.getInstance().getMyself().getId(), Controller.getInstance().getCity().getName() + channelName);
+	public static void subscribeToPrivateChannel(final Context context, final String channel){
+		if(subscribedChannels.containsKey(channel)){
+			return;
+		}
+		final String fullChannelName = "minou." + channel.toLowerCase();
+		Log.i(TAG, "Subscribing to: " + fullChannelName);
+		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName);
+		channelSubscription.forEach(new Action1<PubSubData>(){
+
+			@Override
+			public void call(PubSubData msg) {
+				Log.i(TAG, "Received new message " + msg);
+				final User user = Controller.getInstance().getUser(msg.keywordArguments().get("from").asText(), msg.keywordArguments().get("fake_name").asText());
+				final String content = msg.keywordArguments().get("content").asText();
+				byte[] data = null;
+				try {
+					data = msg.keywordArguments().get("picture") != null ? msg.keywordArguments().get("picture").binaryValue() : null;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				Message m = new Message(user, content, user.getName(), Controller.getInstance().getCity(), true, data);
+				ArrayList<Event> events = new ArrayList<Event>();
+				events.add(m);
+				boolean isGoodChannel = true;
+				if(eventsListeners != null){
+					isGoodChannel = eventsListeners.onEventsReceived(events, channel);
+				}
+				if(channel.equals(Controller.getInstance().getCity().getName())){
+					Controller.getInstance().addMessage(channel, m);
+				}
+				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
+					Log.i(TAG, "Application not visible, should send notification");
+					NotificationBuilder.notify(context, channel, user, content);
+				}
+			}});
+
+		subscribedChannels.put(fullChannelName, channelSubscription);
+	}
+
+	public static void sendMessage(final String message, final String channel){
+		String fullChannelName = "minou." + Controller.getInstance().getCity().getName().toLowerCase() + "." + channel.toLowerCase();
+		if(Controller.getInstance().getCity().getName().toLowerCase().equals(channel.toLowerCase())){
+			fullChannelName = "minou." + Controller.getInstance().getCity().getName().toLowerCase();
+		}
+		Log.i(TAG, "sendMessage message=" + message + " fullChannelName=" + fullChannelName + " channel=" + channel);
+		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message));
+	}
+	
+	public static void sendMessage(final byte[] picture, final String channel){
+		String fullChannelName = "minou." + Controller.getInstance().getCity().getName().toLowerCase() + "." + channel.toLowerCase();
+		if(Controller.getInstance().getCity().getName().toLowerCase().equals(channel.toLowerCase())){
+			fullChannelName = "minou." + Controller.getInstance().getCity().getName().toLowerCase();
+		}
+		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName + " channel=" + channel);
+		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(picture));
+	}
+
+	public static void sendPrivateMessage(final String message, final String remoteId){
+		String fullChannelName = "minou." + remoteId.toLowerCase();
+		Log.i(TAG, "sendMessage message=" + message + " fullChannelName=" + fullChannelName);
+
+		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message));
+	}
+	
+	public static void sendPrivateMessage(final byte[] picture, final String remoteId){
+		String fullChannelName = "minou." + remoteId.toLowerCase();
+		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName);
+
+		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(picture));
+	}
+
+	private static ObjectNode getObjectNodeMessage(final String message){
+		ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
+		ob.put("from", Controller.getInstance().getMyself().getId());
+		ob.put("fake_name", Controller.getInstance().getMyself().getName());
+		ob.put("content", message);
+		return ob;
+	}
+	
+	private static ObjectNode getObjectNodeMessage(final byte[] picture){
+		ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
+		ob.put("from", Controller.getInstance().getMyself().getId());
+		ob.put("fake_name", Controller.getInstance().getMyself().getName());
+		ob.put("picture", picture);
+		return ob;
+	}
+
+	//	public static void getEvents(final String channelName) {
+	//
+	//		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
+	//
+	//			@Override
+	//			protected String doInBackground(String... arg0) {
+	//				String finalAddress = address + "events";
+	//				Log.i(TAG, "Events address: " + finalAddress);
+	//				Log.i(TAG, "Events channel: " + arg0[1]);
+	//
+	//				List<NameValuePair> data = new ArrayList<NameValuePair>();
+	//				data.add(new BasicNameValuePair("city", arg0[1]));
+	//
+	//				List<NameValuePair> headers = new ArrayList<NameValuePair>();
+	//				headers.add(new BasicNameValuePair("X-User-Token", arg0[0]));
+	//
+	//				HTTPRequest request = new HTTPRequest(finalAddress, RequestType.GET, data, headers);
+	//				return request.getOutput();
+	//			}
+	//
+	//			@Override
+	//			protected void onPostExecute(String result) {
+	//				super.onPostExecute(result);
+	//				List<Event> events = null;
+	//				Log.i(TAG, "Events response's json: "+ result);
+	//				try {
+	//					events = readEvents(new StringReader(result));
+	//					if(eventsListeners != null){
+	//						eventsListeners.onEventsReceived(events, channelName);
+	//					}
+	//				} catch (IOException e) {
+	//					Log.i(TAG, "Error while receiving events: ");
+	//					e.printStackTrace();
+	//				} catch (Exception e) {
+	//					Log.i(TAG, "Something went wrong when fetching the events.");
+	//					e.printStackTrace();
+	//				}
+	//			}
+	//
+	//		};
+	//
+	//		request.execute(Controller.getInstance().getMyself().getId(), Controller.getInstance().getCity().getName() + channelName);
+	//	}
+
+	public static ArrayList<String> getTrendingTopics(){
+		return new ArrayList<String>();
 	}
 
 	public static void sendChannelMessage(User destination, String message) {
@@ -245,35 +366,7 @@ public class Server {
 
 		};
 		request.execute(Controller.getInstance().getMyself().getId(), destination.getId(), message);
-	}
-
-	public static void sendPublicMessage(City destination, String message) {
-		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
-
-			@Override
-			protected String doInBackground(String... arg0) {
-				String finalAddress = address + "events/message";
-				Log.i(TAG, "Send public message address: " + finalAddress);
-
-				List<NameValuePair> data = new ArrayList<NameValuePair>();
-				data.add(new BasicNameValuePair("dst_city", arg0[1]));
-				data.add(new BasicNameValuePair("message", arg0[2]));
-
-				List<NameValuePair> headers = new ArrayList<NameValuePair>();
-				headers.add(new BasicNameValuePair("X-User-Token", arg0[0]));
-
-				HTTPRequest request = new HTTPRequest(finalAddress, RequestType.POST, data, headers);
-				return request.getOutput();
-			}
-
-			@Override
-			protected void onPostExecute(String result) {
-				super.onPostExecute(result);
-				Log.i(TAG, "Sent message's response: "+ result);
-			}
-
-		};
-		request.execute(Controller.getInstance().getMyself().getId(), destination.getId(), message);
+		Server.sendPrivateMessage(message, destination.getId());
 	}
 
 	public static void getUserEvents(User user) {
@@ -303,8 +396,8 @@ public class Server {
 				try {
 					Log.i(TAG, "User events response: "+ result);
 					List<Event> events = readEvents(new StringReader(result));
-					for(EventsListener listener: eventsListeners) {
-						listener.onUserHistoryReceived(events);
+					if(eventsListeners != null){
+						eventsListeners.onUserHistoryReceived(events);
 					}
 				} catch (IOException e) {
 					Log.i(TAG, "Something went wrong when fetching the old matches.");
@@ -318,7 +411,7 @@ public class Server {
 		request.execute(Controller.getInstance().getMyself().getId(), user.getId());
 	}
 
-	
+
 	public static void addUserAuthenticatedListener(UserAuthenticatedListener listener) {
 		userAuthenticatedListeners.add(listener);
 	}
@@ -327,12 +420,12 @@ public class Server {
 		userAuthenticatedListeners.remove(listener);
 	}
 
-	public static void addEventsListener(EventsListener listener) {
-		eventsListeners.add(listener);
+	public static void setEventsListener(EventsListener listener) {
+		eventsListeners = listener;
 	}
 
 	public static void removeEventsListener(EventsListener listener) {
-		eventsListeners.remove(listener);
+		eventsListeners = null;
 	}
 
 	private static String[] readAuth(Reader in) throws IOException {

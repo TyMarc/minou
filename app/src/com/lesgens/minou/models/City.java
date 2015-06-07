@@ -1,18 +1,21 @@
 package com.lesgens.minou.models;
 
-public class City implements IDestination{
+public class City extends Channel{
+	private String state;
+	private String country;
 
-	private String name;
-	
-	public City(String name) {
-		this.name = name;
+	public City(String city, String state, String country) {
+		super(city);
+		this.state = state;
+		this.country = country;
 	}
 	
-	public String getName(){
-		return name;
+	public String getState(){
+		return state;
 	}
 	
-	public String getId(){
-		return name;
+	public String getCountry(){
+		return country;
 	}
+
 }

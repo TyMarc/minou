@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -16,7 +15,7 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.ImageView;
 
-public class ImageViewerActivity extends Activity implements OnClickListener{
+public class ImageViewerActivity extends MinouActivity implements OnClickListener{
 
 	public static void show(Context context, Bitmap bitmap) {
 		Intent i = new Intent(context, ImageViewerActivity.class);

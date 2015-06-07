@@ -19,7 +19,7 @@ public class EventBuilder {
 		if (parts[0].equals("user")) {
 			destinationObj = Controller.getInstance().getUser(parts[1]);
 		} else if(destination.startsWith("city")) {
-			destinationObj = new City(parts[1]);
+			destinationObj = new City(parts[1], "", "");
 		}
 		else {
 			return null;
@@ -34,7 +34,7 @@ public class EventBuilder {
 				else if(genderStr.toLowerCase().equals("f"))
 					gender = Gender.Female;
 			}
-			return new Message(id, timestamp, destinationObj, Controller.getInstance().getUser(userId), message, fakeName, gender, true, realName);
+			return new Message(id, timestamp, destinationObj, Controller.getInstance().getUser(userId), message, fakeName, gender, true, realName, null);
 		}
 		
 		return null;

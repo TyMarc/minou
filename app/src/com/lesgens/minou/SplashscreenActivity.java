@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
@@ -37,7 +36,7 @@ import com.lesgens.minou.network.Server;
 import com.lesgens.minou.views.CustomYesNoDialog;
 import com.todddavies.components.progressbar.ProgressWheel;
 
-public class SplashscreenActivity extends Activity implements
+public class SplashscreenActivity extends MinouActivity implements
 UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 	private GoogleApiClient mGoogleApiClient;
 	private Location mLastLocation;
@@ -149,14 +148,14 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 	}
 
 	@Override
-	protected void onPause() {
+	public void onPause() {
 		super.onPause();
 		Log.i("SplashscreenActivity", "onPause");
 		uiHelper.onPause();
 	}
 
 	@Override
-	protected void onResume() {
+	public void onResume() {
 		super.onResume();
 		Log.i("SplashscreenActivity", "onResume");
 		Session session = Session.getActiveSession();
@@ -165,7 +164,6 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 			onSessionStateChange(session, session.getState(), null);
 		}
 		uiHelper.onResume();
-
 	}
 
 	@Override
@@ -180,6 +178,7 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 		Log.i("SplashscreenActivity", "onUserAuthenticated");
 		authenticated = true;
 		if(geolocated){
+			Server.connectToCrossbar(this, Controller.getInstance().getCity().getName());
 			goToPublicChat();
 		}
 	}
@@ -192,9 +191,7 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 	}
 
 	public void goToPublicChat(){
-		Intent i = new Intent(SplashscreenActivity.this, ChannelChatActivity.class);
-		i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-		startActivity(i);
+		ChannelChatActivity.show(this, Controller.getInstance().getCity().getName());
 		finish();
 	}
 	
@@ -215,10 +212,13 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 			try {
 				List<Address> address = geoCoder.getFromLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 1);
 				final String city = address.get(0).getLocality();
+				final String country = address.get(0).getCountryName();
+				final String state = address.get(0).getAdminArea();
 				android.util.Log.i("Minou", "City name=" + city);
-				Controller.getInstance().setCity(new City(city));
+				Controller.getInstance().setCity(new City(city, state, country));
 				geolocated = true;
 				if(authenticated){
+					Server.connectToCrossbar(this, city);
 					goToPublicChat();
 				}
 			} catch (IOException e) {
