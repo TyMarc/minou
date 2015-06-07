@@ -48,6 +48,7 @@ import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.receivers.NetworkStateReceiver;
 import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverListener;
+import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
 import com.lesgens.minou.views.CustomYesNoDialog;
 
@@ -169,22 +170,14 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 		} else{
 			channelTextView.setText(this.channelName);
 		}
+		
+		NotificationHelper.cancelAll(this);
 	}
 
 
 
 	public void setChannelName(final String channelName, final String remoteId){
-		this.channelName = channelName;
-		this.remoteId = remoteId;
-		if(this.channelName == null) {
-			this.channelName = "";
-		}
-
-		if(this.channelName.isEmpty()){
-			channelTextView.setText(Controller.getInstance().getCity().getName());
-		} else{
-			channelTextView.setText(this.channelName);
-		}
+		initChannelName(channelName, remoteId);
 		
 		chatAdapter.clear();
 		chatAdapter.addAll(DatabaseHelper.getInstance().getMessages(remoteId != null ? remoteId : channelName));

@@ -41,7 +41,7 @@ import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.HTTPRequest.RequestType;
-import com.lesgens.minou.utils.NotificationBuilder;
+import com.lesgens.minou.utils.NotificationHelper;
 
 public class Server {
 
@@ -203,7 +203,7 @@ public class Server {
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), channel);
 				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
 					Log.i(TAG, "Application not visible, should send notification");
-					NotificationBuilder.notify(context, channel, user, content);
+					NotificationHelper.notify(context, channel, user, content);
 				}
 			}});
 
@@ -243,7 +243,7 @@ public class Server {
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), channel);
 				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
 					Log.i(TAG, "Application not visible, should send notification");
-					NotificationBuilder.notify(context, channel, user, content);
+					NotificationHelper.notify(context, channel, user, content);
 				}
 			}});
 

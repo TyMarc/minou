@@ -12,7 +12,7 @@ import com.lesgens.minou.ChannelChatActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.models.User;
 
-public class NotificationBuilder {
+public class NotificationHelper {
 
 	public static void notify(final Context context, final String channel, final User user, final String content){
 		NotificationCompat.Builder mBuilder =
@@ -46,5 +46,10 @@ public class NotificationBuilder {
 		        (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		// Builds the notification and issues it.
 		mNotifyMgr.notify(mNotificationId, mBuilder.build());
+	}
+	
+	public static void cancelAll(final Context context){
+		NotificationManager notifManager= (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		notifManager.cancelAll();
 	}
 }
