@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 
 import com.lesgens.minou.ChannelChatActivity;
@@ -22,6 +23,8 @@ public class NotificationHelper {
 		.setContentTitle(user.getName())
 		.setContentText(content)
 		.setColor(Color.BLUE)
+		.setVibrate(new long[] { 0, 500})
+		.setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
 		.setLights(Color.BLUE, 1000, 1000)
 		.setAutoCancel(true);
 		
@@ -39,6 +42,7 @@ public class NotificationHelper {
 		    PendingIntent.FLAG_UPDATE_CURRENT
 		);
 		mBuilder.setContentIntent(resultPendingIntent);
+		
 		// Sets an ID for the notification
 		int mNotificationId = 001;
 		// Gets an instance of the NotificationManager service
