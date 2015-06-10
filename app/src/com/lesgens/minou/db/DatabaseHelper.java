@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 
@@ -39,7 +40,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	{
 		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userToken TEXT, userName TEXT, message TEXT, data BLOB, timestamp LONG, isIncoming INTEGER DEFAULT 0);");
 		db.execSQL("CREATE TABLE minou_last_message (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT, timestamp LONG);");
-		db.execSQL("CREATE TABLE minou_private (id INTEGER PRIMARY KEY AUTOINCREMENT, userToken TEXT, userName TEXT);");
+		db.execSQL("CREATE TABLE minou_private (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT, userName TEXT);");
+		db.execSQL("CREATE TABLE minou_public (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT);");
+		addPublicChannel(Channel.BASE_CHANNEL + "worldwide");
 	}
 
 	@Override
@@ -47,6 +50,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		db.execSQL("DROP TABLE if exists minou_message");
 		db.execSQL("DROP TABLE if exists minou_last_message");
 		db.execSQL("DROP TABLE if exists minou_private");
+		db.execSQL("DROP TABLE if exists minou_public");
 		onCreate(db);
 	}
 
@@ -75,6 +79,27 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		}
 		
 	}
+	
+	public void addPublicChannel(final String channel){
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		ContentValues cv = new ContentValues();
+		cv.put("channel", channel);
+		db.insert("minou_public", null, cv);
+	}
+	
+	public ArrayList<String> getPublicChannelsNameSpace(){
+		SQLiteDatabase db = this.getReadableDatabase();
+		ArrayList<String> channels = new ArrayList<String>();
+		
+		Cursor c = db.rawQuery("SELECT channel FROM minou_public;", null );
+
+		if(c.moveToNext()){
+			channels.add(c.getString(0));
+		}
+		
+		return channels;
+	}
 
 	public ArrayList<Message> getMessages(String channel){
 		ArrayList<Message> messages = new ArrayList<Message>();
@@ -93,7 +118,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			byte[] data = c.getBlob(5);
 			String userToken = c.getString(6);
 			User user = Controller.getInstance().getUser(userToken, userName);
-			message = new Message(id, timestamp, Controller.getInstance().getCity(), 
+			message = new Message(id, timestamp, Controller.getInstance().getChannelsContainer().getChannelByName(channel), 
 					user, text, userName, isIncoming, data);
 			messages.add(message);
 		}
@@ -111,7 +136,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		ContentValues cv = new ContentValues();
-		cv.put("userToken", userToken);
+		cv.put("userToken", Channel.BASE_CHANNEL + userToken);
 		cv.put("userName", userName);
 		db.insert("minou_private", null, cv);
 	}
@@ -147,6 +172,12 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		SQLiteDatabase db = this.getWritableDatabase();
 		
 		db.delete("minou_private", "userToken = ?", new String[]{remoteId});
+	}
+	
+	public void removePublicChannel(String channel) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		
+		db.delete("minou_public", "channel = ?", new String[]{channel});
 	}
 	
 	public long getLastMessageFetched(String channel){

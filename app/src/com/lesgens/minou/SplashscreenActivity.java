@@ -31,7 +31,7 @@ import com.google.android.gms.location.LocationServices;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
-import com.lesgens.minou.models.City;
+import com.lesgens.minou.models.Geolocation;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.views.CustomYesNoDialog;
 import com.todddavies.components.progressbar.ProgressWheel;
@@ -191,7 +191,7 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 	}
 
 	public void goToPublicChat(){
-		ChannelChatActivity.show(this, Controller.getInstance().getCity().getName());
+		ChannelChatActivity.show(this, Controller.getInstance().getGeolocation().getCity());
 		finish();
 	}
 	
@@ -215,7 +215,7 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 				final String country = address.get(0).getCountryName();
 				final String state = address.get(0).getAdminArea();
 				android.util.Log.i("Minou", "City name=" + city);
-				Controller.getInstance().setCity(new City(city, state, country));
+				Controller.getInstance().setCity(new Geolocation(city, state, country));
 				geolocated = true;
 				if(authenticated){
 					Server.connectToCrossbar(this);

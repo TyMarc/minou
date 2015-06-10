@@ -16,18 +16,20 @@ import android.widget.TextView;
 
 import com.lesgens.minou.adapters.ChannelsAdapter;
 import com.lesgens.minou.controllers.Controller;
-import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 
 public class ConnectToChannelActivity extends MinouActivity implements OnClickListener, TextWatcher{
 	private boolean isPrivateChannelPicker;
 	private ChannelsAdapter adapter;
+	private String currentNamespace;
 
-	public static void show(final Activity activity, final boolean isPrivateChannelPicker, final int requestCode) {
+	public static void show(final Activity activity, final boolean isPrivateChannelPicker, final String currentNamespace, final int requestCode) {
 		Intent i = new Intent(activity, ConnectToChannelActivity.class);
 		i.putExtra("isPrivateChannelPicker", isPrivateChannelPicker);
+		i.putExtra("currentNamespace", currentNamespace);
 		activity.startActivityForResult(i, requestCode);
 	}
 
@@ -41,6 +43,8 @@ public class ConnectToChannelActivity extends MinouActivity implements OnClickLi
 		setContentView(R.layout.channel_picker);
 
 		isPrivateChannelPicker = getIntent().getBooleanExtra("isPrivateChannelPicker", false);
+		currentNamespace = getIntent().getStringExtra("currentNamespace");
+		if(currentNamespace == null) currentNamespace = Channel.BASE_CHANNEL;
 
 		((EditText) findViewById(R.id.editText)).addTextChangedListener(this);
 		InputFilter filter = new InputFilter() { 
@@ -72,19 +76,18 @@ public class ConnectToChannelActivity extends MinouActivity implements OnClickLi
 	public void onClick(View v) {
 		if(v.getId() == R.id.currently_written){
 			final String text = ((TextView) v).getText().toString().trim();
-			if(!text.trim().isEmpty() && !text.trim().toLowerCase().equals(Controller.getInstance().getCity()
-					.getName().toLowerCase())){
+			if(!text.trim().isEmpty() && !Controller.getInstance().getChannelsContainer().isContainSubscription(text.trim())){
 				if(isPrivateChannelPicker){
 					final User user = Controller.getInstance().getUserByName(text);
 					DatabaseHelper.getInstance().addPrivateChannel(user.getName(), user.getId());
-					Server.subscribeToPrivateChannel(this, user.getId());
+					Server.subscribeToChannel(this, user.getId());
 					if(user != null){
 						setResult(RESULT_OK, new Intent(user.getId()));
 						finish();
 					}
 				} else{
-					PreferencesController.addChannel(this, text);
-					Server.subscribeToChannel(this, text);
+					DatabaseHelper.getInstance().addPublicChannel(currentNamespace + text);
+					Server.subscribeToChannel(this, currentNamespace + text);
 					setResult(RESULT_OK, new Intent(text));
 					finish();
 				}

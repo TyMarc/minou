@@ -8,14 +8,14 @@ public abstract class Event {
 	
 	private UUID id;
 	private Timestamp timestamp;
-	private IDestination destination;
+	private Channel channel;
 	private User sourceUser;
 	private String userName;
 	
-	public Event(UUID id, Timestamp timestamp, IDestination destination, User user, String userName) {
+	public Event(UUID id, Timestamp timestamp, Channel channel, User user, String userName) {
 		this.id = id;
 		this.timestamp = timestamp;
-		this.destination = destination;
+		this.channel = channel;
 		this.sourceUser = user;
 		this.userName = userName;
 	}
@@ -28,8 +28,8 @@ public abstract class Event {
 		return timestamp;
 	}
 	
-	public IDestination getDestination(){
-		return destination;
+	public Channel getChannel(){
+		return channel;
 	}
 	
 	public User getUser(){

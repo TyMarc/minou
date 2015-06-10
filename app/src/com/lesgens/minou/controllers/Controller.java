@@ -10,22 +10,26 @@ import android.util.Log;
 
 import com.checkin.avatargenerator.AvatarGenerator;
 import com.facebook.Session;
-import com.lesgens.minou.models.City;
+import com.lesgens.minou.models.Channel;
+import com.lesgens.minou.models.Geolocation;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.Utils;
 
 public class Controller {
 	private static final String TAG = "Controller";
-	private City city;
 	private HashMap<String, User> users;
 	private Session session;
 	private User myselfUser;
 	private int dimensionAvatar;
+	private String secret;
+	private Channel channelsContainer;
+	private Channel currentChannel;
+	private Geolocation geolocation;
 
 	private static Controller controller;
 
 	private Controller(){
-		city = new City("", null, null);
+		secret = "";
 		users = new HashMap<String, User>();
 	}
 
@@ -36,26 +40,18 @@ public class Controller {
 
 		return controller;
 	}
-
-	public void setCity(City city){
-		this.city = city;
+	
+	public Channel getChannelsContainer(){
+		return channelsContainer;
 	}
 
-	public City getCity(){
-		return city;
+
+	public String getCurrentNameSpace(){
+		return "";
 	}
 
 	public void addUser(User user){
 		users.put(user.getId(), user);
-	}
-	
-	public ArrayList<String> getCityList(){
-		ArrayList<String> list = new ArrayList<String>();
-		list.add(city.getCountry());
-		list.add(city.getState());
-		list.add(city.getName());
-		
-		return list;
 	}
 
 	public User getUser(String tokenId){
@@ -143,6 +139,40 @@ public class Controller {
 		Log.i(TAG, "blockedPeople=" + blockedPeople.toString());
 		return blockedPeople;
 
+	}
+
+	public void setSecret(String secret) {
+		this.secret = secret;
+	}
+	
+	public String getSecret(){
+		return secret;
+	}
+
+	public Channel getCurrentChannel() {
+		return currentChannel;
+	}
+	
+	public void setCurrentChannel(final Channel channel) {
+		currentChannel = channel;
+	}
+
+	public boolean setCurrentChannel(String channel) {
+		Channel c = channelsContainer.getChannelByName(channel);
+		if(c != null){
+			setCurrentChannel(c);
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public Geolocation getGeolocation(){
+		return geolocation;
+	}
+
+	public void setCity(Geolocation geolocation) {
+		this.geolocation = geolocation;
 	}
 
 }

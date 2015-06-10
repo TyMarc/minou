@@ -2,23 +2,18 @@ package com.lesgens.minou.models;
 
 import android.graphics.Bitmap;
 
-public class User implements IDestination{
+public class User extends Channel{
 	private Bitmap avatar;
-	private String name;
 	private String tokenId;
 	
 	public User(String name, Bitmap avatar, String tokenId){
-		this.name = name;
+		super(name, null);
 		this.avatar = avatar;
 		this.tokenId = tokenId;
 	}
 	
 	public Bitmap getAvatar(){
 		return avatar;
-	}
-	
-	public String getName(){
-		return name;
 	}
 
 	public String getId() {

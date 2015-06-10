@@ -10,14 +10,15 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.lesgens.minou.R;
+import com.lesgens.minou.models.Channel;
 
-public class ChannelsAdapter extends ArrayAdapter<String>{
+public class ChannelsAdapter extends ArrayAdapter<Channel>{
 	private Context mContext;
 	private LayoutInflater mInflater = null;
 
-	private ArrayList<String> channels;
+	private ArrayList<Channel> channels;
 
-	public ChannelsAdapter(Context context, ArrayList<String> chatValue) {  
+	public ChannelsAdapter(Context context, ArrayList<Channel> chatValue) {  
 		super(context,R.layout.chat_even, chatValue);
 		mContext = context;     
 		channels = chatValue;     
@@ -49,7 +50,7 @@ public class ChannelsAdapter extends ArrayAdapter<String>{
 		}
 		
 		ViewHolder holder = (ViewHolder) rowView.getTag();
-		final String channelName = channels.get(position);
+		final String channelName = channels.get(position).getName();
 		
 		holder.name.setText(channelName);
 
