@@ -20,6 +20,7 @@ import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
+import com.lesgens.minou.utils.Utils;
 
 public class ConnectToChannelActivity extends MinouActivity implements OnClickListener, TextWatcher{
 	private boolean isPrivateChannelPicker;
@@ -76,20 +77,23 @@ public class ConnectToChannelActivity extends MinouActivity implements OnClickLi
 	public void onClick(View v) {
 		if(v.getId() == R.id.currently_written){
 			final String text = ((TextView) v).getText().toString().trim();
-			if(!text.trim().isEmpty() && !Controller.getInstance().getChannelsContainer().isContainSubscription(text.trim())){
-				if(isPrivateChannelPicker){
-					final User user = Controller.getInstance().getUserByName(text);
-					DatabaseHelper.getInstance().addPrivateChannel(user.getName(), user.getId());
-					Server.subscribeToChannel(this, user.getId());
-					if(user != null){
-						setResult(RESULT_OK, new Intent(user.getId()));
+			if(!text.isEmpty()){
+				final String channelName = Utils.getNormalizedString(currentNamespace + "." + text);
+				if(!Controller.getInstance().getCurrentChannel().isContainSubscription(channelName)){
+					if(isPrivateChannelPicker){
+						final User user = Controller.getInstance().getUserByName(text);
+						DatabaseHelper.getInstance().addPrivateChannel(user.getName(), user.getId());
+						Server.subscribeToChannel(this, user.getId());
+						if(user != null){
+							setResult(RESULT_OK, new Intent(user.getId()));
+							finish();
+						}
+					} else{
+						DatabaseHelper.getInstance().addPublicChannel(channelName);
+						Server.subscribeToChannel(this, channelName);
+						setResult(RESULT_OK);
 						finish();
 					}
-				} else{
-					DatabaseHelper.getInstance().addPublicChannel(currentNamespace + "." + text);
-					Server.subscribeToChannel(this, currentNamespace + "." + text);
-					setResult(RESULT_OK);
-					finish();
 				}
 			}
 		}

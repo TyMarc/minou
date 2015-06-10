@@ -3,8 +3,6 @@ package com.lesgens.minou.network;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.security.SignatureException;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,24 +20,19 @@ import ws.wamp.jawampa.PubSubData;
 import ws.wamp.jawampa.WampClient;
 import ws.wamp.jawampa.WampClientBuilder;
 import ws.wamp.jawampa.WampError;
-import ws.wamp.jawampa.WampMessages.AuthenticateMessage;
-import ws.wamp.jawampa.WampMessages.ChallengeMessage;
-import ws.wamp.jawampa.auth.client.ClientSideAuthentication;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.JsonReader;
 import android.util.Log;
 
 import com.checkin.avatargenerator.AvatarGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.lesgens.minou.application.MinouApplication;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.enums.Roles;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
@@ -83,21 +76,9 @@ public class Server {
 			@Override
 			protected void onPostExecute(String result) {
 				super.onPostExecute(result);
-				String facebookTokenId = "";
-				String fakeName = "";
-				String secret = "";
-				String authId = "";
 				Log.i(TAG, "Auth response's json: "+ result);
 				try {
-					String[] auth = readAuth(new StringReader(result));
-					facebookTokenId = auth[0];
-					fakeName = auth[1];
-					secret = auth[2];
-					authId = auth[3];
-					Log.i(TAG, "Auth response's userId: "+ facebookTokenId + " fake name:" + fakeName + " secret:" + secret);
-					Controller.getInstance().setMyOwnUser(new User(fakeName, Channel.BASE_CHANNEL + facebookTokenId, AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), facebookTokenId));
-					Controller.getInstance().setSecret(secret);
-					Controller.getInstance().setAuthId(authId);
+					readAuth(new StringReader(result));
 					for(UserAuthenticatedListener listener: userAuthenticatedListeners) {
 						listener.onUserAuthenticated();
 					}
@@ -128,40 +109,7 @@ public class Server {
 			.withRealm("minou")
 			.withInfiniteReconnects()
 			.withAuthId(Controller.getInstance().getAuthId())
-			.withAuthMethod(new ClientSideAuthentication() {
-				
-				@Override
-				public AuthenticateMessage handleChallenge(ChallengeMessage message,
-						ObjectMapper objectMapper) {
-						try {
-							JsonNode challenge = message.toObjectArray(objectMapper);
-							JsonNode actualObj = objectMapper.readTree(challenge.get(2).get("challenge").textValue());
-							ObjectNode extra = objectMapper.valueToTree(actualObj);
-							return new AuthenticateMessage(Utils.authSignature(challenge.get(2).get("challenge").textValue(), Controller.getInstance().getSecret()), extra);
-						} catch (WampError e) {
-							e.printStackTrace();
-						} catch (UnsupportedEncodingException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (JsonProcessingException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						} catch (SignatureException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						
-						return null;
-				}
-				
-				@Override
-				public String getAuthMethod() {
-					return "wampcra";
-				}
-			})
+			.withAuthMethod(new WampCraAuthentication())
 			.withReconnectInterval(2, TimeUnit.SECONDS);
 			// Create a client through the builder. This will not immediatly start
 			// a connection attempt
@@ -182,6 +130,7 @@ public class Server {
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getCityNameSpace());
 						
 						for(String channel : DatabaseHelper.getInstance().getPublicChannels()){
+							Log.i(TAG, channel);
 							subscribeToChannel(context, channel);
 						}
 
@@ -217,7 +166,6 @@ public class Server {
 			client.open();
 
 		} catch (WampError e) {
-			// Catch exceptions that will be thrown in case of invalid configuration
 			Log.i(TAG, e.getMessage());
 			return;
 		}
@@ -237,12 +185,26 @@ public class Server {
 	}
 	
 	private static void initChannels(final Context context){
-		String fullChannelName = Channel.WORLDWIDE_CHANNEL.toLowerCase().replace("-", "_");
-		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
-		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
+		final String channelName = Channel.WORLDWIDE_CHANNEL;		
+		Controller.getInstance().initChannelContainer(createChannel(context, channelName));
+	}
+	
+	public static void subscribeToChannel(final Context context, final String channelName){
+		if(Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
+			return;
+		}
+
+		final Channel channel = createChannel(context, channelName);
+
+		Controller.getInstance().getChannelsContainer().addSubscription(channel);
+		Controller.getInstance().setCurrentChannel(channel);
+	}
+	
+	private static Channel createChannel(final Context context, final String channelName){
+		final String fullChannelName = Utils.getNormalizedString(channelName);
 		Log.i(TAG, "Subscribing to: " + fullChannelName);
 		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName);
-		final Channel channel = new Channel(Channel.WORLDWIDE_CHANNEL, channelSubscription);
+		final Channel channel = new Channel(fullChannelName, channelSubscription);
 		channelSubscription.forEach(new Action1<PubSubData>(){
 
 			@Override
@@ -261,58 +223,16 @@ public class Server {
 				events.add(m);
 				boolean isGoodChannel = true;
 				if(eventsListeners != null){
-					isGoodChannel = eventsListeners.onEventsReceived(events, Channel.WORLDWIDE_CHANNEL);
-				}
-				DatabaseHelper.getInstance().addMessage(m, user.getId(), Channel.WORLDWIDE_CHANNEL);
-				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
-					Log.i(TAG, "Application not visible, should send notification");
-					NotificationHelper.notify(context, Channel.WORLDWIDE_CHANNEL, user, content);
-				}
-			}});
-		
-		Controller.getInstance().initChannelContainer(channel);
-	}
-
-	public static void subscribeToChannel(final Context context, final String channelName){
-		if(Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
-			return;
-		}
-
-		String fullChannelName = channelName.toLowerCase().replace("-", "_");
-		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
-		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
-		Log.i(TAG, "Subscribing to: " + fullChannelName);
-		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName);
-		final Channel channel = new Channel(channelName, channelSubscription);
-		channelSubscription.forEach(new Action1<PubSubData>(){
-
-			@Override
-			public void call(PubSubData msg) {
-				Log.i(TAG, "Received new message " + msg);
-				final User user = Controller.getInstance().getUser(msg.keywordArguments().get("from").asText(), msg.keywordArguments().get("fake_name").asText());
-				final String content = msg.keywordArguments().get("content").asText();
-				byte[] data = null;
-				try {
-					data = msg.keywordArguments().get("picture") != null ? msg.keywordArguments().get("picture").binaryValue() : null;
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				Message m = new Message(user, content, user.getUsername(), channel, true, data);
-				ArrayList<Event> events = new ArrayList<Event>();
-				events.add(m);
-				boolean isGoodChannel = true;
-				if(eventsListeners != null){
-					isGoodChannel = eventsListeners.onEventsReceived(events, channelName);
+					isGoodChannel = eventsListeners.onEventsReceived(events, channel.getNamespace());
 				}
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
 				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
 					Log.i(TAG, "Application not visible, should send notification");
-					NotificationHelper.notify(context, channelName, user, content);
+					NotificationHelper.notify(context, Utils.capitalizeFirstLetters(channelName.substring(channelName.lastIndexOf(".") + 1)), user, content);
 				}
 			}});
-
-		Controller.getInstance().getChannelsContainer().addSubscription(channel);
-		Controller.getInstance().setCurrentChannel(channel);
+		
+		return channel;
 	}
 
 	public static void sendMessage(final String message){
@@ -355,36 +275,6 @@ public class Server {
 		return new ArrayList<Channel>();
 	}
 
-	public static void sendChannelMessage(User destination, String message) {
-		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
-
-			@Override
-			protected String doInBackground(String... arg0) {
-				String finalAddress = address + "events/message";
-				Log.i(TAG, "Send private message address: " + finalAddress);
-
-				List<NameValuePair> data = new ArrayList<NameValuePair>();
-				data.add(new BasicNameValuePair("dst_user", arg0[1]));
-				data.add(new BasicNameValuePair("message", arg0[2]));
-
-				List<NameValuePair> headers = new ArrayList<NameValuePair>();
-				headers.add(new BasicNameValuePair("X-User-Token", arg0[0]));
-
-				HTTPRequest request = new HTTPRequest(finalAddress, RequestType.POST, data, headers);
-				return request.getOutput();
-			}
-
-			@Override
-			protected void onPostExecute(String result) {
-				super.onPostExecute(result);
-				Log.i(TAG, "Sent message's response: "+ result);
-			}
-
-		};
-		request.execute(Controller.getInstance().getMyself().getId(), destination.getId(), message);
-		Server.sendMessage(message);
-	}
-
 	public static void addUserAuthenticatedListener(UserAuthenticatedListener listener) {
 		userAuthenticatedListeners.add(listener);
 	}
@@ -409,26 +299,27 @@ public class Server {
 		crossbarConnectionListener = null;
 	}
 
-	private static String[] readAuth(Reader in) throws IOException {
-		String[] auth = new String[5];
+	private static void readAuth(Reader in) throws IOException {
 		JsonReader reader = new JsonReader(in);
 		reader.beginObject();
+		String tokenId = "";
+		String fakeName = "";
 		while(reader.hasNext()){
 			String name = reader.nextName();
 			if (name.equals("token")) {
-				auth[0] = reader.nextString();
+				tokenId = reader.nextString();
 			} else if (name.equals("fake_name")) {
-				auth[1] = reader.nextString();
+				fakeName = reader.nextString();
 			} else if (name.equals("secret")) {
-				auth[2] = reader.nextString();
+				Controller.getInstance().setSecret(reader.nextString());
 			} else if (name.equals("id")) {
-				auth[3] = reader.nextString();
+				Controller.getInstance().setAuthId(reader.nextString());
 			} else if (name.equals("role")) {
-				auth[4] = reader.nextString();
+				Controller.getInstance().setRole(Roles.fromString(reader.nextString()));
 			}
 		}
 		reader.endObject();
 		reader.close();
-		return auth;
+		Controller.getInstance().setMyOwnUser(new User(fakeName, Channel.BASE_CHANNEL + tokenId, AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), tokenId));
 	}
 }

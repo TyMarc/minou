@@ -1,5 +1,6 @@
 package com.lesgens.minou.controllers;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -10,6 +11,7 @@ import android.util.Log;
 
 import com.checkin.avatargenerator.AvatarGenerator;
 import com.facebook.Session;
+import com.lesgens.minou.enums.Roles;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.Geolocation;
 import com.lesgens.minou.models.User;
@@ -26,6 +28,7 @@ public class Controller {
 	private Channel currentChannel;
 	private Geolocation geolocation;
 	private String authId;
+	private Roles role;
 
 	private static Controller controller;
 
@@ -158,7 +161,10 @@ public class Controller {
 	}
 
 	public boolean setCurrentChannel(String channel) {
-		Channel c = channelsContainer.getChannelByName(channel);
+		String fullChannelName = channel.toLowerCase().replace("-", "_");
+		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
+		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
+		Channel c = channelsContainer.getChannelByName(fullChannelName);
 		if(c != null){
 			setCurrentChannel(c);
 			return true;
@@ -181,6 +187,14 @@ public class Controller {
 	
 	public String getAuthId(){
 		return authId;
+	}
+
+	public void setRole(Roles role) {
+		this.role = role;
+	}
+	
+	public Roles getRole(){
+		return role;
 	}
 
 }

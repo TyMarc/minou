@@ -10,14 +10,12 @@ public abstract class Event {
 	private Timestamp timestamp;
 	private Channel channel;
 	private User sourceUser;
-	private String userName;
 	
-	public Event(UUID id, Timestamp timestamp, Channel channel, User user, String userName) {
+	public Event(UUID id, Timestamp timestamp, Channel channel, User user) {
 		this.id = id;
 		this.timestamp = timestamp;
 		this.channel = channel;
 		this.sourceUser = user;
-		this.userName = userName;
 	}
 	
 	public UUID getId(){
@@ -34,10 +32,6 @@ public abstract class Event {
 	
 	public User getUser(){
 		return sourceUser;
-	}
-	
-	public String getUserName() {
-		return userName;
 	}
 	
 }

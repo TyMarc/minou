@@ -14,23 +14,19 @@ public class Message extends Event{
 	private byte[] data;
 
 	public Message(User user, String message, boolean isIncoming){
-		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, message, null,  isIncoming, null);
+		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, message,  isIncoming, null);
 	}
 	
 	public Message(User user, byte[] data, boolean isIncoming){
-		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, null, null,  isIncoming, data);
+		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, null,  isIncoming, data);
 	}
 	
 	public Message(User user, String message, String userName, Channel iDestionation, boolean isIncoming, byte[] data){
-		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), iDestionation, user, message, userName,  isIncoming, data);
+		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), iDestionation, user, message,  isIncoming, data);
 	}
 	
-	public Message(UUID id, Timestamp timestamp, User user, String userName, String message, boolean isIncoming, byte[] data){
-		this(id, timestamp, null, user, message, userName, isIncoming, data);
-	}
-
-	public Message(UUID id, Timestamp timestamp, Channel channel, User user, String message, String userName, boolean isIncoming, byte[] data) {
-		super(id, timestamp, channel, user, userName);
+	public Message(UUID id, Timestamp timestamp, Channel channel, User user, String message, boolean isIncoming, byte[] data) {
+		super(id, timestamp, channel, user);
 		this.message = message;
 		this.isIncoming = isIncoming;
 		idsMessage = new ArrayList<UUID>();

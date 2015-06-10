@@ -3,6 +3,7 @@ package com.lesgens.minou.adapters;
 import java.util.ArrayList;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 
 import com.lesgens.minou.R;
 import com.lesgens.minou.models.Channel;
+import com.lesgens.minou.utils.Utils;
 
 public class ChannelsAdapter extends ArrayAdapter<Channel>{
 	private Context mContext;
@@ -39,7 +41,7 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 	public View getView(int position, View convertView, ViewGroup parent) {
 		View rowView;
 
-		if(convertView == null){ // Only inflating if necessary is great for performance
+		if(convertView == null){
 			rowView = getInflater().inflate(R.layout.channel_item, parent, false);
 			
 			ViewHolder holder = new ViewHolder();
@@ -50,8 +52,8 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 		}
 		
 		ViewHolder holder = (ViewHolder) rowView.getTag();
-		final String channelName = channels.get(position).getName();
-		
+		final String channelName = Utils.capitalizeFirstLetters(channels.get(position).getName());
+				
 		holder.name.setText(channelName);
 
 		return rowView;

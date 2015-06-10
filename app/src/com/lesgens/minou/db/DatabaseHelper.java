@@ -59,7 +59,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		Log.i(TAG, " adding message to database to channel=" + channel.toLowerCase());
 		ContentValues cv = new ContentValues();
 		cv.put("message_id",m.getId().toString());
-		cv.put("userName", m.getUserName());
+		cv.put("userName", m.getUser().getUsername());
 		cv.put("message", m.getMessage());
 		cv.put("data", m.getData());
 		cv.put("isIncoming", m.isIncoming() ? 1 : 0);
@@ -82,6 +82,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public void addPublicChannel(final String channel){
 		SQLiteDatabase db = this.getWritableDatabase();
 
+		Log.i(TAG, "Adding " + channel + " to db");
 		ContentValues cv = new ContentValues();
 		cv.put("channel", channel);
 		db.insert("minou_public", null, cv);
@@ -91,9 +92,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		SQLiteDatabase db = this.getReadableDatabase();
 		ArrayList<String> channels = new ArrayList<String>();
 		
-		Cursor c = db.rawQuery("SELECT channel FROM minou_public;", null );
+		Cursor c = db.rawQuery("SELECT channel FROM minou_public ORDER BY id;", null );
 
-		if(c.moveToNext()){
+		while(c.moveToNext()){
 			channels.add(c.getString(0));
 		}
 		
@@ -111,24 +112,24 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		while(c.moveToNext()){
 			UUID id = UUID.fromString(c.getString(0));
 			Timestamp timestamp = new Timestamp(c.getLong(1));
-			String userName = c.getString(2);
+			String username = c.getString(2);
 			String text = c.getString(3);
 			boolean isIncoming = c.getInt(4) == 1;
 			byte[] data = c.getBlob(5);
 			String userToken = c.getString(6);
-			User user = Controller.getInstance().getUser(userToken, userName);
+			User user = Controller.getInstance().getUser(userToken, username);
 			message = new Message(id, timestamp, Controller.getInstance().getChannelsContainer().getChannelByName(channel), 
-					user, text, userName, isIncoming, data);
+					user, text, isIncoming, data);
 			messages.add(message);
 		}
 		
 		return messages;
 	}
 	
-	public void deleteAllMessages(final String channel){
+	public void removeAllMessages(final String channel){
 		SQLiteDatabase db = this.getWritableDatabase();
 		
-		db.delete("minou_message", "channel = ?", new String[]{channel.toLowerCase()});
+		db.delete("minou_message", "channel LIKE ?", new String[]{channel + ".*"});
 	}
 	
 	public void addPrivateChannel(String userName, String userToken){
@@ -176,7 +177,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public void removePublicChannel(String channel) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
-		db.delete("minou_public", "channel = ?", new String[]{channel});
+		db.delete("minou_public", "channel LIKE ?", new String[]{channel + ".*"});
 	}
 	
 	public long getLastMessageFetched(String channel){

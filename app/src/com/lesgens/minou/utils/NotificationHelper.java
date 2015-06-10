@@ -20,7 +20,7 @@ public class NotificationHelper {
 				new NotificationCompat.Builder(context)
 		.setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.minou_notif))
 		.setSmallIcon(R.drawable.mail)
-		.setContentTitle(user.getName())
+		.setContentTitle(user.getUsername())
 		.setContentText(content)
 		.setColor(Color.BLUE)
 		.setVibrate(new long[] { 0, 500})

@@ -1,11 +1,13 @@
 package com.lesgens.minou.utils;
 
-import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -37,6 +39,14 @@ public class Utils {
 	    return newBitmap;
 	}
 	
+	public static String getNormalizedString(final String str){
+		String fullChannelName = str.toLowerCase().replace("-", "_");
+		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
+		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
+		
+		return fullChannelName;
+	}
+	
 	public static String transformArrayListToString(final ArrayList<String> array){
 		String str = "";
 		int i = 0;
@@ -64,28 +74,15 @@ public class Utils {
 		return byteArray;
 	}
 	
-	public static String hmacSha1(String value, String key)
-	        throws UnsupportedEncodingException, NoSuchAlgorithmException,
-	        InvalidKeyException {
-	    String type = "HmacSHA1";
-	    SecretKeySpec secret = new SecretKeySpec(key.getBytes(), type);
-	    Mac mac = Mac.getInstance(type);
-	    mac.init(secret);
-	    byte[] bytes = mac.doFinal(value.getBytes());
-	    return bytesToHex(bytes);
-	}
-
-	public final static char[] hexArray = "0123456789abcdef".toCharArray();
-
-	public static String bytesToHex(byte[] bytes) {
-	    char[] hexChars = new char[bytes.length * 2];
-	    int v;
-	    for (int j = 0; j < bytes.length; j++) {
-	        v = bytes[j] & 0xFF;
-	        hexChars[j * 2] = hexArray[v >>> 4];
-	        hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-	    }
-	    return new String(hexChars);
+	public static String capitalizeFirstLetters(String str){
+	      StringBuffer stringbf = new StringBuffer();
+	      Matcher m = Pattern.compile("([a-z])([a-z]*)",
+	      Pattern.CASE_INSENSITIVE).matcher(str);
+	      while (m.find()) {
+	         m.appendReplacement(stringbf, 
+	         m.group(1).toUpperCase() + m.group(2).toLowerCase());
+	      }
+	      return m.appendTail(stringbf).toString();
 	}
 	
 	public static String authSignature(String authChallenge, String authSecret) throws SignatureException{

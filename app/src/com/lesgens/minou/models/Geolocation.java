@@ -1,5 +1,7 @@
 package com.lesgens.minou.models;
 
+import com.lesgens.minou.utils.Utils;
+
 public class Geolocation {
 	private String city;
 	private String state;
@@ -51,15 +53,15 @@ public class Geolocation {
 	}
 	
 	public String getCityNameSpace(){
-		return getStateNameSpace() + "." + (city != null ? city : "montreal");
+		return Utils.getNormalizedString(getStateNameSpace() + "." + (city != null ? city : "montreal"));
 	}
 	
 	public String getStateNameSpace(){
-		return getCountryNameSpace() + "." + (state != null ? state : "quebec");
+		return Utils.getNormalizedString(getCountryNameSpace() + "." + (state != null ? state : "quebec"));
 	}
 	
 	public String getCountryNameSpace(){
-		return Channel.BASE_CHANNEL + "worldwide." + (country != null ? country : "canada");
+		return Utils.getNormalizedString(Channel.BASE_CHANNEL + "worldwide." + (country != null ? country : "canada"));
 	}
 
 }

@@ -5,8 +5,12 @@ import java.util.ArrayList;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 import ws.wamp.jawampa.PubSubData;
+import android.util.Log;
+
+import com.lesgens.minou.controllers.Controller;
 
 public class Channel {
+	private static final String TAG = "Channel";
 	public static final String BASE_CHANNEL = "minou.";
 	public static final String WORLDWIDE_CHANNEL = BASE_CHANNEL + "worldwide";
 	private String name;
@@ -16,7 +20,7 @@ public class Channel {
 
 	public Channel(String namespace, Observable<PubSubData> subscription) {
 		channels = new ArrayList<Channel>();
-		this.name = namespace.substring(namespace.lastIndexOf(".")-1);
+		this.name = namespace.substring(namespace.lastIndexOf(".") + 1);
 		this.namespace = namespace;
 		this.subscription = subscription;
 	}
@@ -38,14 +42,21 @@ public class Channel {
 	}
 
 	public boolean isContainSubscription(final String channelName){
-		boolean answer = false;
-		if(namespace.equals(channelName)) answer = true;
+		if(namespace.equals(channelName)) return true;
 		
 		for(Channel channel : channels){
-			answer = channel.isContainSubscription(channelName);
+			if(channel.isContainSubscription(channelName)) return true;
 		}
-
-		return answer;
+		
+		return false;
+	}
+	
+	public Channel getParent(){
+		Log.i(TAG, "Looking for parent=" + namespace.substring(0,namespace.lastIndexOf(".")));
+		if(!namespace.equals(WORLDWIDE_CHANNEL)){
+			return Controller.getInstance().getChannelsContainer().getChannelByName(namespace.substring(0,namespace.lastIndexOf(".")));
+		}
+		return null;
 	}
 
 	public void addSubscription(final Channel channel){
