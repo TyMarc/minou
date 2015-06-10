@@ -56,7 +56,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public void addMessage(Message m, String userToken, String channel){
 		SQLiteDatabase db = this.getWritableDatabase();
 
-		Log.i(TAG, " adding message to database to channel=" + channel.toLowerCase());
+		Log.i(TAG, " adding message to database to channel=" + channel.toLowerCase().replace("-", "_"));
 		ContentValues cv = new ContentValues();
 		cv.put("message_id",m.getId().toString());
 		cv.put("userName", m.getUser().getUsername());
@@ -65,7 +65,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		cv.put("isIncoming", m.isIncoming() ? 1 : 0);
 		cv.put("timestamp", m.getTimestamp().getTime());
 		cv.put("userToken", userToken);
-		cv.put("channel", channel.toLowerCase());
+		cv.put("channel", channel.toLowerCase().replace("-", "_"));
 		db.insert("minou_message", null, cv);
 		
 		cv = new ContentValues();
@@ -101,13 +101,12 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		return channels;
 	}
 
-	public ArrayList<Message> getMessages(String channel){
+	public ArrayList<Message> getMessages(Channel channel){
 		ArrayList<Message> messages = new ArrayList<Message>();
 		SQLiteDatabase db = this.getReadableDatabase();
-		Log.i(TAG, "get Messages for channel=" + channel.toLowerCase());
+		Log.i(TAG, "get Messages for channel=" + channel.getNamespace().toLowerCase().replace("-", "_"));
 
-		Cursor c = db.rawQuery("SELECT message_id, timestamp, userName, message, isIncoming, data, userToken FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel.toLowerCase()} );
-		
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, userName, message, isIncoming, data, userToken FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
 		Message message;
 		while(c.moveToNext()){
 			UUID id = UUID.fromString(c.getString(0));
@@ -118,12 +117,34 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			byte[] data = c.getBlob(5);
 			String userToken = c.getString(6);
 			User user = Controller.getInstance().getUser(userToken, username);
-			message = new Message(id, timestamp, Controller.getInstance().getChannelsContainer().getChannelByName(channel), 
+			message = new Message(id, timestamp, channel, 
 					user, text, isIncoming, data);
 			messages.add(message);
 		}
 		
 		return messages;
+	}
+	
+	public Message getLastMessage(Channel channel){
+		SQLiteDatabase db = this.getReadableDatabase();
+		Log.i(TAG, "get last Message for channel=" + channel.getNamespace().toLowerCase().replace("-", "_"));
+
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, userName, message, isIncoming, data, userToken FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
+		Message message = null;
+		if(c.moveToNext()){
+			UUID id = UUID.fromString(c.getString(0));
+			Timestamp timestamp = new Timestamp(c.getLong(1));
+			String username = c.getString(2);
+			String text = c.getString(3);
+			boolean isIncoming = c.getInt(4) == 1;
+			byte[] data = c.getBlob(5);
+			String userToken = c.getString(6);
+			User user = Controller.getInstance().getUser(userToken, username);
+			message = new Message(id, timestamp, channel, 
+					user, text, isIncoming, data);
+		}
+		
+		return message;
 	}
 	
 	public void removeAllMessages(final String channel){
@@ -136,7 +157,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		ContentValues cv = new ContentValues();
-		cv.put("userToken", Channel.BASE_CHANNEL + userToken);
+		cv.put("channel", userToken);
 		cv.put("userName", userName);
 		db.insert("minou_private", null, cv);
 	}
@@ -183,7 +204,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public long getLastMessageFetched(String channel){
 		SQLiteDatabase db = this.getReadableDatabase();
 
-		Cursor c = db.rawQuery("SELECT timestamp FROM minou_last_message WHERE channel = ?;", new String[]{channel} );
+		Cursor c = db.rawQuery("SELECT timestamp FROM minou_last_message WHERE channel = ?;", new String[]{channel.toLowerCase().replace("-", "_")} );
 		
 		if(c.moveToFirst()){
 			return c.getLong(0);

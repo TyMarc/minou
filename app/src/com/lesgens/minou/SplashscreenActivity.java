@@ -192,7 +192,7 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener, Cros
 	}
 
 	public void goToPublicChat(){
-		ChannelChatActivity.show(this, Controller.getInstance().getGeolocation().getCityNameSpace());
+		ChannelPickerActivity.show(this);
 		finish();
 	}
 	

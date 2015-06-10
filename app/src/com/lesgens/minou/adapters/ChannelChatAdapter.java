@@ -133,7 +133,7 @@ public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyL
 			}
 		}
 
-		if(holder.avatar != null && !isPrivate){
+		if(holder.avatar != null){
 			if(!isPrivate){
 				holder.avatar.setImageBitmap(message.getUser().getAvatar());
 			} else{

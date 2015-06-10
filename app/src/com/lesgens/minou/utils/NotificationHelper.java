@@ -9,13 +9,14 @@ import android.graphics.Color;
 import android.provider.Settings;
 import android.support.v4.app.NotificationCompat;
 
-import com.lesgens.minou.ChannelChatActivity;
+import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.R;
+import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.User;
 
 public class NotificationHelper {
 
-	public static void notify(final Context context, final String channel, final User user, final String content){
+	public static void notify(final Context context, final Channel channel, final User user, final String content){
 		NotificationCompat.Builder mBuilder =
 				new NotificationCompat.Builder(context)
 		.setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.minou_notif))
@@ -28,12 +29,12 @@ public class NotificationHelper {
 		.setLights(Color.BLUE, 1000, 1000)
 		.setAutoCancel(true);
 		
-		if(!channel.equals(user.getId())){
-			mBuilder.setContentInfo(channel);
+		if(channel != null){
+			mBuilder.setContentInfo(Utils.capitalizeFirstLetters(channel.getName()));
 		}
 		
-		Intent resultIntent = new Intent(context, ChannelChatActivity.class);
-		resultIntent.putExtra("channelName", channel);
+		Intent resultIntent = new Intent(context, ChatActivity.class);
+		resultIntent.putExtra("channelName", channel != null ? channel.getNamespace() : user.getNamespace());
 		PendingIntent resultPendingIntent =
 		    PendingIntent.getActivity(
 		    context,

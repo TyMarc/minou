@@ -16,7 +16,7 @@ public class PreferencesController {
 
 	public static String getDefaultChannel(final Context context) {
 		SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE); 
-		String restoredText = prefs.getString(DEFAULT_CHANNEL, "minou.worldwide");
+		String restoredText = prefs.getString(DEFAULT_CHANNEL, "minou.public.worldwide");
 		return restoredText;
 	}
 

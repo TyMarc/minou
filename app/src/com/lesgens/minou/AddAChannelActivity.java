@@ -22,13 +22,13 @@ import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.utils.Utils;
 
-public class ConnectToChannelActivity extends MinouActivity implements OnClickListener, TextWatcher{
+public class AddAChannelActivity extends MinouActivity implements OnClickListener, TextWatcher{
 	private boolean isPrivateChannelPicker;
 	private ChannelsAdapter adapter;
 	private String currentNamespace;
 
 	public static void show(final Activity activity, final boolean isPrivateChannelPicker, final String currentNamespace, final int requestCode) {
-		Intent i = new Intent(activity, ConnectToChannelActivity.class);
+		Intent i = new Intent(activity, AddAChannelActivity.class);
 		i.putExtra("isPrivateChannelPicker", isPrivateChannelPicker);
 		i.putExtra("currentNamespace", currentNamespace);
 		activity.startActivityForResult(i, requestCode);

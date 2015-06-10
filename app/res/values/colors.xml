@@ -17,7 +17,7 @@
     <color name="transparent">#00000000</color>
     <color name="red">#FF6666</color>
     <color name="faded_white">#26FFFFFF</color>
-    
+    <color name="dark_grey">#666666</color>
      <color name="bg_color_transparent">#AA000000</color>
     <color name="bg_overlay">#99000000</color>
     <color name="bg_chat">#F0F7FF</color>

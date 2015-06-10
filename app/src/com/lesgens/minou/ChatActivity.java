@@ -2,7 +2,6 @@ package com.lesgens.minou;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -24,25 +23,17 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
-import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.OnOpenListener;
 import com.lesgens.minou.adapters.ChannelChatAdapter;
-import com.lesgens.minou.adapters.ChannelsAdapter;
-import com.lesgens.minou.adapters.PrivateChannelsAdapter;
 import com.lesgens.minou.controllers.Controller;
-import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.listeners.EventsListener;
-import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
@@ -53,10 +44,8 @@ import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
 import com.lesgens.minou.views.CustomYesNoDialog;
 
-public class ChannelChatActivity extends MinouActivity implements OnClickListener, EventsListener, OnOpenListener, NetworkStateReceiverListener {
+public class ChatActivity extends MinouActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener {
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
-	private static final int CHANNEL_PICKER_REQUEST_CODE = 101;
-	private static final int PRIVATE_PICKER_REQUEST_CODE = 102;
 	private static final String TAG = "ChannelChatActivity";
 	private Typeface tf;
 	private ImageView sendBt;
@@ -64,11 +53,6 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 	private StickyListHeadersListView listMessages;
 	private EditText editText;
 	private ImageView menuPrivate;
-	private SlidingMenu slidingMenu;
-	private ListView listChannels;
-	private ListView listPrivate;
-	private ChannelsAdapter channelsAdapter;
-	private PrivateChannelsAdapter privatesAdapter;
 	private ScheduledExecutorService scheduler;
 	private Future<?> future;
 	private TextView tvConnectionProblem;
@@ -77,9 +61,8 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 	private Uri imageUri;
 	private String channelNamespace;
 
-	public static void show(final Context context, final String channelNamespace){
-		Intent i = new Intent(context, ChannelChatActivity.class);
-		i.putExtra("channelNamespace", channelNamespace);
+	public static void show(final Context context){
+		Intent i = new Intent(context, ChatActivity.class);
 		context.startActivity(i);
 	}
 
@@ -90,10 +73,14 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 		//Remove title bar
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-		setContentView(R.layout.public_chat_container);
+		setContentView(R.layout.public_chat);
 
 		channelTextView = (TextView) findViewById(R.id.city_name);
 
+		final String channelName = getIntent().getStringExtra("channelName");
+		if(channelName != null){
+			Controller.getInstance().setCurrentChannel(channelName);
+		}
 		tvConnectionProblem = (TextView) findViewById(R.id.connection_problem);
 
 		tf = Typeface.createFromAsset(getAssets(), "fonts/Raleway_Thin.otf");
@@ -102,8 +89,6 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 		editText = (EditText) findViewById(R.id.editText);
 		editText.clearFocus();
 
-		slidingMenu = (SlidingMenu) findViewById(R.id.slidingmenulayout);
-		slidingMenu.setOnOpenListener(this);
 
 		sendBt = (ImageView) findViewById(R.id.send);
 		sendBt.setOnClickListener(this);
@@ -114,26 +99,12 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 			findViewById(R.id.send_picture).setOnClickListener(this);
 		}
 
-		findViewById(R.id.add_channel).setOnClickListener(this);
-		findViewById(R.id.add_private).setOnClickListener(this);
-
 		menuPrivate = (ImageView) findViewById(R.id.menu_private);
 		menuPrivate.setOnClickListener(this);
 
 		listMessages = (StickyListHeadersListView) findViewById(R.id.list);
 		listMessages.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
 		listMessages.setOnItemLongClickListener(new OnItemLongClickListenerUser());
-
-
-		listChannels = (ListView) findViewById(R.id.list_channels);
-		listChannels.setOnItemClickListener(new OnItemClickListenerChannel());
-		listChannels.setOnItemLongClickListener(new OnItemLongClickListenerChannel());
-
-		privatesAdapter = new PrivateChannelsAdapter(this, DatabaseHelper.getInstance().getPrivateChannels());
-		listPrivate = (ListView) findViewById(R.id.list_private);
-		listPrivate.setAdapter(privatesAdapter);
-		listPrivate.setOnItemClickListener(new OnItemClickListenerPrivate());
-		listPrivate.setOnItemLongClickListener(new OnItemLongClickListenerPrivateChannel());
 
 		networkStateReceiver = new NetworkStateReceiver(this);
 
@@ -149,21 +120,17 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 
 	public void refreshChannel(){
 		channelNamespace = Controller.getInstance().getCurrentChannel().getNamespace();
-		channelTextView.setText(Utils.capitalizeFirstLetters(Controller.getInstance().getCurrentChannel().getName()));
+		
+		if(Controller.getInstance().getCurrentChannel() instanceof User){
+			channelTextView.setText(Utils.capitalizeFirstLetters(((User) Controller.getInstance().getCurrentChannel()).getUsername()));
+		} else{
+			channelTextView.setText(Utils.capitalizeFirstLetters(Controller.getInstance().getCurrentChannel().getName()));	
+		}
 
 		NotificationHelper.cancelAll(this);
 
-		chatAdapter = new ChannelChatAdapter(this, DatabaseHelper.getInstance().getMessages(channelNamespace), Controller.getInstance().getCurrentChannel() instanceof User);
+		chatAdapter = new ChannelChatAdapter(this, DatabaseHelper.getInstance().getMessages(Controller.getInstance().getCurrentChannel()), Controller.getInstance().getCurrentChannel() instanceof User);
 		listMessages.setAdapter(chatAdapter);
-
-		ArrayList<Channel> channels = Controller.getInstance().getCurrentChannel().getChannels();
-
-		channelsAdapter = new ChannelsAdapter(this, channels);
-		listChannels.setAdapter(channelsAdapter);
-
-		if(slidingMenu.isMenuShowing()){
-			slidingMenu.toggle(true);
-		}
 	}
 
 	@Override
@@ -196,18 +163,6 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 	}
 
 	@Override
-	public void onBackPressed(){
-		if(slidingMenu.isMenuShowing()){
-			slidingMenu.toggle(true);
-		} else if(Controller.getInstance().getCurrentChannel().getParent() != null){
-			Controller.getInstance().setCurrentChannel(Controller.getInstance().getCurrentChannel().getParent());
-			refreshChannel();
-		} else{
-			super.onBackPressed();
-		}
-	}
-
-	@Override
 	public void onClick(View v) {
 		if(v.getId() == R.id.send){
 			final String text = editText.getText().toString();
@@ -215,27 +170,15 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 				Message message = new Message(Controller.getInstance().getMyself(), text, false);
 				chatAdapter.addMessage(message);
 				chatAdapter.notifyDataSetChanged();
-				Log.i(TAG, "Sending message to channel=" + channelNamespace);
 				Server.sendMessage(message.getMessage());
 				DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getMyId(), channelNamespace);
 				editText.setText("");
 				scrollMyListViewToBottom();
 			}
 		} else if(v.getId() == R.id.menu_private){
-			hideKeyboard();
-			new Handler(getMainLooper()).postDelayed(new Runnable(){
-
-				@Override
-				public void run() {
-					slidingMenu.toggle(true);
-				}}, 200);
-
+			onBackPressed();
 		} else if(v.getId() == R.id.send_picture){
 			takePhoto();
-		} else if(v.getId() == R.id.add_channel){
-			ConnectToChannelActivity.show(this, false, channelNamespace, CHANNEL_PICKER_REQUEST_CODE);
-		} else if(v.getId() == R.id.add_private){
-			ConnectToChannelActivity.show(this, true, channelNamespace, PRIVATE_PICKER_REQUEST_CODE);
 		}
 	}
 
@@ -274,7 +217,7 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 									.getBitmap(getContentResolver(), imageUri);
 							ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
-							final Bitmap bitmapScaled = Utils.scaleDown(bitmap, Utils.dpInPixels(ChannelChatActivity.this, 250), true);
+							final Bitmap bitmapScaled = Utils.scaleDown(bitmap, Utils.dpInPixels(ChatActivity.this, 250), true);
 							bitmap.recycle();
 							bitmapScaled.compress(Bitmap.CompressFormat.JPEG, 100, stream);
 							byte[] byteArray = stream.toByteArray();
@@ -283,7 +226,7 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 							chatAdapter.addMessage(message);
 							chatAdapter.notifyDataSetChanged();
 
-							Server.sendMessage(byteArray, channelNamespace);
+							Server.sendMessage(byteArray);
 
 							DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getMyId(), channelNamespace);
 							scrollMyListViewToBottom();
@@ -292,24 +235,7 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 						}
 					}});
 			}
-		} else if(requestCode == CHANNEL_PICKER_REQUEST_CODE){
-			if(resultCode == RESULT_OK){
-				refreshChannel();
-			}
-		} else if(requestCode == PRIVATE_PICKER_REQUEST_CODE){
-			if(resultCode == RESULT_OK){
-				//				User user = Controller.getInstance().getUser(data.getAction());
-				//				privatesAdapter.add(user);
-				//				setChannelName(user.getName(), user.getId());
-			}
 		}
-	}
-
-
-	private void hideKeyboard(){
-		InputMethodManager imm = (InputMethodManager)getSystemService(
-				Context.INPUT_METHOD_SERVICE);
-		imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
 	}
 
 	@Override
@@ -323,7 +249,7 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 			@Override
 			public void run() {
 				for(Event e : events){
-					if(!Controller.getInstance().getBlockedPeople(ChannelChatActivity.this).contains(((Message) e).getUser().getId())){
+					if(!Controller.getInstance().getBlockedPeople(ChatActivity.this).contains(((Message) e).getUser().getId())){
 						chatAdapter.addMessage((Message) e);
 						chatAdapter.notifyDataSetChanged();
 						scrollMyListViewToBottom();
@@ -332,59 +258,6 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 			}});
 
 		return true;
-	}
-
-	private class OnItemClickListenerPrivate implements OnItemClickListener{
-		@Override
-		public void onItemClick(AdapterView<?> adapter, View v, int position, long arg3) {
-			final User user = privatesAdapter.getItem(position);
-			if(!channelNamespace.endsWith(user.getName())){
-				Controller.getInstance().setCurrentChannel(user);
-				refreshChannel();
-			}
-		}
-	}
-
-	private class OnItemClickListenerChannel implements OnItemClickListener{
-		@Override
-		public void onItemClick(AdapterView<?> adapter, View v, int position, long arg3) {
-			Channel channel = channelsAdapter.getItem(position);
-			Controller.getInstance().setCurrentChannel(channel);
-			refreshChannel();
-		}
-	}
-
-	private class OnItemLongClickListenerChannel implements OnItemLongClickListener{
-
-
-		@Override
-		public boolean onItemLongClick(final AdapterView<?> arg0, final View arg1,
-				final int arg2, final long arg3) {
-			CustomYesNoDialog dialog = new CustomYesNoDialog(ChannelChatActivity.this){
-
-				@Override
-				public void onPositiveClick() {
-					super.onPositiveClick();
-					final Channel channel = channelsAdapter.getItem(arg2);
-					DatabaseHelper.getInstance().removePublicChannel(channel.getNamespace());
-					DatabaseHelper.getInstance().removeAllMessages(channel.getNamespace());
-					if(channel.getNamespace().equals(channelNamespace)){
-						String defaultChannel = PreferencesController.getDefaultChannel(ChannelChatActivity.this);
-						Controller.getInstance().setCurrentChannel(defaultChannel);
-						refreshChannel();
-					} else{
-						slidingMenu.toggle(true);
-					}
-					channelsAdapter.remove(channel);
-				}
-
-			};
-
-			dialog.show();
-			dialog.setDialogText(R.string.delete_channel);			
-			return true;
-		}
-
 	}
 
 	private class OnItemLongClickListenerUser implements OnItemLongClickListener{
@@ -398,13 +271,13 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 					DatabaseHelper.getInstance().getPrivateChannels().contains(message.getUser())){
 				return true;
 			}
-			CustomYesNoDialog dialog = new CustomYesNoDialog(ChannelChatActivity.this){
+			CustomYesNoDialog dialog = new CustomYesNoDialog(ChatActivity.this){
 
 				@Override
 				public void onPositiveClick() {
 					super.onPositiveClick();
-					DatabaseHelper.getInstance().addPrivateChannel(message.getUser().getName(), message.getUser().getId());
-					Server.subscribeToChannel(ChannelChatActivity.this, message.getUser().getId());
+					DatabaseHelper.getInstance().addPrivateChannel(message.getUser().getUsername(), message.getUser().getId());
+					Server.subscribeToPrivateChannel(ChatActivity.this, message.getUser());
 					refreshChannel();
 				}
 
@@ -417,47 +290,12 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 
 	}
 
-	private class OnItemLongClickListenerPrivateChannel implements OnItemLongClickListener{
-
-		@Override
-		public boolean onItemLongClick(final AdapterView<?> arg0, final View arg1,
-				final int arg2, final long arg3) {
-
-			final User user = privatesAdapter.getItem(arg2);
-			CustomYesNoDialog dialog = new CustomYesNoDialog(ChannelChatActivity.this){
-
-				@Override
-				public void onPositiveClick() {
-					super.onPositiveClick();
-					DatabaseHelper.getInstance().removePrivateChannel(user.getId());
-					DatabaseHelper.getInstance().removeAllMessages(user.getId());
-					if(user.getName().toLowerCase().equals(channelNamespace.toLowerCase())){
-						String defaultChannel = PreferencesController.getDefaultChannel(ChannelChatActivity.this);
-						Controller.getInstance().setCurrentChannel(defaultChannel);
-						refreshChannel();
-					} else{
-						slidingMenu.toggle(true);
-					}
-					privatesAdapter.remove(user);
-				}
-
-			};
-
-			dialog.show();
-			dialog.setDialogText(R.string.delete_channel);			
-			return true;
-		}
-
-	}
+	
 
 	@Override
 	public void onUserHistoryReceived(List<Event> events) {
 	}
 
-	@Override
-	public void onOpen() {
-		hideKeyboard();
-	}
 
 	@Override
 	public void onNetworkAvailable() {

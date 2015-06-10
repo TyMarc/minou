@@ -61,7 +61,7 @@ public class Geolocation {
 	}
 	
 	public String getCountryNameSpace(){
-		return Utils.getNormalizedString(Channel.BASE_CHANNEL + "worldwide." + (country != null ? country : "canada"));
+		return Utils.getNormalizedString(Channel.WORLDWIDE_CHANNEL + "." + (country != null ? country : "canada"));
 	}
 
 }

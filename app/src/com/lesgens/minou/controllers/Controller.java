@@ -59,7 +59,7 @@ public class Controller {
 
 	public User getUser(String tokenId){
 		if(users.get(tokenId) == null){
-			users.put(tokenId, new User(tokenId, Channel.BASE_CHANNEL + tokenId, AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), tokenId));
+			users.put(tokenId, new User(tokenId, Channel.BASE_CHANNEL + tokenId.replace(".", "_"), AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), tokenId));
 		}
 		return users.get(tokenId);
 	}
@@ -76,7 +76,7 @@ public class Controller {
 	
 	public User getUser(final String remoteId, final String userName){
 		if(users.get(remoteId) == null){
-			users.put(remoteId, new User(userName, Channel.BASE_CHANNEL + remoteId, AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), remoteId));
+			users.put(remoteId, new User(userName, Channel.BASE_CHANNEL + remoteId.replace(".", "_"), AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), remoteId));
 		}
 		return users.get(remoteId);
 	}

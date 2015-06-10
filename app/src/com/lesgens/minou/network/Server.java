@@ -125,17 +125,18 @@ public class Server {
 						
 						initChannels(context);
 						
+						subscribeToPrivateChannel(context, Controller.getInstance().getMyself());
+						
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getCountryNameSpace());
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getStateNameSpace());
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getCityNameSpace());
 						
 						for(String channel : DatabaseHelper.getInstance().getPublicChannels()){
-							Log.i(TAG, channel);
 							subscribeToChannel(context, channel);
 						}
 
 						for(User user : DatabaseHelper.getInstance().getPrivateChannels()){
-							subscribeToChannel(context, user.getId());
+							subscribeToPrivateChannel(context, user);
 						}
 						
 						Controller.getInstance().setCurrentChannel(Controller.getInstance().getGeolocation().getCityNameSpace());
@@ -186,7 +187,8 @@ public class Server {
 	
 	private static void initChannels(final Context context){
 		final String channelName = Channel.WORLDWIDE_CHANNEL;		
-		Controller.getInstance().initChannelContainer(createChannel(context, channelName));
+		Controller.getInstance().initChannelContainer(createChannel(context, Channel.BASE_PUBLIC_CHANNEL));
+		subscribeToChannel(context, channelName);
 	}
 	
 	public static void subscribeToChannel(final Context context, final String channelName){
@@ -198,6 +200,14 @@ public class Server {
 
 		Controller.getInstance().getChannelsContainer().addSubscription(channel);
 		Controller.getInstance().setCurrentChannel(channel);
+	}
+	
+	public static void subscribeToPrivateChannel(final Context context, final User user){
+
+		final User userToAdd = createPrivateChannel(context, user);
+
+		Controller.getInstance().getChannelsContainer().addByForceSubscription(userToAdd);
+		Controller.getInstance().setCurrentChannel(userToAdd);
 	}
 	
 	private static Channel createChannel(final Context context, final String channelName){
@@ -228,26 +238,61 @@ public class Server {
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
 				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
 					Log.i(TAG, "Application not visible, should send notification");
-					NotificationHelper.notify(context, Utils.capitalizeFirstLetters(channelName.substring(channelName.lastIndexOf(".") + 1)), user, content);
+					NotificationHelper.notify(context, channel, user, content);
 				}
 			}});
 		
 		return channel;
 	}
+	
+	private static User createPrivateChannel(final Context context, final User userToCreate){
+		final String fullChannelName = Utils.getNormalizedString(Channel.BASE_CHANNEL + userToCreate.getId().replace(".", "_").replace("-", "_"));
+		Log.i(TAG, "Subscribing to: " + fullChannelName);
+		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName);
+		channelSubscription.forEach(new Action1<PubSubData>(){
+
+			@Override
+			public void call(PubSubData msg) {
+				Log.i(TAG, "Received new private message " + msg);
+				final User user = Controller.getInstance().getUser(msg.keywordArguments().get("from").asText(), msg.keywordArguments().get("fake_name").asText());
+				final String content = msg.keywordArguments().get("content").asText();
+				byte[] data = null;
+				try {
+					data = msg.keywordArguments().get("picture") != null ? msg.keywordArguments().get("picture").binaryValue() : null;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				Message m = new Message(user, content, user.getUsername(), userToCreate, true, data);
+				ArrayList<Event> events = new ArrayList<Event>();
+				events.add(m);
+				boolean isGoodChannel = true;
+				if(eventsListeners != null){
+					isGoodChannel = eventsListeners.onEventsReceived(events, user.getNamespace());
+				}
+				DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace());
+				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
+					Log.i(TAG, "Application not visible, should send notification");
+					NotificationHelper.notify(context, null, userToCreate, content);
+				}
+			}});
+		
+		userToCreate.setSubscription(channelSubscription);
+		return userToCreate;
+	}
 
 	public static void sendMessage(final String message){
-		String fullChannelName = Controller.getInstance().getCurrentChannel().getNamespace().toLowerCase();
+		String fullChannelName = Controller.getInstance().getCurrentChannel().getNamespace().toLowerCase().replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=" + message + " fullChannelName=" + fullChannelName);
 		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message));
 	}
 	
-	public static void sendMessage(final byte[] picture, final String channel){
-		String fullChannelName = Controller.getInstance().getCurrentChannel().getNamespace().toLowerCase();
+	public static void sendMessage(final byte[] picture){
+		String fullChannelName = Controller.getInstance().getCurrentChannel().getNamespace().toLowerCase().replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
-		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName + " channel=" + channel);
+		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName);
 		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(picture));
 	}
 	

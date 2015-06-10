@@ -12,7 +12,8 @@ import com.lesgens.minou.controllers.Controller;
 public class Channel {
 	private static final String TAG = "Channel";
 	public static final String BASE_CHANNEL = "minou.";
-	public static final String WORLDWIDE_CHANNEL = BASE_CHANNEL + "worldwide";
+	public static final String BASE_PUBLIC_CHANNEL = BASE_CHANNEL + "public";
+	public static final String WORLDWIDE_CHANNEL = BASE_PUBLIC_CHANNEL + ".worldwide";
 	private String name;
 	private String namespace;
 	private Observable<PubSubData> subscription;
@@ -68,6 +69,10 @@ public class Channel {
 			}
 		}
 	}
+	
+	public void addByForceSubscription(final Channel channel){
+		channels.add(channel);
+	}
 
 	public void closeSubscriptions(){
 		for(Channel channel : channels){
@@ -88,10 +93,13 @@ public class Channel {
 	}
 
 	public Channel getChannelByName(String channel) {
-		if(namespace.equals(channel))
+		Log.i(TAG, "Searching for=" + channel + " this one=" + namespace);
+		if(namespace.equals(channel)){
 			return this;
+		}
 		for(Channel c : channels){
-			return c.getChannelByName(channel);
+			Channel rep = c.getChannelByName(channel);
+			if(rep != null) return rep;
 		}
 		
 		return null;

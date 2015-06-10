@@ -21,8 +21,8 @@ public class Message extends Event{
 		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, null,  isIncoming, data);
 	}
 	
-	public Message(User user, String message, String userName, Channel iDestionation, boolean isIncoming, byte[] data){
-		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), iDestionation, user, message,  isIncoming, data);
+	public Message(User user, String message, String userName, Channel iDestination, boolean isIncoming, byte[] data){
+		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), iDestination, user, message,  isIncoming, data);
 	}
 	
 	public Message(UUID id, Timestamp timestamp, Channel channel, User user, String message, boolean isIncoming, byte[] data) {
