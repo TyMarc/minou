@@ -30,6 +30,7 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.location.LocationServices;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
 import com.lesgens.minou.models.Geolocation;
 import com.lesgens.minou.network.Server;
@@ -37,7 +38,7 @@ import com.lesgens.minou.views.CustomYesNoDialog;
 import com.todddavies.components.progressbar.ProgressWheel;
 
 public class SplashscreenActivity extends MinouActivity implements
-UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
+UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener, CrossbarConnectionListener {
 	private GoogleApiClient mGoogleApiClient;
 	private Location mLastLocation;
 	private static final String[] PERMISSIONS = {"public_profile"};
@@ -121,6 +122,7 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 		}
 
 		Server.addUserAuthenticatedListener(this);
+		Server.setCrossbarConnectionListener(this);
 		LoginButton authButton = (LoginButton)findViewById(R.id.authButton);
 		authButton.setReadPermissions(PERMISSIONS);
 		uiHelper = new UiLifecycleHelper(this, callback);
@@ -179,7 +181,6 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 		authenticated = true;
 		if(geolocated){
 			Server.connectToCrossbar(this);
-			goToPublicChat();
 		}
 	}
 
@@ -191,7 +192,7 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 	}
 
 	public void goToPublicChat(){
-		ChannelChatActivity.show(this, Controller.getInstance().getGeolocation().getCity());
+		ChannelChatActivity.show(this, Controller.getInstance().getGeolocation().getCityNameSpace());
 		finish();
 	}
 	
@@ -219,7 +220,6 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 				geolocated = true;
 				if(authenticated){
 					Server.connectToCrossbar(this);
-					goToPublicChat();
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -287,6 +287,11 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener {
 	public void onConnectionFailed(ConnectionResult result) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void onConnection() {
+		goToPublicChat();
 	}
 
 }

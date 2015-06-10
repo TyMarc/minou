@@ -14,7 +14,7 @@
 	<classpathentry kind="lib" path="libs/jackson-core-2.4.4.jar"/>
 	<classpathentry kind="lib" path="libs/netty-all-4.0.28.Final.jar"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="lib" path="libs/jawampa-0.2.1.jar"/>
+	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

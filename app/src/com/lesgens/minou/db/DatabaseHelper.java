@@ -42,7 +42,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		db.execSQL("CREATE TABLE minou_last_message (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT, timestamp LONG);");
 		db.execSQL("CREATE TABLE minou_private (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT, userName TEXT);");
 		db.execSQL("CREATE TABLE minou_public (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT);");
-		addPublicChannel(Channel.BASE_CHANNEL + "worldwide");
 	}
 
 	@Override
@@ -88,7 +87,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		db.insert("minou_public", null, cv);
 	}
 	
-	public ArrayList<String> getPublicChannelsNameSpace(){
+	public ArrayList<String> getPublicChannels(){
 		SQLiteDatabase db = this.getReadableDatabase();
 		ArrayList<String> channels = new ArrayList<String>();
 		
@@ -144,7 +143,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public User getPrivateChannel(String userName){
 		SQLiteDatabase db = this.getReadableDatabase();
 
-		Cursor c = db.rawQuery("SELECT userToken FROM minou_private WHERE userName = ?;", new String[]{userName} );
+		Cursor c = db.rawQuery("SELECT channel FROM minou_private WHERE userName = ?;", new String[]{userName} );
 		
 		if(c.moveToFirst()){
 			User user = Controller.getInstance().getUser(c.getString(0), userName);
@@ -158,7 +157,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		ArrayList<User> users = new ArrayList<User>();
 		SQLiteDatabase db = this.getReadableDatabase();
 
-		Cursor c = db.rawQuery("SELECT userToken, userName FROM minou_private;", null);
+		Cursor c = db.rawQuery("SELECT channel, userName FROM minou_private;", null);
 		
 		while(c.moveToNext()){
 			User user = Controller.getInstance().getUser(c.getString(0), c.getString(1));
@@ -171,7 +170,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public void removePrivateChannel(String remoteId) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
-		db.delete("minou_private", "userToken = ?", new String[]{remoteId});
+		db.delete("minou_private", "channel = ?", new String[]{remoteId});
 	}
 	
 	public void removePublicChannel(String channel) {

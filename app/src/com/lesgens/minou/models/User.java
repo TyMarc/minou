@@ -5,9 +5,11 @@ import android.graphics.Bitmap;
 public class User extends Channel{
 	private Bitmap avatar;
 	private String tokenId;
+	private String name;
 	
-	public User(String name, Bitmap avatar, String tokenId){
-		super(name, null);
+	public User(String name, String namespace, Bitmap avatar, String tokenId){
+		super(namespace, null);
+		this.name = name;
 		this.avatar = avatar;
 		this.tokenId = tokenId;
 	}
@@ -18,6 +20,10 @@ public class User extends Channel{
 
 	public String getId() {
 		return tokenId;
+	}
+	
+	public String getUsername(){
+		return name;
 	}
 
 	@Override

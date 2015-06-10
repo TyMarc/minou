@@ -127,7 +127,7 @@ public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyL
 
 		if(holder.name != null){
 			if(!isPrivate){
-				holder.name.setText(message.getUserName());
+				holder.name.setText(message.getUser().getUsername());
 			} else{
 				holder.name.setVisibility(View.GONE);
 			}

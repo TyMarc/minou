@@ -86,9 +86,9 @@ public class ConnectToChannelActivity extends MinouActivity implements OnClickLi
 						finish();
 					}
 				} else{
-					DatabaseHelper.getInstance().addPublicChannel(currentNamespace + text);
-					Server.subscribeToChannel(this, currentNamespace + text);
-					setResult(RESULT_OK, new Intent(text));
+					DatabaseHelper.getInstance().addPublicChannel(currentNamespace + "." + text);
+					Server.subscribeToChannel(this, currentNamespace + "." + text);
+					setResult(RESULT_OK);
 					finish();
 				}
 			}

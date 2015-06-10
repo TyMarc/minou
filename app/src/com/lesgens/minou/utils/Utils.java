@@ -2,7 +2,9 @@ package com.lesgens.minou.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
 import java.util.ArrayList;
 
 import javax.crypto.Mac;
@@ -10,6 +12,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.util.Base64;
 import android.util.TypedValue;
 
 public class Utils {
@@ -84,5 +87,21 @@ public class Utils {
 	    }
 	    return new String(hexChars);
 	}
+	
+	public static String authSignature(String authChallenge, String authSecret) throws SignatureException{
+        try {
+            Key sk = new SecretKeySpec(authSecret.getBytes(), HASH_ALGORITHM);
+            Mac mac = Mac.getInstance(sk.getAlgorithm());
+            mac.init(sk);
+            final byte[] hmac = mac.doFinal(authChallenge.getBytes());
+            return Base64.encodeToString(hmac,Base64.NO_WRAP);
+        } catch (NoSuchAlgorithmException e1) {
+            throw new SignatureException("error building signature, no such algorithm in device " + HASH_ALGORITHM);
+        } catch (InvalidKeyException e) {
+            throw new SignatureException("error building signature, invalid key " + HASH_ALGORITHM);
+        }
+    }
+	
+	private static final String HASH_ALGORITHM = "HmacSHA256";
 
 }

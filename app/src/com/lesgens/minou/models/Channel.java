@@ -8,6 +8,7 @@ import ws.wamp.jawampa.PubSubData;
 
 public class Channel {
 	public static final String BASE_CHANNEL = "minou.";
+	public static final String WORLDWIDE_CHANNEL = BASE_CHANNEL + "worldwide";
 	private String name;
 	private String namespace;
 	private Observable<PubSubData> subscription;
@@ -15,7 +16,7 @@ public class Channel {
 
 	public Channel(String namespace, Observable<PubSubData> subscription) {
 		channels = new ArrayList<Channel>();
-		this.name = namespace.substring(namespace.lastIndexOf("."));
+		this.name = namespace.substring(namespace.lastIndexOf(".")-1);
 		this.namespace = namespace;
 		this.subscription = subscription;
 	}
@@ -37,20 +38,24 @@ public class Channel {
 	}
 
 	public boolean isContainSubscription(final String channelName){
-		if(namespace.startsWith(channelName)) return true;
+		boolean answer = false;
+		if(namespace.equals(channelName)) answer = true;
 		
 		for(Channel channel : channels){
-			return channel.isContainSubscription(channelName);
+			answer = channel.isContainSubscription(channelName);
 		}
 
-		return false;
+		return answer;
 	}
 
 	public void addSubscription(final Channel channel){
-		if(channel.getNamespace().startsWith(namespace)){
-			
+		if(channel.getNamespace().substring(0,channel.getNamespace().lastIndexOf(".")).equals(namespace)){
+			channels.add(channel);
+		} else{
+			for(Channel c : channels){
+				c.addSubscription(channel);
+			}
 		}
-		channels.add(channel);
 	}
 
 	public void closeSubscriptions(){
@@ -58,7 +63,9 @@ public class Channel {
 			channel.closeSubscriptions();
 		}
 
-		subscription.unsubscribeOn(Schedulers.immediate());
+		if(subscription != null){
+			subscription.unsubscribeOn(Schedulers.immediate());
+		}
 	}
 
 	public String getName(){

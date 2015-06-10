@@ -4,6 +4,9 @@ public class Geolocation {
 	private String city;
 	private String state;
 	private String country;
+	private Channel cityChannel;
+	private Channel stateChannel;
+	private Channel countryChannel;
 
 	public Geolocation(String city, String state, String country) {
 		this.city = city;
@@ -21,6 +24,30 @@ public class Geolocation {
 	
 	public String getCountry(){
 		return country;
+	}
+	
+	public Channel getCityChannel(){
+		return cityChannel;
+	}
+	
+	public Channel getStateChannel(){
+		return stateChannel;
+	}
+	
+	public Channel getCountryChannel(){
+		return countryChannel;
+	}
+	
+	public void setCityChannel(final Channel channel){
+		cityChannel = channel;
+	}
+	
+	public void setStateChannel(final Channel channel){
+		stateChannel = channel;
+	}
+	
+	public void setCountryChannel(final Channel channel){
+		countryChannel = channel;
 	}
 	
 	public String getCityNameSpace(){

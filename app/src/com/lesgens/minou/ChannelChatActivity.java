@@ -291,8 +291,8 @@ public class ChannelChatActivity extends MinouActivity implements OnClickListene
 			}
 		} else if(requestCode == CHANNEL_PICKER_REQUEST_CODE){
 			if(resultCode == RESULT_OK){
-//				channelsAdapter.add(data.getAction());
-//				setChannelName(data.getAction(), null);
+				channelsAdapter.add(Controller.getInstance().getCurrentChannel());
+				setChannelName(Controller.getInstance().getCurrentChannel().getNamespace());
 			}
 		} else if(requestCode == PRIVATE_PICKER_REQUEST_CODE){
 			if(resultCode == RESULT_OK){
