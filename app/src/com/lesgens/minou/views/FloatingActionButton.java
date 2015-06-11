@@ -52,7 +52,7 @@ public class FloatingActionButton extends FrameLayout implements Checkable {
             android.R.attr.state_checked
     };
  
-    private static final String TAG = "FloatingActionButton";
+    //private static final String TAG = "FloatingActionButton";
  
     // A boolean that tells if the FAB is checked or not.
     private boolean mChecked;

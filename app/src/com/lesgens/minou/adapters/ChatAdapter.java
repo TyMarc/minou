@@ -24,7 +24,7 @@ import com.lesgens.minou.ImageViewerActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.models.Message;
 
-public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyListHeadersAdapter, OnClickListener{
+public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHeadersAdapter, OnClickListener{
 	private Context mContext;
 	private LayoutInflater mInflater = null;
 
@@ -39,7 +39,7 @@ public class ChannelChatAdapter extends ArrayAdapter<Message> implements StickyL
 	private Typeface tf;
 	private boolean isPrivate;
 
-	public ChannelChatAdapter(Context context, ArrayList<Message> chatValue, boolean isPrivate) {  
+	public ChatAdapter(Context context, ArrayList<Message> chatValue, boolean isPrivate) {  
 		super(context,-1, chatValue);
 		mContext = context;     
 		messages = chatValue;

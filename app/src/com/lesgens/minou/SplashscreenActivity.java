@@ -291,6 +291,7 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener, Cros
 
 	@Override
 	public void onConnection() {
+		Server.setEventsListener(null);
 		goToPublicChat();
 	}
 

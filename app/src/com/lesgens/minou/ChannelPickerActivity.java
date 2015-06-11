@@ -2,8 +2,6 @@ package com.lesgens.minou;
 
 import java.util.ArrayList;
 
-import com.lesgens.minou.controllers.Controller;
-
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,11 +13,13 @@ import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.View.OnClickListener;
 
+import com.lesgens.minou.controllers.Controller;
+
 public class ChannelPickerActivity extends FragmentActivity implements OnClickListener{
 	private static final int REQUEST_ADD_CHANNEL = 101;
-	MinouPagerAdapter mMinouPagerAdapter;
-	ViewPager mViewPager;
-	ArrayList<MinouFragment> fragments;
+	private MinouPagerAdapter mMinouPagerAdapter;
+	private ViewPager mViewPager;
+	private ArrayList<MinouFragment> fragments;
 
 	public static void show(final Context context){
 		Intent i = new Intent(context, ChannelPickerActivity.class);
@@ -74,7 +74,7 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if(requestCode == REQUEST_ADD_CHANNEL && resultCode == RESULT_OK){
-			//ChatActivity.show(this);
+			ChatActivity.show(this);
 		}
 	}
 

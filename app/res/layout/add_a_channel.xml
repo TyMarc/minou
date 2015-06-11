@@ -48,7 +48,7 @@
         android:background="@drawable/gen_sel"
         android:gravity="center_vertical"
         android:paddingLeft="15dp"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:textSize="18sp" />
 
     <ListView

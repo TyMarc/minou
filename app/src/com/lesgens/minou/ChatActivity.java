@@ -13,7 +13,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -30,7 +29,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.lesgens.minou.adapters.ChannelChatAdapter;
+import com.lesgens.minou.adapters.ChatAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.listeners.EventsListener;
@@ -47,9 +46,8 @@ import com.lesgens.minou.views.CustomYesNoDialog;
 public class ChatActivity extends MinouActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener {
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 	private static final String TAG = "ChannelChatActivity";
-	private Typeface tf;
 	private ImageView sendBt;
-	private ChannelChatAdapter chatAdapter;
+	private ChatAdapter chatAdapter;
 	private StickyListHeadersListView listMessages;
 	private EditText editText;
 	private ImageView menuPrivate;
@@ -82,9 +80,6 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 			Controller.getInstance().setCurrentChannel(channelName);
 		}
 		tvConnectionProblem = (TextView) findViewById(R.id.connection_problem);
-
-		tf = Typeface.createFromAsset(getAssets(), "fonts/Raleway_Thin.otf");
-		channelTextView.setTypeface(tf);
 
 		editText = (EditText) findViewById(R.id.editText);
 		editText.clearFocus();
@@ -129,7 +124,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 
 		NotificationHelper.cancelAll(this);
 
-		chatAdapter = new ChannelChatAdapter(this, DatabaseHelper.getInstance().getMessages(Controller.getInstance().getCurrentChannel()), Controller.getInstance().getCurrentChannel() instanceof User);
+		chatAdapter = new ChatAdapter(this, DatabaseHelper.getInstance().getMessages(Controller.getInstance().getCurrentChannel()), Controller.getInstance().getCurrentChannel() instanceof User);
 		listMessages.setAdapter(chatAdapter);
 	}
 

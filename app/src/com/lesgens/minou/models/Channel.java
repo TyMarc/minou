@@ -91,6 +91,15 @@ public class Channel {
 	public String getId(){
 		return name;
 	}
+	
+	public int getNumberOfChildren(){
+		int nb = channels.size();
+		for(Channel c: channels){
+			nb += c.getNumberOfChildren();
+		}
+		
+		return nb;
+	}
 
 	public Channel getChannelByName(String channel) {
 		Log.i(TAG, "Searching for=" + channel + " this one=" + namespace);

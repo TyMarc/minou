@@ -19,9 +19,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_centerVertical="true"
-            android:background="@drawable/circle_white_sel"
-            android:src="@drawable/mail"
-            android:tint="@color/main_color" />
+            android:background="@drawable/gen_sel"
+            android:src="@drawable/navigation_back" />
 
         <TextView
             android:id="@+id/city_name"

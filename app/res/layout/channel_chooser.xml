@@ -15,19 +15,19 @@
             android:layout_height="50dp"
             android:layout_gravity="top"
             android:background="@color/main_color"
-            android:paddingBottom="4dp"
-            android:paddingTop="4dp"
-            android:textColor="@color/white" />
+            android:gravity="center_vertical"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
     </android.support.v4.view.ViewPager>
 
     <com.lesgens.minou.views.FloatingActionButton
         android:id="@+id/add_channel"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_marginBottom="30dp"
         android:layout_marginRight="30dp"
-        android:background="@color/dark_main_color_semi_trans" />
+        android:background="@drawable/button_add_sel" />
 
 </RelativeLayout>

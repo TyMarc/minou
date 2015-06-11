@@ -41,7 +41,7 @@ public class PrivateChannelChooserFragment extends MinouFragment {
 
 	@Override
 	public String getTitle() {
-		return "Private";
+		return "Conversations";
 	}
 	
 	private class OnItemLongClickListenerPrivateChannel implements OnItemLongClickListener{

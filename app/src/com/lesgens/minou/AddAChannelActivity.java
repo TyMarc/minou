@@ -41,7 +41,7 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 		//Remove title bar
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-		setContentView(R.layout.channel_picker);
+		setContentView(R.layout.add_a_channel);
 
 		isPrivateChannelPicker = getIntent().getBooleanExtra("isPrivateChannelPicker", false);
 		currentNamespace = getIntent().getStringExtra("currentNamespace");

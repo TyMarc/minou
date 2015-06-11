@@ -11,7 +11,7 @@
         android:layout_centerVertical="true"
         android:layout_margin="10dp"
         android:background="@drawable/avatar_bg"
-        android:padding="8dp"
+        android:padding="7dp"
         android:scaleType="fitStart" />
 
     <RelativeLayout

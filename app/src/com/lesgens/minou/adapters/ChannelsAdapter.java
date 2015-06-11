@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.lesgens.minou.R;
+import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.utils.Utils;
 
@@ -22,7 +23,7 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 	public ChannelsAdapter(Context context, ArrayList<Channel> chatValue) {  
 		super(context,R.layout.chat_even, chatValue);
 		mContext = context;     
-		channels = chatValue;     
+		channels = chatValue;
 	}
 	
 	static class ViewHolder {
@@ -51,9 +52,15 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 		}
 		
 		ViewHolder holder = (ViewHolder) rowView.getTag();
-		final String channelName = Utils.capitalizeFirstLetters(channels.get(position).getName());
+		
+		Channel channel = channels.get(position);
+		String channelName = Utils.capitalizeFirstLetters(channel.getName());
+		if(channel.equals(Controller.getInstance().getCurrentChannel().getParent())){
+			holder.name.setCompoundDrawablesWithIntrinsicBounds(R.drawable.button_up, 0, 0, 0);
+			holder.name.setTextColor(getContext().getResources().getColor(R.color.main_color));
+		}
 				
-		holder.name.setText(channelName);
+		holder.name.setText(channelName + " (" + channel.getNumberOfChildren() + ")");
 
 		return rowView;
 	}
