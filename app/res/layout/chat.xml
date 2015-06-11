@@ -52,15 +52,13 @@
         android:layout_height="fill_parent"
         android:layout_above="@+id/bottomBar"
         android:layout_below="@id/connection_problem"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
+        android:paddingLeft="10dp"
         StickyListHeadersListView:hasStickyHeaders="false"
         android:cacheColorHint="@android:color/transparent"
         android:divider="@color/transparent"
         android:dividerHeight="10dp"
         android:listSelector="@android:color/transparent"
         android:overScrollMode="never"
-        android:scrollbars="none"
         android:stackFromBottom="true" />
 
     <RelativeLayout

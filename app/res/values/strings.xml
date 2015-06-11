@@ -24,4 +24,5 @@
     <string name="private_message">Private Messages</string>
     <string name="delete_channel">Do you really want to delete this channel?</string>
     <string name="add_channel">Do you want to pm this user?</string>
+    <string name="hello_world">Hello World</string>
 </resources>

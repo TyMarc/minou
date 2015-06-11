@@ -25,7 +25,6 @@ import android.os.AsyncTask;
 import android.util.JsonReader;
 import android.util.Log;
 
-import com.checkin.avatargenerator.AvatarGenerator;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -41,6 +40,7 @@ import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.HTTPRequest.RequestType;
+import com.lesgens.minou.utils.AvatarGenerator;
 import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
 

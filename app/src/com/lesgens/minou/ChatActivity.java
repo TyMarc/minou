@@ -71,7 +71,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 		//Remove title bar
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-		setContentView(R.layout.public_chat);
+		setContentView(R.layout.chat);
 
 		channelTextView = (TextView) findViewById(R.id.city_name);
 

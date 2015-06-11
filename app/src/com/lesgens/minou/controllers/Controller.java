@@ -9,12 +9,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.checkin.avatargenerator.AvatarGenerator;
 import com.facebook.Session;
 import com.lesgens.minou.enums.Roles;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.Geolocation;
 import com.lesgens.minou.models.User;
+import com.lesgens.minou.utils.AvatarGenerator;
 import com.lesgens.minou.utils.Utils;
 
 public class Controller {
