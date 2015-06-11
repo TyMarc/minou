@@ -220,7 +220,8 @@ public class Server {
 			@Override
 			public void call(PubSubData msg) {
 				Log.i(TAG, "Received new message " + msg);
-				final User user = Controller.getInstance().getUser(msg.keywordArguments().get("from").asText(), msg.keywordArguments().get("fake_name").asText());
+				final String facebookId = msg.keywordArguments().get("from").asText();
+				final User user = Controller.getInstance().getUser(facebookId, msg.keywordArguments().get("fake_name").asText());
 				final String content = msg.keywordArguments().get("content").asText();
 				byte[] data = null;
 				try {
@@ -228,7 +229,7 @@ public class Server {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				Message m = new Message(user, content, user.getName(), channel, true, data);
+				Message m = new Message(user, content, user.getName(), channel, facebookId.equals(Controller.getInstance().getMyId()), data);
 				ArrayList<Event> events = new ArrayList<Event>();
 				events.add(m);
 				boolean isGoodChannel = true;
@@ -254,7 +255,8 @@ public class Server {
 			@Override
 			public void call(PubSubData msg) {
 				Log.i(TAG, "Received new private message " + msg);
-				final User user = Controller.getInstance().getUser(msg.keywordArguments().get("from").asText(), msg.keywordArguments().get("fake_name").asText());
+				final String facebookId = msg.keywordArguments().get("from").asText();
+				final User user = Controller.getInstance().getUser(facebookId, msg.keywordArguments().get("fake_name").asText());
 				final String content = msg.keywordArguments().get("content").asText();
 				byte[] data = null;
 				try {
@@ -262,7 +264,7 @@ public class Server {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				Message m = new Message(user, content, user.getUsername(), userToCreate, true, data);
+				Message m = new Message(user, content, user.getUsername(), userToCreate, facebookId.equals(Controller.getInstance().getMyId()), data);
 				ArrayList<Event> events = new ArrayList<Event>();
 				events.add(m);
 				boolean isGoodChannel = true;

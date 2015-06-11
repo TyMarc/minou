@@ -2,6 +2,8 @@ package com.lesgens.minou;
 
 import java.util.ArrayList;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,16 +12,20 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.View;
 import android.view.View.OnClickListener;
 
 import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.views.FloatingActionButton;
 
-public class ChannelPickerActivity extends FragmentActivity implements OnClickListener{
+public class ChannelPickerActivity extends FragmentActivity implements OnClickListener, OnPageChangeListener{
 	private static final int REQUEST_ADD_CHANNEL = 101;
 	private MinouPagerAdapter mMinouPagerAdapter;
 	private ViewPager mViewPager;
 	private ArrayList<MinouFragment> fragments;
+	private FloatingActionButton floatingActionButton;
+	private boolean hiddenFAB;
 
 	public static void show(final Context context){
 		Intent i = new Intent(context, ChannelPickerActivity.class);
@@ -29,7 +35,7 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.channel_chooser);
-
+		
 		fragments = new ArrayList<MinouFragment>();
 		MinouFragment fragment = new PrivateChannelChooserFragment();
 		fragments.add(fragment);
@@ -41,8 +47,23 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 						getSupportFragmentManager());
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mViewPager.setAdapter(mMinouPagerAdapter);
+		mViewPager.setOnPageChangeListener(this);
 		
-		findViewById(R.id.add_channel).setOnClickListener(this);
+		initFAB();
+	}
+	
+	public void initFAB(){
+		floatingActionButton = (FloatingActionButton) findViewById(R.id.add_channel);
+		floatingActionButton.setOnClickListener(this);
+		floatingActionButton.animate().translationY(500).setListener(new AnimatorListenerAdapter() {
+	        @Override
+	        public void onAnimationEnd(Animator animation) {
+	            super.onAnimationEnd(animation);
+	            floatingActionButton.setVisibility(View.VISIBLE);
+	            hiddenFAB = true;
+	        }
+	    });;
+
 	}
 
 
@@ -82,6 +103,25 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 	public void onClick(View v) {
 		if(v.getId() == R.id.add_channel){
 			AddAChannelActivity.show(this, false, Controller.getInstance().getCurrentChannel().getNamespace(), REQUEST_ADD_CHANNEL);
+		}
+	}
+
+	@Override
+	public void onPageScrollStateChanged(int arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+	}
+
+	@Override
+	public void onPageSelected(int position) {
+		if(position == 0){
+			floatingActionButton.animate().translationY(500);
+		} else if(hiddenFAB){
+			floatingActionButton.animate().translationY(0);
 		}
 	}
 }

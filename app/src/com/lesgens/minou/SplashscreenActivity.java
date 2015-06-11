@@ -192,6 +192,7 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener, Cros
 	}
 
 	public void goToPublicChat(){
+		Server.setCrossbarConnectionListener(null);
 		ChannelPickerActivity.show(this);
 		finish();
 	}

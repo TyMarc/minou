@@ -28,6 +28,7 @@
         android:layout_alignParentRight="true"
         android:layout_marginBottom="30dp"
         android:layout_marginRight="30dp"
-        android:background="@drawable/button_add_sel" />
+        android:background="@drawable/button_add_sel"
+        android:visibility="gone" />
 
 </RelativeLayout>
