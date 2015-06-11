@@ -34,7 +34,7 @@ public class PrivateChannelsAdapter extends ArrayAdapter<User>{
 	private ArrayList<User> users;
 
 	public PrivateChannelsAdapter(Context context, ArrayList<User> users) {  
-		super(context,R.layout.chat_even, users);
+		super(context,R.layout.private_channel_item, users);
 		mContext = context;     
 		sameYear = Calendar.getInstance();
 		sameYear.add(Calendar.DAY_OF_MONTH, -7);

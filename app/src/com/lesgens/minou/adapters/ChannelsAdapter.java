@@ -21,7 +21,7 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 	private ArrayList<Channel> channels;
 
 	public ChannelsAdapter(Context context, ArrayList<Channel> chatValue) {  
-		super(context,R.layout.chat_even, chatValue);
+		super(context,R.layout.public_channel_item, chatValue);
 		mContext = context;     
 		channels = chatValue;
 	}
@@ -40,9 +40,15 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		View rowView;
+		
+		Channel channel = channels.get(position);
 
 		if(convertView == null){
-			rowView = getInflater().inflate(R.layout.channel_item, parent, false);
+			if(channel.getName().equals("up") || channel.getName().equals("down")){
+				rowView = getInflater().inflate(R.layout.public_switch_channel_item, parent, false);
+			} else{
+				rowView = getInflater().inflate(R.layout.public_channel_item, parent, false);
+			}
 			
 			ViewHolder holder = new ViewHolder();
 			holder.name = (TextView) rowView.findViewById(R.id.name);
@@ -52,15 +58,14 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 		}
 		
 		ViewHolder holder = (ViewHolder) rowView.getTag();
-		
-		Channel channel = channels.get(position);
+	
 		String channelName = Utils.capitalizeFirstLetters(channel.getName());
 		if(channel.equals(Controller.getInstance().getCurrentChannel().getParent())){
 			holder.name.setCompoundDrawablesWithIntrinsicBounds(R.drawable.button_up, 0, 0, 0);
 			holder.name.setTextColor(getContext().getResources().getColor(R.color.main_color));
 		}
 				
-		holder.name.setText(channelName + " (" + channel.getNumberOfChildren() + ")");
+		holder.name.setText(channelName);
 
 		return rowView;
 	}

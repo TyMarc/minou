@@ -6,15 +6,14 @@
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry kind="lib" path="libs/android-support-v4.jar"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/AvatarGenerator"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/FacebookSDK"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/google-play-services_lib"/>
 	<classpathentry kind="lib" path="libs/rxjava-1.0.8.jar"/>
-	<classpathentry kind="lib" path="libs/jackson-annotations-2.4.4.jar"/>
 	<classpathentry kind="lib" path="libs/jackson-core-2.4.4.jar"/>
-	<classpathentry kind="lib" path="libs/netty-all-4.0.28.Final.jar"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="libs/jawampa-0.2.1.jar"/>
+	<classpathentry kind="lib" path="libs/jackson-annotations-2.4.4.jar"/>
+	<classpathentry kind="lib" path="libs/netty-all-4.0.28.Final.jar"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

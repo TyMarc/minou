@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
-import android.widget.ListView;
+import android.widget.GridView;
 
 import com.lesgens.minou.adapters.ChannelsAdapter;
 import com.lesgens.minou.controllers.Controller;
@@ -21,17 +21,17 @@ import com.lesgens.minou.models.User;
 import com.lesgens.minou.views.CustomYesNoDialog;
 
 public class PublicChannelChooserFragment extends MinouFragment {
-	private ListView listView;
+	private GridView gridView;
 	private ChannelsAdapter adapter;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater,
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		View v = inflater.inflate(R.layout.list_view, container, false);
+		View v = inflater.inflate(R.layout.grid_view, container, false);
 		
-		listView = (ListView) v.findViewById(android.R.id.list);
-		listView.setOnItemClickListener(new OnItemClickListenerChannel());
-		listView.setOnItemLongClickListener(new OnItemLongClickListenerChannel());
+		gridView = (GridView) v.findViewById(R.id.grid_view);
+		gridView.setOnItemClickListener(new OnItemClickListenerChannel());
+		gridView.setOnItemLongClickListener(new OnItemLongClickListenerChannel());
 		return v;
 	}
 	
@@ -50,14 +50,18 @@ public class PublicChannelChooserFragment extends MinouFragment {
 		ArrayList<Channel> channels = new ArrayList<Channel>();
 		Channel parent = Controller.getInstance().getCurrentChannel().getParent();
 		if(parent != null){
-			channels.add(parent);
+			channels.add(new Channel("up", null));
+		}
+		
+		if(Controller.getInstance().getCurrentChannel().getNumberOfChildren() > 0){
+			channels.add(new Channel("down", null));
 		}
 		
 		channels.add(Controller.getInstance().getCurrentChannel());
 		channels.addAll(Controller.getInstance().getCurrentChannel().getChannels());
 		
 		adapter = new ChannelsAdapter(getActivity(), channels);
-		listView.setAdapter(adapter);
+		gridView.setAdapter(adapter);
 	}
 
 	@Override
@@ -69,8 +73,11 @@ public class PublicChannelChooserFragment extends MinouFragment {
 		@Override
 		public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
 			Channel channel = adapter.getItem(position);
-			if(channel.equals(Controller.getInstance().getCurrentChannel().getParent())){
-				Controller.getInstance().setCurrentChannel(channel);
+			if(channel.getName().equals("up")){
+				Controller.getInstance().setCurrentChannel(Controller.getInstance().getCurrentChannel().getParent());
+				refreshList();
+			} else if(channel.getName().equals("down")){
+				Controller.getInstance().setCurrentChannel(Controller.getInstance().getCurrentChannel().getChannels().get(0));
 				refreshList();
 			} else{
 				Controller.getInstance().setCurrentChannel(channel);
