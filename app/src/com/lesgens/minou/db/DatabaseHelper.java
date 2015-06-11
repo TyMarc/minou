@@ -88,6 +88,18 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		db.insert("minou_public", null, cv);
 	}
 	
+	public boolean isPublicChannelAlreadyIn(final String channel){
+		SQLiteDatabase db = this.getReadableDatabase();
+		
+		Cursor c = db.rawQuery("SELECT channel FROM minou_public WHERE channel = ?;", new String[]{channel} );
+
+		while(c.moveToNext()){
+			return true;
+		}
+		
+		return false;
+	}
+	
 	public ArrayList<String> getPublicChannels(){
 		SQLiteDatabase db = this.getReadableDatabase();
 		ArrayList<String> channels = new ArrayList<String>();

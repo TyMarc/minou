@@ -130,6 +130,17 @@ public class Server {
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getCountryNameSpace());
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getStateNameSpace());
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getCityNameSpace());
+						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace())) {
+							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace());
+						}
+						
+						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getStateNameSpace())) {
+							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getStateNameSpace());
+						}
+						
+						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace())) {
+							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace());
+						}
 						
 						for(String channel : DatabaseHelper.getInstance().getPublicChannels()){
 							subscribeToChannel(context, channel);

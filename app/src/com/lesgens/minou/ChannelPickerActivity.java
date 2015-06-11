@@ -26,6 +26,7 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 	private ArrayList<MinouFragment> fragments;
 	private FloatingActionButton floatingActionButton;
 	private boolean hiddenFAB;
+	private int selectedPosition;
 
 	public static void show(final Context context){
 		Intent i = new Intent(context, ChannelPickerActivity.class);
@@ -49,7 +50,18 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 		mViewPager.setAdapter(mMinouPagerAdapter);
 		mViewPager.setOnPageChangeListener(this);
 		
+		selectedPosition = 0;
+		
 		initFAB();
+	}
+	
+	@Override
+	public void onBackPressed(){
+		if(selectedPosition != 0){
+			mViewPager.setCurrentItem(0);
+		} else{
+			super.onBackPressed();
+		}
 	}
 	
 	public void initFAB(){
@@ -118,6 +130,7 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 
 	@Override
 	public void onPageSelected(int position) {
+		selectedPosition = position;
 		if(position == 0){
 			floatingActionButton.animate().translationY(500);
 		} else if(hiddenFAB){

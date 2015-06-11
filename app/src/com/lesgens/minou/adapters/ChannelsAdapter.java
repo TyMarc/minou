@@ -59,7 +59,7 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 		
 		ViewHolder holder = (ViewHolder) rowView.getTag();
 	
-		String channelName = Utils.capitalizeFirstLetters(channel.getName());
+		String channelName = Utils.capitalizeFirstLetters(channel.getName().replace("_", " "));
 		if(channel.equals(Controller.getInstance().getCurrentChannel().getParent())){
 			holder.name.setCompoundDrawablesWithIntrinsicBounds(R.drawable.button_up, 0, 0, 0);
 			holder.name.setTextColor(getContext().getResources().getColor(R.color.main_color));
