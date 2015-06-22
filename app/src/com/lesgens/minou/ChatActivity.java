@@ -1,6 +1,5 @@
 package com.lesgens.minou;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -210,12 +209,8 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 						try {
 							Bitmap bitmap = android.provider.MediaStore.Images.Media
 									.getBitmap(getContentResolver(), imageUri);
-							ByteArrayOutputStream stream = new ByteArrayOutputStream();
-
-							final Bitmap bitmapScaled = Utils.scaleDown(bitmap, Utils.dpInPixels(ChatActivity.this, 250), true);
-							bitmap.recycle();
-							bitmapScaled.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-							byte[] byteArray = stream.toByteArray();
+							
+							final byte[] byteArray = Utils.prepareImageFT(ChatActivity.this, bitmap);
 
 							Message message = new Message(Controller.getInstance().getMyself(), byteArray, false);
 							chatAdapter.addMessage(message);

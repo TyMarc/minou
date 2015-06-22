@@ -1,55 +1,39 @@
 package com.lesgens.minou;
 
-import java.util.ArrayList;
-
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.Animation.AnimationListener;
-import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
-import android.widget.GridView;
+import android.widget.ExpandableListView;
 
-import com.lesgens.minou.adapters.ChannelsAdapter;
+import com.lesgens.minou.adapters.RootAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
-import com.lesgens.minou.db.DatabaseHelper;
-import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.User;
+import com.lesgens.minou.views.CustExpListview;
 import com.lesgens.minou.views.CustomYesNoDialog;
 
 public class PublicChannelChooserFragment extends MinouFragment {
-	private GridView gridView;
-	private ChannelsAdapter adapter;
-	private Animation animFadeIn;
-	private Animation animFadeOut;
-	private boolean cameBack;
+	private CustExpListview elv;
+	private RootAdapter adapter;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater,
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		View v = inflater.inflate(R.layout.grid_view, container, false);
+		View v = inflater.inflate(R.layout.exp_list_view, container, false);
 
-		gridView = (GridView) v.findViewById(R.id.grid_view);
-		gridView.setOnItemClickListener(new OnItemClickListenerChannel());
-		gridView.setOnItemLongClickListener(new OnItemLongClickListenerChannel());
+		elv = (CustExpListview) v.findViewById(R.id.exp_list_view);
+		//elv.setOnItemLongClickListener(new OnItemLongClickListenerChannel());
 
-		animFadeIn = AnimationUtils.loadAnimation(getActivity(), android.R.anim.fade_in);
-		animFadeOut = AnimationUtils.loadAnimation(getActivity(), android.R.anim.fade_out);
-		animFadeOut.setDuration(150);
-		animFadeIn.setDuration(150);
 		return v;
 	}
 
 	@Override
 	public void onResume(){
 		super.onResume();
-		cameBack = true;
 		refreshList();
 	}
 
@@ -58,65 +42,52 @@ public class PublicChannelChooserFragment extends MinouFragment {
 			Controller.getInstance().setCurrentChannel(PreferencesController.getDefaultChannel(getActivity()));
 		}
 
-		ArrayList<Channel> channels = new ArrayList<Channel>();
-		Channel parent = Controller.getInstance().getCurrentChannel().getParent();
-		if(parent != null){
-			channels.add(new Channel("up", null));
-		}
+		elv.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
 
-		if(Controller.getInstance().getCurrentChannel().getNumberOfChildren() > 0){
-			channels.add(new Channel("down", null));
-		}
+			@Override
+			public boolean onGroupClick(ExpandableListView parent, View v,
+					int groupPosition, long id) {
+			
+				Controller.getInstance().setCurrentChannel(adapter.getGroup(groupPosition));
+				return false; /* or false depending on what you need */
+			}
+		});
 
-		channels.add(Controller.getInstance().getCurrentChannel());
-		channels.addAll(Controller.getInstance().getCurrentChannel().getChannels());
 
-		adapter = new ChannelsAdapter(getActivity(), channels);
+		ExpandableListView.OnGroupClickListener grpLst = new ExpandableListView.OnGroupClickListener() {
+			@Override
+			public boolean onGroupClick(ExpandableListView eListView, View view, int groupPosition,
+					long id) {
 
-		if(!cameBack){
-			animFadeOut.setAnimationListener(new AnimationListener(){
+				return false/* or false depending on what you need */;
+			}
+		};
 
-				@Override
-				public void onAnimationEnd(Animation arg0) {
-					gridView.setAdapter(adapter);
-					gridView.startAnimation(animFadeIn);
-				}
 
-				@Override
-				public void onAnimationRepeat(Animation arg0) {}
+		ExpandableListView.OnChildClickListener childLst = new ExpandableListView.OnChildClickListener() {
+			@Override
+			public boolean onChildClick(ExpandableListView eListView, View view, int groupPosition,
+					int childPosition, long id) {
+				Controller.getInstance().setCurrentChannel(adapter.getChild(groupPosition, childPosition));
+				ChatActivity.show(getActivity());
+				return true/* or false depending on what you need */;
+			}
+		};
 
-				@Override
-				public void onAnimationStart(Animation arg0) {}
+		ExpandableListView.OnGroupExpandListener grpExpLst = new ExpandableListView.OnGroupExpandListener() {
+			@Override
+			public void onGroupExpand(int groupPosition) {
+				
+			}
+		};
 
-			});
-
-			gridView.startAnimation(animFadeOut);
-		} else{
-			gridView.setAdapter(adapter);
-			cameBack = false;
-		}
+		adapter = new RootAdapter(getActivity(), Controller.getInstance().getChannelsContainer().getChannels().get(0), grpLst, childLst, grpExpLst);
+		elv.setAdapter(adapter);
 	}
 
 	@Override
 	public String getTitle() {
 		return "Channels";
-	}
-
-	private class OnItemClickListenerChannel implements OnItemClickListener{
-		@Override
-		public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
-			Channel channel = adapter.getItem(position);
-			if(channel.getName().equals("up")){
-				Controller.getInstance().setCurrentChannel(Controller.getInstance().getCurrentChannel().getParent());
-				refreshList();
-			} else if(channel.getName().equals("down")){
-				Controller.getInstance().setCurrentChannel(Controller.getInstance().getCurrentChannel().getChannels().get(0));
-				refreshList();
-			} else{
-				Controller.getInstance().setCurrentChannel(channel);
-				ChatActivity.show(getActivity());
-			}
-		}
 	}
 
 	private class OnItemLongClickListenerChannel implements OnItemLongClickListener{
@@ -130,10 +101,10 @@ public class PublicChannelChooserFragment extends MinouFragment {
 				@Override
 				public void onPositiveClick() {
 					super.onPositiveClick();
-					final Channel channel = adapter.getItem(arg2);
-					DatabaseHelper.getInstance().removePublicChannel(channel.getNamespace());
-					DatabaseHelper.getInstance().removeAllMessages(channel.getNamespace());
-					adapter.remove(channel);
+					//final Channel channel = adapter.getItem(arg2);
+					//DatabaseHelper.getInstance().removePublicChannel(channel.getNamespace());
+					//DatabaseHelper.getInstance().removeAllMessages(channel.getNamespace());
+					//adapter.remove(channel);
 				}
 
 			};

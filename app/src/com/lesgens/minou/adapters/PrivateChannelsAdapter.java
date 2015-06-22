@@ -7,7 +7,6 @@ import java.util.Calendar;
 import java.util.Date;
 
 import android.content.Context;
-import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,7 +28,6 @@ public class PrivateChannelsAdapter extends ArrayAdapter<User>{
 	private SimpleDateFormat sdfDayAnotherYear = new SimpleDateFormat("dd MMM yyyy");
 	private Date sameWeek;
 	private Calendar sameYear;
-	private Typeface tf;
 
 	private ArrayList<User> users;
 
@@ -41,7 +39,6 @@ public class PrivateChannelsAdapter extends ArrayAdapter<User>{
 		sameWeek = sameYear.getTime();
 		sameYear.add(Calendar.DAY_OF_MONTH, +7);
 		sameYear.set(Calendar.DAY_OF_YEAR, 0);
-		tf = Typeface.createFromAsset(context.getAssets(), "fonts/Raleway_Thin.otf");
 		this.users = users;     
 	}
 	
@@ -91,9 +88,7 @@ public class PrivateChannelsAdapter extends ArrayAdapter<User>{
 		Message lastMessage = DatabaseHelper.getInstance().getLastMessage(user);
 		if(lastMessage != null){
 			holder.lastMessage.setText(lastMessage.getMessage());
-			holder.timeLastMessage.setTypeface(tf);
 			holder.timeLastMessage.setText(sdfMessage.format(lastMessage.getTimestamp()));
-			holder.dayLastMessage.setTypeface(tf);
 			holder.dayLastMessage.setText(getTimeText(lastMessage.getTimestamp()));
 		}
 

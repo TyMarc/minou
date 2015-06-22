@@ -46,6 +46,8 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 		isPrivateChannelPicker = getIntent().getBooleanExtra("isPrivateChannelPicker", false);
 		currentNamespace = getIntent().getStringExtra("currentNamespace");
 		if(currentNamespace == null) currentNamespace = Channel.BASE_CHANNEL;
+		
+		((TextView) findViewById(R.id.channel_name)).setText(Utils.capitalizeFirstLetters(Utils.getNameFromNamespace(currentNamespace)));
 
 		((EditText) findViewById(R.id.editText)).addTextChangedListener(this);
 		InputFilter filter = new InputFilter() { 

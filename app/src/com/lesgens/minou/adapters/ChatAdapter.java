@@ -10,7 +10,6 @@ import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,7 +35,6 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 	private static SimpleDateFormat sdfDateForDays = new SimpleDateFormat("dd.MM.yyyy");
 	private Date sameWeek;
 	private Calendar sameYear;
-	private Typeface tf;
 	private boolean isPrivate;
 
 	public ChatAdapter(Context context, ArrayList<Message> chatValue, boolean isPrivate) {  
@@ -49,7 +47,6 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 		sameYear.add(Calendar.DAY_OF_MONTH, +7);
 		sameYear.set(Calendar.DAY_OF_YEAR, 0);
 		this.isPrivate = isPrivate;
-		tf = Typeface.createFromAsset(context.getAssets(), "fonts/Raleway_Thin.otf");
 	}
 
 	static class ViewHolder {
@@ -169,7 +166,6 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 		Timestamp time = messages.get(position).getTimestamp();
 		String headerText = getHeaderText(time);
 
-		holder.day.setTypeface(tf);
 		holder.day.setText(headerText);
 
 		return convertView;
