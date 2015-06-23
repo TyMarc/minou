@@ -49,7 +49,6 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 	private ChatAdapter chatAdapter;
 	private StickyListHeadersListView listMessages;
 	private EditText editText;
-	private ImageView menuPrivate;
 	private ScheduledExecutorService scheduler;
 	private Future<?> future;
 	private TextView tvConnectionProblem;
@@ -72,7 +71,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 
 		setContentView(R.layout.chat);
 
-		channelTextView = (TextView) findViewById(R.id.city_name);
+		channelTextView = (TextView) findViewById(R.id.channel_name);
 
 		final String channelName = getIntent().getStringExtra("channelName");
 		if(channelName != null){
@@ -96,8 +95,8 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 			findViewById(R.id.send_picture).setOnClickListener(this);
 		}
 
-		menuPrivate = (ImageView) findViewById(R.id.menu_private);
-		menuPrivate.setOnClickListener(this);
+		findViewById(R.id.back_btn).setOnClickListener(this);
+		findViewById(R.id.settings_btn).setOnClickListener(this);
 
 		listMessages = (StickyListHeadersListView) findViewById(R.id.list);
 		listMessages.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
@@ -172,10 +171,12 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 				editText.setText("");
 				scrollMyListViewToBottom();
 			}
-		} else if(v.getId() == R.id.menu_private){
+		} else if(v.getId() == R.id.back_btn){
 			onBackPressed();
 		} else if(v.getId() == R.id.send_picture){
 			takePhoto();
+		} else if(v.getId() == R.id.settings_btn){
+			ChannelSettingsActivity.show(this);
 		}
 	}
 

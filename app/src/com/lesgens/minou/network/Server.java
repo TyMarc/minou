@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.lesgens.minou.application.MinouApplication;
 import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.Roles;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
@@ -247,7 +248,8 @@ public class Server {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				Message m = new Message(user, content, user.getName(), channel, !id.equals(Controller.getInstance().getAuthId()), data);
+				final boolean isIncoming = !id.equals(Controller.getInstance().getAuthId());
+				Message m = new Message(user, content, user.getName(), channel, isIncoming, data);
 				ArrayList<Event> events = new ArrayList<Event>();
 				events.add(m);
 				boolean isGoodChannel = true;
@@ -255,7 +257,7 @@ public class Server {
 					isGoodChannel = eventsListeners.onEventsReceived(events, channel.getNamespace());
 				}
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
-				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
+				if((!MinouApplication.isActivityVisible() || !isGoodChannel) && PreferencesController.isPublicNotificationsEnabled(context, fullChannelName) && isIncoming){
 					Log.i(TAG, "Application not visible, should send notification");
 					NotificationHelper.notify(context, channel, user, content);
 				}
@@ -282,7 +284,8 @@ public class Server {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				Message m = new Message(user, content, user.getUsername(), userToCreate, !id.equals(Controller.getInstance().getAuthId()), data);
+				final boolean isIncoming = !id.equals(Controller.getInstance().getAuthId());
+				Message m = new Message(user, content, user.getUsername(), userToCreate, isIncoming, data);
 				ArrayList<Event> events = new ArrayList<Event>();
 				events.add(m);
 				boolean isGoodChannel = true;
@@ -290,7 +293,7 @@ public class Server {
 					isGoodChannel = eventsListeners.onEventsReceived(events, user.getNamespace());
 				}
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace());
-				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
+				if((!MinouApplication.isActivityVisible() || !isGoodChannel) && !PreferencesController.isPrivateNotificationsDisabled(context, fullChannelName) && isIncoming){
 					Log.i(TAG, "Application not visible, should send notification");
 					NotificationHelper.notify(context, null, user, content);
 				}

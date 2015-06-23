@@ -15,7 +15,7 @@
         android:paddingLeft="10dp" >
 
         <ImageView
-            android:id="@+id/menu_private"
+            android:id="@+id/back_btn"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_centerVertical="true"
@@ -23,15 +23,26 @@
             android:src="@drawable/navigation_back" />
 
         <TextView
-            android:id="@+id/city_name"
+            android:id="@+id/channel_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
-            android:layout_toRightOf="@id/menu_private"
+            android:layout_toRightOf="@id/back_btn"
             android:text="@string/hello_world"
             android:textColor="@color/white"
             android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/settings_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/gen_sel"
+            android:padding="7dp"
+            android:src="@drawable/ic_settings" />
     </RelativeLayout>
 
     <TextView
@@ -52,13 +63,13 @@
         android:layout_height="fill_parent"
         android:layout_above="@+id/bottomBar"
         android:layout_below="@id/connection_problem"
-        android:paddingLeft="10dp"
         StickyListHeadersListView:hasStickyHeaders="false"
         android:cacheColorHint="@android:color/transparent"
         android:divider="@color/transparent"
         android:dividerHeight="10dp"
         android:listSelector="@android:color/transparent"
         android:overScrollMode="never"
+        android:paddingLeft="10dp"
         android:stackFromBottom="true" />
 
     <RelativeLayout
