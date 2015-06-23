@@ -58,7 +58,9 @@
         </activity>
         <activity android:name="com.lesgens.minou.AddAChannelActivity" >
         </activity>
-        <activity android:name="com.lesgens.minou.ChannelPickerActivity" >
+        <activity
+            android:name="com.lesgens.minou.ChannelPickerActivity"
+            android:configChanges="orientation|keyboard|screenSize" >
         </activity>
     </application>
 

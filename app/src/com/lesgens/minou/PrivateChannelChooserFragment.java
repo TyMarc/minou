@@ -76,6 +76,7 @@ public class PrivateChannelChooserFragment extends MinouFragment {
 			final User user = adapter.getItem(position);
 			Controller.getInstance().setCurrentChannel(user);
 			ChatActivity.show(getActivity());
+			getActivity().finish();
 		}
 	}
 

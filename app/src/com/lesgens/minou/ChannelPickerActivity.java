@@ -33,10 +33,16 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 		context.startActivity(i);
 	}
 
+	public static void show(final Context context, boolean isPrivate){
+		Intent i = new Intent(context, ChannelPickerActivity.class);
+		i.putExtra("isPrivate", isPrivate);
+		context.startActivity(i);
+	}
+
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.channel_chooser);
-		
+
 		fragments = new ArrayList<MinouFragment>();
 		MinouFragment fragment = new PrivateChannelChooserFragment();
 		fragments.add(fragment);
@@ -49,12 +55,13 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mViewPager.setAdapter(mMinouPagerAdapter);
 		mViewPager.setOnPageChangeListener(this);
-		
-		selectedPosition = 0;
-		
+
+		final boolean isPrivate = getIntent().getBooleanExtra("isPrivate", true);
+		selectedPosition = isPrivate ? 0 : 1;
+		mViewPager.setCurrentItem(selectedPosition);
 		initFAB();
 	}
-	
+
 	@Override
 	public void onBackPressed(){
 		if(selectedPosition != 0){
@@ -63,19 +70,22 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 			super.onBackPressed();
 		}
 	}
-	
+
 	public void initFAB(){
 		floatingActionButton = (FloatingActionButton) findViewById(R.id.add_channel);
 		floatingActionButton.setOnClickListener(this);
-		floatingActionButton.animate().translationY(500).setListener(new AnimatorListenerAdapter() {
-	        @Override
-	        public void onAnimationEnd(Animator animation) {
-	            super.onAnimationEnd(animation);
-	            floatingActionButton.setVisibility(View.VISIBLE);
-	            hiddenFAB = true;
-	        }
-	    });;
-
+		if(selectedPosition == 0){
+			floatingActionButton.animate().translationY(500).setListener(new AnimatorListenerAdapter() {
+				@Override
+				public void onAnimationEnd(Animator animation) {
+					super.onAnimationEnd(animation);
+					floatingActionButton.setVisibility(View.VISIBLE);
+					hiddenFAB = true;
+				}
+			});;
+		} else{
+			floatingActionButton.setVisibility(View.VISIBLE);
+		}
 	}
 
 
@@ -99,8 +109,8 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 			return fragments.get(position).getTitle();
 		}
 	}
-	
-	
+
+
 
 
 	@Override
@@ -108,6 +118,7 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 		super.onActivityResult(requestCode, resultCode, data);
 		if(requestCode == REQUEST_ADD_CHANNEL && resultCode == RESULT_OK){
 			ChatActivity.show(this);
+			finish();
 		}
 	}
 
@@ -121,7 +132,7 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 	@Override
 	public void onPageScrollStateChanged(int arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override

@@ -70,6 +70,7 @@ public class PublicChannelChooserFragment extends MinouFragment {
 					int childPosition, long id) {
 				Controller.getInstance().setCurrentChannel(adapter.getChild(groupPosition, childPosition));
 				ChatActivity.show(getActivity());
+				getActivity().finish();
 				return true/* or false depending on what you need */;
 			}
 		};

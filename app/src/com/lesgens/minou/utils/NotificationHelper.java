@@ -34,6 +34,8 @@ public class NotificationHelper {
 		}
 		
 		Intent resultIntent = new Intent(context, ChatActivity.class);
+		resultIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		resultIntent.putExtra("channelName", channel != null ? channel.getNamespace() : user.getNamespace());
 		PendingIntent resultPendingIntent =
 		    PendingIntent.getActivity(

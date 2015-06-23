@@ -83,6 +83,9 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 		editText = (EditText) findViewById(R.id.editText);
 		editText.clearFocus();
 
+		if(!isPrivate()){
+			findViewById(R.id.topBar).setBackgroundColor(getResources().getColor(R.color.dark_main_color));
+		}
 
 		sendBt = (ImageView) findViewById(R.id.send);
 		sendBt.setOnClickListener(this);
@@ -114,7 +117,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 
 	public void refreshChannel(){
 		channelNamespace = Controller.getInstance().getCurrentChannel().getNamespace();
-		
+
 		if(Controller.getInstance().getCurrentChannel() instanceof User){
 			channelTextView.setText(Utils.capitalizeFirstLetters(((User) Controller.getInstance().getCurrentChannel()).getUsername()));
 		} else{
@@ -196,6 +199,16 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 	}
 
 	@Override
+	public void onBackPressed(){
+		ChannelPickerActivity.show(this, isPrivate());
+		finish();
+	}
+
+	private boolean isPrivate(){
+		return Controller.getInstance().getCurrentChannel() instanceof User;
+	}
+
+	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
@@ -209,7 +222,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 						try {
 							Bitmap bitmap = android.provider.MediaStore.Images.Media
 									.getBitmap(getContentResolver(), imageUri);
-							
+
 							final byte[] byteArray = Utils.prepareImageFT(ChatActivity.this, bitmap);
 
 							Message message = new Message(Controller.getInstance().getMyself(), byteArray, false);
@@ -280,7 +293,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 
 	}
 
-	
+
 
 	@Override
 	public void onUserHistoryReceived(List<Event> events) {
