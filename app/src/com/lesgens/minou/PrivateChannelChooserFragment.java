@@ -1,5 +1,6 @@
 package com.lesgens.minou;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -40,8 +41,8 @@ public class PrivateChannelChooserFragment extends MinouFragment {
 	}
 
 	@Override
-	public String getTitle() {
-		return "Conversations";
+	public String getTitle(final Context context) {
+		return context.getResources().getString(R.string.conversations);
 	}
 	
 	private class OnItemLongClickListenerPrivateChannel implements OnItemLongClickListener{

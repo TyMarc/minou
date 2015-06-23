@@ -52,6 +52,8 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 		fragments.add(fragment);
 		fragment = new PublicChannelChooserFragment();
 		fragments.add(fragment);
+		fragment = new ProfileFragment();
+		fragments.add(fragment);
 
 		mMinouPagerAdapter =
 				new MinouPagerAdapter(
@@ -113,7 +115,7 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 
 		@Override
 		public CharSequence getPageTitle(int position) {
-			return fragments.get(position).getTitle();
+			return fragments.get(position).getTitle(ChannelPickerActivity.this);
 		}
 	}
 
@@ -150,7 +152,7 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 	public void onPageSelected(int position) {
 		selectedPosition = position;
 		final int currentColor = ((ColorDrawable) findViewById(R.id.pager_title_strip).getBackground()).getColor();
-		if(position == 0){
+		if(position != 1){
 			ObjectAnimator colorFade = ObjectAnimator.ofObject(findViewById(R.id.pager_title_strip), "backgroundColor", new ArgbEvaluator(), currentColor, getResources().getColor(R.color.main_color));
 			colorFade.setDuration(300);
 			colorFade.start();

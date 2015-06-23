@@ -37,5 +37,9 @@ public class User extends Channel{
 		}
 		return false;
 	}
+
+	public void setAvatar(Bitmap avatar) {
+		this.avatar = avatar;
+	}
 	
 }
