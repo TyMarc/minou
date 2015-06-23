@@ -16,6 +16,15 @@
         android:textColor="@color/white"
         android:textSize="40sp" />
 
+    <ImageView
+        android:id="@+id/splash_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/splash_text"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/minou_small"
+        android:tint="@color/white" />
+
     <com.facebook.widget.LoginButton
         android:id="@+id/authButton"
         style="@style/FacebookLoginButton"

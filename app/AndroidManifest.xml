@@ -19,7 +19,7 @@
     <application
         android:name="com.lesgens.minou.application.MinouApplication"
         android:allowBackup="true"
-        android:icon="@drawable/minou_logo"
+        android:icon="@drawable/minou_icon"
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Holo.Light.NoActionBar" >
         <meta-data

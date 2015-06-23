@@ -225,17 +225,24 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener, Cros
 			} catch (IOException e) {
 				e.printStackTrace();
 				CustomYesNoDialog dialog = new CustomYesNoDialog(this){
-
+					
 					@Override
 					public void onPositiveClick() {
 						super.onPositiveClick();
+						SplashscreenActivity.show(SplashscreenActivity.this);
+						finish();
+					}
+					
+					@Override
+					public void onNegativeClick() {
+						super.onNegativeClick();
 						finish();
 					}
 
 				};
 
 				dialog.show();
-				dialog.transformAsOkDialog();
+				dialog.setYesText(R.string.retry);
 				dialog.setDialogText(getString(R.string.location_not_found));
 			}
 			catch (NullPointerException e) {

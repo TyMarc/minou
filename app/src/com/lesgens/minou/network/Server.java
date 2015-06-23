@@ -130,6 +130,7 @@ public class Server {
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getCountryNameSpace());
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getStateNameSpace());
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getCityNameSpace());
+						
 						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace())) {
 							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace());
 						}
@@ -138,8 +139,13 @@ public class Server {
 							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getStateNameSpace());
 						}
 						
+						
 						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace())) {
 							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace());
+						}
+						
+						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general")) {
+							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general");
 						}
 						
 						for(String channel : DatabaseHelper.getInstance().getPublicChannels()){
@@ -231,16 +237,17 @@ public class Server {
 			@Override
 			public void call(PubSubData msg) {
 				Log.i(TAG, "Received new message " + msg);
-				final String facebookId = msg.keywordArguments().get("from").asText();
-				final User user = Controller.getInstance().getUser(facebookId, msg.keywordArguments().get("fake_name").asText());
-				final String content = msg.keywordArguments().get("content").asText();
+				final String id = msg.keywordArguments().get("from").asText();
+				final User user = Controller.getInstance().getUser(id, msg.keywordArguments().get("fake_name").asText());
+				final String content = msg.keywordArguments().get("content") != null ? msg.keywordArguments().get("content").asText() : "";
 				byte[] data = null;
+				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getAuthId());
 				try {
 					data = msg.keywordArguments().get("picture") != null ? msg.keywordArguments().get("picture").binaryValue() : null;
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				Message m = new Message(user, content, user.getName(), channel, facebookId.equals(Controller.getInstance().getMyId()), data);
+				Message m = new Message(user, content, user.getName(), channel, !id.equals(Controller.getInstance().getAuthId()), data);
 				ArrayList<Event> events = new ArrayList<Event>();
 				events.add(m);
 				boolean isGoodChannel = true;
@@ -266,16 +273,16 @@ public class Server {
 			@Override
 			public void call(PubSubData msg) {
 				Log.i(TAG, "Received new private message " + msg);
-				final String facebookId = msg.keywordArguments().get("from").asText();
-				final User user = Controller.getInstance().getUser(facebookId, msg.keywordArguments().get("fake_name").asText());
-				final String content = msg.keywordArguments().get("content").asText();
+				final String id = msg.keywordArguments().get("from").asText();
+				final User user = Controller.getInstance().getUser(id, msg.keywordArguments().get("fake_name").asText());
+				final String content = msg.keywordArguments().get("content") != null ? msg.keywordArguments().get("content").asText() : "";
 				byte[] data = null;
 				try {
 					data = msg.keywordArguments().get("picture") != null ? msg.keywordArguments().get("picture").binaryValue() : null;
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				Message m = new Message(user, content, user.getUsername(), userToCreate, facebookId.equals(Controller.getInstance().getMyId()), data);
+				Message m = new Message(user, content, user.getUsername(), userToCreate, !id.equals(Controller.getInstance().getAuthId()), data);
 				ArrayList<Event> events = new ArrayList<Event>();
 				events.add(m);
 				boolean isGoodChannel = true;
@@ -285,7 +292,7 @@ public class Server {
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace());
 				if(!MinouApplication.isActivityVisible() || !isGoodChannel){
 					Log.i(TAG, "Application not visible, should send notification");
-					NotificationHelper.notify(context, null, userToCreate, content);
+					NotificationHelper.notify(context, null, user, content);
 				}
 			}});
 		
@@ -315,7 +322,7 @@ public class Server {
 
 	private static ObjectNode getObjectNodeMessage(final String message){
 		ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
-		ob.put("from", Controller.getInstance().getMyself().getId());
+		ob.put("from", Controller.getInstance().getAuthId());
 		ob.put("fake_name", Controller.getInstance().getMyself().getUsername());
 		ob.put("content", message);
 		return ob;
@@ -323,7 +330,7 @@ public class Server {
 	
 	private static ObjectNode getObjectNodeMessage(final byte[] picture){
 		ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
-		ob.put("from", Controller.getInstance().getMyself().getId());
+		ob.put("from", Controller.getInstance().getAuthId());
 		ob.put("fake_name", Controller.getInstance().getMyself().getName());
 		ob.put("picture", picture);
 		return ob;
@@ -378,6 +385,6 @@ public class Server {
 		}
 		reader.endObject();
 		reader.close();
-		Controller.getInstance().setMyOwnUser(new User(fakeName, Channel.BASE_CHANNEL + tokenId, AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), tokenId));
+		Controller.getInstance().setMyOwnUser(new User(fakeName, Channel.BASE_CHANNEL + Controller.getInstance().getAuthId(), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), Controller.getInstance().getAuthId()));
 	}
 }

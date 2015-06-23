@@ -23,7 +23,7 @@ import android.util.TypedValue;
 public class Utils {
 
 	public static final String MINOU_IMAGE_BASE = "MINOU_IMAGE_BASE:";
-	public static final int MAX_IMAGE_DIMEN = 400;
+	public static final int MAX_IMAGE_DIMEN = 800;
 	private static final String TAG = "Utils";
 
 	public static int dpInPixels(Context context, int dp) {
@@ -46,9 +46,8 @@ public class Utils {
 	}
 
 	public static byte[] prepareImageFT(final Context context, Bitmap image){
-		final int maxDimension = dpInPixels(context, MAX_IMAGE_DIMEN);
-		if(Math.max(image.getWidth(), image.getHeight()) > maxDimension){
-			image = scaleDown(image, maxDimension, true);
+		if(Math.max(image.getWidth(), image.getHeight()) > MAX_IMAGE_DIMEN){
+			image = scaleDown(image, MAX_IMAGE_DIMEN, true);
 		}
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();

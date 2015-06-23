@@ -165,7 +165,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 				chatAdapter.addMessage(message);
 				chatAdapter.notifyDataSetChanged();
 				Server.sendMessage(message.getMessage());
-				DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getMyId(), channelNamespace);
+				DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getAuthId(), channelNamespace);
 				editText.setText("");
 				scrollMyListViewToBottom();
 			}
@@ -218,7 +218,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 
 							Server.sendMessage(byteArray);
 
-							DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getMyId(), channelNamespace);
+							DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getAuthId(), channelNamespace);
 							scrollMyListViewToBottom();
 						} catch (Exception e) {
 							e.printStackTrace();
@@ -257,7 +257,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 				final int arg2, final long arg3) {
 
 			final Message message = chatAdapter.getItem(arg2);
-			if(message.getUser().getId().equals(Controller.getInstance().getMyId()) || 
+			if(message.getUser().getId().equals(Controller.getInstance().getAuthId()) || 
 					DatabaseHelper.getInstance().getPrivateChannels().contains(message.getUser())){
 				return true;
 			}

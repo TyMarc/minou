@@ -43,7 +43,7 @@ public class RootAdapter extends BaseExpandableListAdapter {
 		Log.i(TAG, "Number of children=" + root.getChannels().size());
 		for (int i = 0; i < root.getChannels().size(); i++) {
 			final CustExpListview celv = new CustExpListview(context);
-			SecondLevelAdapter adp = new SecondLevelAdapter(root.getChannels().get(i),context, grpLst, childLst, grpExpLst);
+			SecondLevelAdapter adp = new SecondLevelAdapter(root.getChannels().get(i),context);
 			celv.setAdapter(adp);
 			celv.setGroupIndicator(null);
 			celv.setOnChildClickListener(childLst);
