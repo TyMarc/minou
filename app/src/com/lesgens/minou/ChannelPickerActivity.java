@@ -4,8 +4,11 @@ import java.util.ArrayList;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -13,6 +16,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 
@@ -72,6 +76,7 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 	}
 
 	public void initFAB(){
+		Log.i("ChannelPickerActivity", "initFAB");
 		floatingActionButton = (FloatingActionButton) findViewById(R.id.add_channel);
 		floatingActionButton.setOnClickListener(this);
 		if(selectedPosition == 0){
@@ -85,6 +90,8 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 			});;
 		} else{
 			floatingActionButton.setVisibility(View.VISIBLE);
+			findViewById(R.id.pager_title_strip).setBackgroundColor(getResources().getColor(R.color.dark_main_color));
+			hiddenFAB = false;
 		}
 	}
 
@@ -142,10 +149,19 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 	@Override
 	public void onPageSelected(int position) {
 		selectedPosition = position;
+		final int currentColor = ((ColorDrawable) findViewById(R.id.pager_title_strip).getBackground()).getColor();
 		if(position == 0){
+			ObjectAnimator colorFade = ObjectAnimator.ofObject(findViewById(R.id.pager_title_strip), "backgroundColor", new ArgbEvaluator(), currentColor, getResources().getColor(R.color.main_color));
+			colorFade.setDuration(300);
+			colorFade.start();
 			floatingActionButton.animate().translationY(500);
-		} else if(hiddenFAB){
+			hiddenFAB = true;
+		} else if(hiddenFAB) {
+			ObjectAnimator colorFade = ObjectAnimator.ofObject(findViewById(R.id.pager_title_strip), "backgroundColor", new ArgbEvaluator(), currentColor, getResources().getColor(R.color.dark_main_color));
+			colorFade.setDuration(300);
+			colorFade.start();
 			floatingActionButton.animate().translationY(0);
+			hiddenFAB = false;
 		}
 	}
 }
