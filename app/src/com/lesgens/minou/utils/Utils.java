@@ -13,9 +13,14 @@ import java.util.regex.Pattern;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import android.content.ContentResolver;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
+import android.graphics.Matrix;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.util.TypedValue;
@@ -44,12 +49,59 @@ public class Utils {
 		realImage.recycle();
 		return newBitmap;
 	}
+	
+	/**
+	 * Rotate an image if required.
+	 * @param img
+	 * @param selectedImage
+	 * @return 
+	 */
+	private static Bitmap rotateImageIfRequired(Context context, Bitmap img, Uri selectedImage) {
 
-	public static byte[] prepareImageFT(final Context context, Bitmap image){
+	    // Detect rotation
+	    int rotation = getRotation(context, selectedImage);
+	    if(rotation!=0){
+	        Matrix matrix = new Matrix();
+	        matrix.postRotate(rotation);
+	        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
+	        img.recycle();
+	        return rotatedImg;        
+	    }else{
+	        return img;
+	    }
+	}
+
+	/**
+	 * Get the rotation of the last image added.
+	 * @param context
+	 * @param selectedImage
+	 * @return
+	 */
+	private static int getRotation(Context context, Uri selectedImage) {
+	    int rotation =0;
+	    ContentResolver content = context.getContentResolver();
+
+
+	    Cursor mediaCursor = content.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+	            new String[] { "orientation", "date_added" },null, null,"date_added desc");
+
+	    if (mediaCursor != null && mediaCursor.getCount() !=0 ) {
+	        while(mediaCursor.moveToNext()){
+	            rotation = mediaCursor.getInt(0);
+	            break;
+	        }
+	    }
+	    mediaCursor.close();
+	    return rotation;
+	}
+
+	public static byte[] prepareImageFT(final Context context, Bitmap image, Uri selectedImage){
 		if(Math.max(image.getWidth(), image.getHeight()) > MAX_IMAGE_DIMEN){
 			image = scaleDown(image, MAX_IMAGE_DIMEN, true);
 		}
 
+		image = rotateImageIfRequired(context, image, selectedImage);
+		
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		image.compress(CompressFormat.JPEG, 70, bos);
 		image.recycle();

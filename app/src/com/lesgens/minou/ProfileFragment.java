@@ -62,7 +62,7 @@ public class ProfileFragment extends MinouFragment implements OnClickListener {
 							Bitmap bitmap = android.provider.MediaStore.Images.Media
 									.getBitmap(getActivity().getContentResolver(), imageUri);
 
-							final byte[] byteArray = Utils.prepareImageFT(getActivity(), bitmap);
+							final byte[] byteArray = Utils.prepareImageFT(getActivity(), bitmap, imageUri);
 
 							Controller.getInstance().getMyself().setAvatar(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length));
 							((ImageView) getView().findViewById(R.id.avatar)).setImageBitmap(Controller.getInstance().getMyself().getAvatar());

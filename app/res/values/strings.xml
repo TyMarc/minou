@@ -37,4 +37,7 @@
     <string name="delete">Delete</string>
     <string name="location">Location</string>
     <string name="network">Network</string>
+    <string name="take_picture">Take A Picture</string>
+    <string name="pick_picture">Picture From Gallery</string>
+    <string name="file_transfer">Share</string>
 </resources>

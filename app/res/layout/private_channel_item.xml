@@ -25,6 +25,7 @@
             android:id="@+id/name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="Heavy Shoe"
             android:textColor="@color/dark_grey"
             android:textSize="18sp" />
 
@@ -32,8 +33,14 @@
             android:id="@+id/last_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
             android:layout_below="@id/name"
+            android:layout_marginRight="5dp"
+            android:layout_toLeftOf="@+id/last_message_day"
+            android:ellipsize="end"
             android:gravity="center_vertical"
+            android:singleLine="true"
+            android:text="This is my message, yes it is very long what are you gonna do about this? Ellipsize it?"
             android:textColor="@color/dark_grey"
             android:textSize="12sp" />
 
@@ -41,9 +48,12 @@
             android:id="@+id/last_message_day"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/name"
             android:layout_alignParentRight="true"
+            android:layout_alignTop="@id/name"
             android:layout_marginRight="10dp"
             android:gravity="center_vertical"
+            android:text="Thursday"
             android:textColor="@color/dark_grey"
             android:textSize="12sp" />
 
@@ -55,6 +65,7 @@
             android:layout_below="@id/name"
             android:layout_marginRight="10dp"
             android:gravity="center_vertical"
+            android:text="17:34"
             android:textColor="@color/dark_grey"
             android:textSize="12sp" />
     </RelativeLayout>

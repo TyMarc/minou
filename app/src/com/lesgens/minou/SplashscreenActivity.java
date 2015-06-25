@@ -17,10 +17,12 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.facebook.Session;
@@ -82,6 +84,12 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		setContentView(R.layout.splashscreen);
+		
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+		    Window window = getWindow();
+		    window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+		    window.setStatusBarColor(getResources().getColor(R.color.dark_main_color));
+		}
 
 		DatabaseHelper.init(this);
 
