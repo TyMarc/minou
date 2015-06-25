@@ -86,6 +86,7 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 						final User user = Controller.getInstance().getUserByName(text);
 						DatabaseHelper.getInstance().addPrivateChannel(user.getName(), user.getId());
 						Server.subscribeToChannel(this, user.getId());
+						Controller.getInstance().setCurrentChannel(user.getId());
 						if(user != null){
 							setResult(RESULT_OK, new Intent(user.getId()));
 							finish();
@@ -93,6 +94,7 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 					} else{
 						DatabaseHelper.getInstance().addPublicChannel(channelName);
 						Server.subscribeToChannel(this, channelName);
+						Controller.getInstance().setCurrentChannel(channelName);
 						setResult(RESULT_OK);
 						finish();
 					}

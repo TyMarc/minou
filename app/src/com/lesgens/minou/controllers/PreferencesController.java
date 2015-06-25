@@ -9,6 +9,7 @@ public class PreferencesController {
 	public static final String DEFAULT_CHANNEL = "USER_PREF_DEFAULT_CHANNEL";
 	public static final String NOTIFICATIONS_PUBLIC_CHANNEL = "USER_PREF_NOTIFICATIONS_PUBLIC_CHANNEL";
 	public static final String BLOCKED_NOTIFICATIONS_PRIVATE_CHANNEL = "USER_PREF_BLOCKED_NOTIFICATIONS_PRIVATE_CHANNEL";
+	public static final String BLOCKED_NOTIFICATIONS_MENTION_CHANNEL = "USER_PREF_BLOCKED_NOTIFICATIONS_MENTION_CHANNEL";
 
 	public static void setPreference(final Context context, final String preference, final String value){
 		SharedPreferences.Editor editor = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
@@ -88,6 +89,41 @@ public class PreferencesController {
 			}
 			SharedPreferences.Editor editor = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
 			editor.putString(BLOCKED_NOTIFICATIONS_PRIVATE_CHANNEL, restoredText);
+			editor.commit();
+		}
+	}
+	
+	public static boolean isMentionNotificationsDisabled(final Context context, final String channelNamespace) {
+		SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE); 
+		String restoredText = prefs.getString(BLOCKED_NOTIFICATIONS_MENTION_CHANNEL, "");
+		return restoredText.contains(channelNamespace);
+	}
+	
+	public static void addMentionNotificationDisabled(final Context context, final String channelNamespace){
+		SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE); 
+		String restoredText = prefs.getString(BLOCKED_NOTIFICATIONS_MENTION_CHANNEL, "");
+		if(!restoredText.contains(channelNamespace)){
+			if(!restoredText.isEmpty()){
+				restoredText += ",";
+			}
+			restoredText += channelNamespace;
+			SharedPreferences.Editor editor = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
+			editor.putString(BLOCKED_NOTIFICATIONS_MENTION_CHANNEL, restoredText);
+			editor.commit();
+		}
+	}
+	
+	public static void removeMentionNotificationDisabled(final Context context, final String channelNamespace){
+		SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE); 
+		String restoredText = prefs.getString(BLOCKED_NOTIFICATIONS_MENTION_CHANNEL, "");
+		if(restoredText.contains(channelNamespace)){
+			if(restoredText.indexOf(channelNamespace) > 0){
+				restoredText = restoredText.replace("," + channelNamespace, "");
+			} else{
+				restoredText = restoredText.replace(channelNamespace, "");
+			}
+			SharedPreferences.Editor editor = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
+			editor.putString(BLOCKED_NOTIFICATIONS_MENTION_CHANNEL, restoredText);
 			editor.commit();
 		}
 	}

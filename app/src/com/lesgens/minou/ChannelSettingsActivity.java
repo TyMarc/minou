@@ -42,6 +42,10 @@ public class ChannelSettingsActivity extends MinouActivity implements OnClickLis
 		}
 		((CheckBox) findViewById(R.id.setting_notifications)).setChecked(isChecked);
 		findViewById(R.id.setting_notifications).setOnClickListener(this);
+		
+		isChecked = !PreferencesController.isMentionNotificationsDisabled(this, Controller.getInstance().getCurrentChannel().getNamespace());
+		((CheckBox) findViewById(R.id.setting_notifications_mention)).setChecked(isChecked);
+		findViewById(R.id.setting_notifications_mention).setOnClickListener(this);
 	}
 
 	private boolean isPrivate(){
@@ -66,6 +70,14 @@ public class ChannelSettingsActivity extends MinouActivity implements OnClickLis
 				} else{
 					PreferencesController.removePublicNotificationEnabled(this, Controller.getInstance().getCurrentChannel().getNamespace());
 				}
+			}
+		} else if(v.getId() == R.id.setting_notifications_mention){
+			final boolean isChecked = ((CheckBox) findViewById(R.id.setting_notifications_mention)).isChecked();
+			if(isChecked){
+				PreferencesController.removeMentionNotificationDisabled(this, Controller.getInstance().getCurrentChannel().getNamespace());
+			} else{
+				PreferencesController.addMentionNotificationDisabled(this, Controller.getInstance().getCurrentChannel().getNamespace());
+
 			}
 		}
 	}

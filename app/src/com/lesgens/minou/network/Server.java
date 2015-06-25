@@ -54,12 +54,12 @@ public class Server {
 	private static String TAG = "Server";
 	private static WampClient client;
 	private static class PokeCrossbarServer extends TimerTask {
-	    public void run() {
-	       sendStayAliveMessage();
-	    }
-	 }
+		public void run() {
+			sendStayAliveMessage();
+		}
+	}
 	private static Timer timer;
-	
+
 	public static void connect(String authenticationToken) {
 		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
 
@@ -123,48 +123,46 @@ public class Server {
 					Log.i(TAG, "Session status changed to " + t1);
 
 					if (t1 instanceof WampClient.ClientConnected) {		
-						
+
 						initChannels(context);
-						
+
 						subscribeToPrivateChannel(context, Controller.getInstance().getMyself());
-						
+
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getCountryNameSpace());
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getStateNameSpace());
 						subscribeToChannel(context, Controller.getInstance().getGeolocation().getCityNameSpace());
-						
+
 						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace())) {
 							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace());
 						}
-						
+
 						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getStateNameSpace())) {
 							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getStateNameSpace());
 						}
-						
-						
+
+
 						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace())) {
 							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace());
 						}
-						
+
 						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general")) {
 							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general");
 						}
-						
+
 						for(String channel : DatabaseHelper.getInstance().getPublicChannels()){
 							subscribeToChannel(context, channel);
 						}
-
-						for(User user : DatabaseHelper.getInstance().getPrivateChannels()){
-							subscribeToPrivateChannel(context, user);
+						
+						for(User channel : DatabaseHelper.getInstance().getPrivateChannels()){
+							subscribeToPrivateChannel(context, channel);
 						}
-						
-						Controller.getInstance().setCurrentChannel(Controller.getInstance().getGeolocation().getCityNameSpace());
-						
-						 timer = new Timer();
-						 timer.schedule(new PokeCrossbarServer(), 0, 35000);
-						 
-						 if(crossbarConnectionListener != null){
-							 crossbarConnectionListener.onConnection();
-						 }
+
+						timer = new Timer();
+						timer.schedule(new PokeCrossbarServer(), 0, 35000);
+
+						if(crossbarConnectionListener != null){
+							crossbarConnectionListener.onConnection();
+						}
 					}
 					else if (t1 instanceof WampClient.ClientDisconnected) {
 						closeSubscriptions();
@@ -204,13 +202,13 @@ public class Server {
 			client.close();
 		}
 	}
-	
+
 	private static void initChannels(final Context context){
 		final String channelName = Channel.WORLDWIDE_CHANNEL;		
 		Controller.getInstance().initChannelContainer(createChannel(context, Channel.BASE_PUBLIC_CHANNEL));
 		subscribeToChannel(context, channelName);
 	}
-	
+
 	public static void subscribeToChannel(final Context context, final String channelName){
 		if(Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
 			return;
@@ -219,17 +217,15 @@ public class Server {
 		final Channel channel = createChannel(context, channelName);
 
 		Controller.getInstance().getChannelsContainer().addSubscription(channel);
-		Controller.getInstance().setCurrentChannel(channel);
 	}
-	
+
 	public static void subscribeToPrivateChannel(final Context context, final User user){
 
 		final User userToAdd = createPrivateChannel(context, user);
 
 		Controller.getInstance().getChannelsContainer().addByForceSubscription(userToAdd);
-		Controller.getInstance().setCurrentChannel(userToAdd);
 	}
-	
+
 	private static Channel createChannel(final Context context, final String channelName){
 		final String fullChannelName = Utils.getNormalizedString(channelName);
 		Log.i(TAG, "Subscribing to: " + fullChannelName);
@@ -262,15 +258,18 @@ public class Server {
 					el.onNewEvent(m, channel.getNamespace());
 				}
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
-				if((!MinouApplication.isActivityVisible() || !isGoodChannel) && PreferencesController.isPublicNotificationsEnabled(context, fullChannelName) && isIncoming){
+				if((!MinouApplication.isActivityVisible() || !isGoodChannel) 
+						&& (PreferencesController.isPublicNotificationsEnabled(context, fullChannelName) 
+								|| m.getMessage().toLowerCase().contains(Controller.getInstance().getMyself().getUsername().toLowerCase()))
+								&& isIncoming){
 					Log.i(TAG, "Application not visible, should send notification");
 					NotificationHelper.notify(context, channel, user, content);
 				}
 			}});
-		
+
 		return channel;
 	}
-	
+
 	private static User createPrivateChannel(final Context context, final User userToCreate){
 		final String fullChannelName = Utils.getNormalizedString(Channel.BASE_CHANNEL + userToCreate.getId().replace(".", "_").replace("-", "_"));
 		Log.i(TAG, "Subscribing to: " + fullChannelName);
@@ -308,7 +307,7 @@ public class Server {
 					NotificationHelper.notify(context, null, user, content);
 				}
 			}});
-		
+
 		userToCreate.setSubscription(channelSubscription);
 		return userToCreate;
 	}
@@ -320,7 +319,7 @@ public class Server {
 		Log.i(TAG, "sendMessage message=" + message + " fullChannelName=" + fullChannelName);
 		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message));
 	}
-	
+
 	public static void sendMessage(final byte[] picture){
 		String fullChannelName = Controller.getInstance().getCurrentChannel().getNamespace().toLowerCase().replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
@@ -328,7 +327,7 @@ public class Server {
 		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName);
 		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(picture));
 	}
-	
+
 	public static void sendStayAliveMessage(){
 		client.publish("minou.ping", new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(""));
 	}
@@ -340,7 +339,7 @@ public class Server {
 		ob.put("content", message);
 		return ob;
 	}
-	
+
 	private static ObjectNode getObjectNodeMessage(final byte[] picture){
 		ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
 		ob.put("from", Controller.getInstance().getAuthId());
@@ -368,7 +367,7 @@ public class Server {
 	public static void removeEventsListener(EventsListener listener) {
 		eventsListeners.remove(listener);
 	}
-	
+
 	public static void setCrossbarConnectionListener(CrossbarConnectionListener listener) {
 		crossbarConnectionListener = listener;
 	}

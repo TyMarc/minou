@@ -322,7 +322,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 						Controller.getInstance().setCurrentChannel(message.getUser());
 					} else{
 						DatabaseHelper.getInstance().addPrivateChannel(message.getUser().getUsername(), message.getUser().getId());
-						Server.subscribeToPrivateChannel(ChatActivity.this, message.getUser());
+						Controller.getInstance().setCurrentChannel(message.getUser());
 					}
 					ChatActivity.show(ChatActivity.this);
 					finish();

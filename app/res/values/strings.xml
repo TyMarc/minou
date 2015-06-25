@@ -18,6 +18,7 @@
     <string name="title_activity_image_viewer">ImageViewerActivity</string>
     <string name="retry">Retry</string>
     <string name="close">Close</string>
+    <string name="cancel">Cancel</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
     <string name="channels">Channels</string>
@@ -27,6 +28,7 @@
     <string name="hello_world">Hello World</string>
     <string name="settings">Settings</string>
     <string name="notifications">Notifications</string>
+    <string name="notifications_on_mention">Notifications On Mention</string>
     <string name="username">Username</string>
     <string name="avatar">Avatar</string>
     <string name="conversations">Conversations</string>
