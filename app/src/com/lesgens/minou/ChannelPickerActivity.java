@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -21,7 +22,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 
 import com.lesgens.minou.controllers.Controller;
-import com.lesgens.minou.views.FloatingActionButton;
 
 public class ChannelPickerActivity extends FragmentActivity implements OnClickListener, OnPageChangeListener{
 	private static final int REQUEST_ADD_CHANNEL = 101;
@@ -60,7 +60,7 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 						getSupportFragmentManager());
 		mViewPager = (ViewPager) findViewById(R.id.pager);
 		mViewPager.setAdapter(mMinouPagerAdapter);
-		mViewPager.setOnPageChangeListener(this);
+		mViewPager.addOnPageChangeListener(this);
 
 		final boolean isPrivate = getIntent().getBooleanExtra("isPrivate", true);
 		selectedPosition = isPrivate ? 0 : 1;

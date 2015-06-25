@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white" >
@@ -17,19 +18,22 @@
             android:background="@color/main_color"
             android:gravity="center_vertical"
             android:textColor="@color/white"
-            android:textSize="16sp" />        
-        
+            android:textSize="16sp" />
     </android.support.v4.view.ViewPager>
 
-    <com.lesgens.minou.views.FloatingActionButton
+    <android.support.design.widget.FloatingActionButton
         android:id="@+id/add_channel"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_marginBottom="30dp"
         android:layout_marginRight="30dp"
-        android:background="@drawable/button_add_sel"
-        android:visibility="gone" />
+        android:src="@drawable/add"
+        android:visibility="gone"
+        app:backgroundTint="@color/fab_sel"
+        app:elevation="6dp"
+        app:pressedTranslationZ="12dp"
+        app:rippleColor="@color/fab_sel" />
 
 </RelativeLayout>

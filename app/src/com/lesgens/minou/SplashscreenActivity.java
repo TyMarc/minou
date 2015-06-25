@@ -10,10 +10,11 @@ import android.graphics.Typeface;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -23,11 +24,6 @@ import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.widget.LoginButton;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.location.LocationServices;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
@@ -38,8 +34,7 @@ import com.lesgens.minou.views.CustomYesNoDialog;
 import com.todddavies.components.progressbar.ProgressWheel;
 
 public class SplashscreenActivity extends MinouActivity implements
-UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener, CrossbarConnectionListener {
-	private GoogleApiClient mGoogleApiClient;
+UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 	private Location mLastLocation;
 	private static final String[] PERMISSIONS = {"public_profile"};
 	private boolean mConnected = false;
@@ -108,17 +103,8 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener, Cros
 			dialog.transformAsOkDialog();
 			dialog.setDialogText(R.string.no_network);
 		} else{
-
-			new Handler(getMainLooper()).postDelayed(new Runnable(){
-
-				@Override
-				public void run() {
-					buildGoogleApiClient();
-
-					mGoogleApiClient.connect();
-				}
-
-			}, 300);
+			LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
+			locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, this, getMainLooper());
 		}
 
 		Server.addUserAuthenticatedListener(this);
@@ -132,12 +118,6 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener, Cros
 	public void onDestroy(){
 		super.onDestroy();
 		uiHelper.onDestroy();
-
-		if(mGoogleApiClient != null){
-			if(mGoogleApiClient.isConnected() || mGoogleApiClient.isConnecting()){
-				mGoogleApiClient.disconnect();
-			}
-		}
 
 		Server.removeUserAuthenticatedListener(this);
 	}
@@ -196,19 +176,50 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener, Cros
 		ChannelPickerActivity.show(this);
 		finish();
 	}
-	
-	protected synchronized void buildGoogleApiClient() {
-		mGoogleApiClient = new GoogleApiClient.Builder(this)
-		.addConnectionCallbacks(this)
-		.addOnConnectionFailedListener(this)
-		.addApi(LocationServices.API)
-		.build();
-	}
-	
+
 	@Override
-	public void onConnected(Bundle connectionHint) {
-		mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
-				mGoogleApiClient);
+	public void onUserNetworkErrorAuthentication() {
+		CustomYesNoDialog dialog = new CustomYesNoDialog(this){
+
+			@Override
+			public void onPositiveClick() {
+				super.onPositiveClick();
+				finish();
+			}
+
+		};
+
+		dialog.show();
+		dialog.transformAsOkDialog();
+		dialog.setDialogText(R.string.no_network);
+	}
+
+	@Override
+	public void onUserServerErrorAuthentication() {
+		CustomYesNoDialog dialog = new CustomYesNoDialog(this){
+
+			@Override
+			public void onPositiveClick() {
+				super.onPositiveClick();
+				finish();
+			}
+
+		};
+
+		dialog.show();
+		dialog.transformAsOkDialog();
+		dialog.setDialogText(R.string.server_error);
+	}
+
+	@Override
+	public void onConnection() {
+		Server.setEventsListener(null);
+		goToPublicChat();
+	}
+
+	@Override
+	public void onLocationChanged(Location location) {
+		mLastLocation = location;
 		if (mLastLocation != null) {
 			Geocoder geoCoder = new Geocoder(this, Locale.CANADA);
 			try {
@@ -252,55 +263,21 @@ UserAuthenticatedListener, ConnectionCallbacks, OnConnectionFailedListener, Cros
 	}
 
 	@Override
-	public void onUserNetworkErrorAuthentication() {
-		CustomYesNoDialog dialog = new CustomYesNoDialog(this){
-
-			@Override
-			public void onPositiveClick() {
-				super.onPositiveClick();
-				finish();
-			}
-
-		};
-
-		dialog.show();
-		dialog.transformAsOkDialog();
-		dialog.setDialogText(R.string.no_network);
-	}
-
-	@Override
-	public void onUserServerErrorAuthentication() {
-		CustomYesNoDialog dialog = new CustomYesNoDialog(this){
-
-			@Override
-			public void onPositiveClick() {
-				super.onPositiveClick();
-				finish();
-			}
-
-		};
-
-		dialog.show();
-		dialog.transformAsOkDialog();
-		dialog.setDialogText(R.string.server_error);
-	}
-
-	@Override
-	public void onConnectionSuspended(int cause) {
+	public void onStatusChanged(String provider, int status, Bundle extras) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void onConnectionFailed(ConnectionResult result) {
+	public void onProviderEnabled(String provider) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void onConnection() {
-		Server.setEventsListener(null);
-		goToPublicChat();
+	public void onProviderDisabled(String provider) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

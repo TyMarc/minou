@@ -5,7 +5,7 @@ import android.util.Log;
 
 public class MinouApplication extends Application {
 	private static final String TAG = "Minou_Application";
-	
+
 	@Override
 	public void onCreate(){
 		super.onCreate();

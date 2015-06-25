@@ -185,8 +185,11 @@ public class Server {
 			client.open();
 
 		} catch (WampError e) {
-			Log.i(TAG, e.getMessage());
+			e.printStackTrace();
 			return;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
