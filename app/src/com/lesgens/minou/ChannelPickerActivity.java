@@ -1,6 +1,7 @@
 package com.lesgens.minou;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -22,8 +23,12 @@ import android.view.View;
 import android.view.View.OnClickListener;
 
 import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.listeners.EventsListener;
+import com.lesgens.minou.models.Event;
+import com.lesgens.minou.models.User;
+import com.lesgens.minou.network.Server;
 
-public class ChannelPickerActivity extends FragmentActivity implements OnClickListener, OnPageChangeListener{
+public class ChannelPickerActivity extends FragmentActivity implements OnClickListener, OnPageChangeListener, EventsListener{
 	private static final int REQUEST_ADD_CHANNEL = 101;
 	private MinouPagerAdapter mMinouPagerAdapter;
 	private ViewPager mViewPager;
@@ -31,6 +36,9 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 	private FloatingActionButton floatingActionButton;
 	private boolean hiddenFAB;
 	private int selectedPosition;
+	private PrivateChannelChooserFragment privateChannelChooserFragment;
+	private PublicChannelChooserFragment publicChannelChooserFragment;
+	private ProfileFragment profileFragment;
 
 	public static void show(final Context context){
 		Intent i = new Intent(context, ChannelPickerActivity.class);
@@ -48,12 +56,12 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 		setContentView(R.layout.channel_chooser);
 
 		fragments = new ArrayList<MinouFragment>();
-		MinouFragment fragment = new PrivateChannelChooserFragment();
-		fragments.add(fragment);
-		fragment = new PublicChannelChooserFragment();
-		fragments.add(fragment);
-		fragment = new ProfileFragment();
-		fragments.add(fragment);
+		privateChannelChooserFragment = new PrivateChannelChooserFragment();
+		fragments.add(privateChannelChooserFragment);
+		publicChannelChooserFragment = new PublicChannelChooserFragment();
+		fragments.add(publicChannelChooserFragment);
+		profileFragment = new ProfileFragment();
+		fragments.add(profileFragment);
 
 		mMinouPagerAdapter =
 				new MinouPagerAdapter(
@@ -62,10 +70,19 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 		mViewPager.setAdapter(mMinouPagerAdapter);
 		mViewPager.addOnPageChangeListener(this);
 
+		Server.addEventsListener(this);
+		
 		final boolean isPrivate = getIntent().getBooleanExtra("isPrivate", true);
 		selectedPosition = isPrivate ? 0 : 1;
 		mViewPager.setCurrentItem(selectedPosition);
 		initFAB();
+	}
+	
+	@Override
+	public void onDestroy(){
+		super.onDestroy();
+		
+		Server.removeEventsListener(this);
 	}
 
 	@Override
@@ -165,5 +182,23 @@ public class ChannelPickerActivity extends FragmentActivity implements OnClickLi
 			floatingActionButton.animate().translationY(0);
 			hiddenFAB = false;
 		}
+	}
+
+	@Override
+	public void onNewEvent(Event event, String channel) {
+		if(event.getChannel() instanceof User){
+			runOnUiThread(new Runnable(){
+
+				@Override
+				public void run() {
+					privateChannelChooserFragment.getAdapter().notifyDataSetChanged();
+				}});
+		}
+	}
+
+	@Override
+	public void onUserHistoryReceived(List<Event> events) {
+		// TODO Auto-generated method stub
+		
 	}
 }

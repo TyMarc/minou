@@ -28,6 +28,7 @@ import android.util.Log;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.application.MinouApplication;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
@@ -37,7 +38,6 @@ import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
 import com.lesgens.minou.models.Channel;
-import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.HTTPRequest.RequestType;
@@ -48,7 +48,7 @@ import com.lesgens.minou.utils.Utils;
 public class Server {
 
 	private static List<UserAuthenticatedListener> userAuthenticatedListeners = new ArrayList<UserAuthenticatedListener>();
-	private static EventsListener eventsListeners = null;
+	private static ArrayList<EventsListener> eventsListeners = new ArrayList<EventsListener>();
 	private static CrossbarConnectionListener crossbarConnectionListener = null;
 	private static String address = "https://minou-backend.herokuapp.com/";
 	private static String TAG = "Server";
@@ -188,7 +188,6 @@ public class Server {
 			e.printStackTrace();
 			return;
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -253,11 +252,14 @@ public class Server {
 				}
 				final boolean isIncoming = !id.equals(Controller.getInstance().getAuthId());
 				Message m = new Message(user, content, user.getName(), channel, isIncoming, data);
-				ArrayList<Event> events = new ArrayList<Event>();
-				events.add(m);
-				boolean isGoodChannel = true;
-				if(eventsListeners != null){
-					isGoodChannel = eventsListeners.onEventsReceived(events, channel.getNamespace());
+				boolean isGoodChannel = false;
+				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
+					if(channel.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
+						isGoodChannel = true;
+					}
+				}
+				for(EventsListener el : eventsListeners) {
+					el.onNewEvent(m, channel.getNamespace());
 				}
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
 				if((!MinouApplication.isActivityVisible() || !isGoodChannel) && PreferencesController.isPublicNotificationsEnabled(context, fullChannelName) && isIncoming){
@@ -289,14 +291,19 @@ public class Server {
 				}
 				final boolean isIncoming = !id.equals(Controller.getInstance().getAuthId());
 				Message m = new Message(user, content, user.getUsername(), userToCreate, isIncoming, data);
-				ArrayList<Event> events = new ArrayList<Event>();
-				events.add(m);
-				boolean isGoodChannel = true;
-				if(eventsListeners != null){
-					isGoodChannel = eventsListeners.onEventsReceived(events, user.getNamespace());
+				boolean isGoodChannel = false;
+				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
+					if(user.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
+						isGoodChannel = true;
+					}
+				}
+				for(EventsListener el : eventsListeners) {
+					el.onNewEvent(m, user.getNamespace());
 				}
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace());
-				if((!MinouApplication.isActivityVisible() || !isGoodChannel) && !PreferencesController.isPrivateNotificationsDisabled(context, fullChannelName) && isIncoming){
+				if((!MinouApplication.isActivityVisible() || !isGoodChannel) && 
+						!PreferencesController.isPrivateNotificationsDisabled(context, fullChannelName) 
+						&& isIncoming && DatabaseHelper.getInstance().getPrivateChannels().contains(user)){
 					Log.i(TAG, "Application not visible, should send notification");
 					NotificationHelper.notify(context, null, user, content);
 				}
@@ -354,12 +361,12 @@ public class Server {
 		userAuthenticatedListeners.remove(listener);
 	}
 
-	public static void setEventsListener(EventsListener listener) {
-		eventsListeners = listener;
+	public static void addEventsListener(EventsListener listener) {
+		if(!eventsListeners.contains(listener)) eventsListeners.add(listener);
 	}
 
 	public static void removeEventsListener(EventsListener listener) {
-		eventsListeners = null;
+		eventsListeners.remove(listener);
 	}
 	
 	public static void setCrossbarConnectionListener(CrossbarConnectionListener listener) {
@@ -373,12 +380,11 @@ public class Server {
 	private static void readAuth(Reader in) throws IOException {
 		JsonReader reader = new JsonReader(in);
 		reader.beginObject();
-		String tokenId = "";
 		String fakeName = "";
 		while(reader.hasNext()){
 			String name = reader.nextName();
 			if (name.equals("token")) {
-				tokenId = reader.nextString();
+				reader.nextString();
 			} else if (name.equals("fake_name")) {
 				fakeName = reader.nextString();
 			} else if (name.equals("secret")) {

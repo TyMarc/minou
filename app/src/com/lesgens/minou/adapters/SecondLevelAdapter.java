@@ -15,7 +15,7 @@ import com.lesgens.minou.utils.Utils;
 
 public class SecondLevelAdapter extends BaseExpandableListAdapter {
 
-	private static final String TAG = "SecondLevelAdapter";
+	public static final String TAG = "SecondLevelAdapter";
 	public Channel child;
 	Context mContext;
 	LayoutInflater inflater;

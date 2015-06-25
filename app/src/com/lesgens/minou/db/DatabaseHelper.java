@@ -70,11 +70,11 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		
 		cv = new ContentValues();
 		cv.put("timestamp", m.getTimestamp().getTime());
-		if(getLastMessageFetched(channel) == 0){
+		if(getLastMessageFetched(channel.toLowerCase().replace("-", "_")) == 0){
 			cv.put("channel", channel);
 			db.insert("minou_last_message", null, cv);
 		} else{
-			db.update("minou_last_message", cv, "channel = ?", new String[]{channel});
+			db.update("minou_last_message", cv, "channel = ?", new String[]{channel.toLowerCase().replace("-", "_")});
 		}
 		
 	}
@@ -141,7 +141,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		SQLiteDatabase db = this.getReadableDatabase();
 		Log.i(TAG, "get last Message for channel=" + channel.getNamespace().toLowerCase().replace("-", "_"));
 
-		Cursor c = db.rawQuery("SELECT message_id, timestamp, userName, message, isIncoming, data, userToken FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, userName, message, isIncoming, data, userToken FROM minou_message WHERE channel = ? ORDER BY timestamp DESC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
 		Message message = null;
 		if(c.moveToNext()){
 			UUID id = UUID.fromString(c.getString(0));
@@ -162,6 +162,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public void removeAllMessages(final String channel){
 		SQLiteDatabase db = this.getWritableDatabase();
 		
+		db.delete("minou_message", "channel = ?", new String[]{channel});
 		db.delete("minou_message", "channel LIKE ?", new String[]{channel + ".*"});
 	}
 	

@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.location.Address;
@@ -30,7 +33,6 @@ import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
 import com.lesgens.minou.models.Geolocation;
 import com.lesgens.minou.network.Server;
-import com.lesgens.minou.views.CustomYesNoDialog;
 import com.todddavies.components.progressbar.ProgressWheel;
 
 public class SplashscreenActivity extends MinouActivity implements
@@ -89,19 +91,15 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 		tv.setTypeface(tf);
 
 		if(!isNetworkAvailable()){
-			CustomYesNoDialog dialog = new CustomYesNoDialog(this){
+			new AlertDialog.Builder(this).setPositiveButton(R.string.ok, new OnClickListener(){
 
 				@Override
-				public void onPositiveClick() {
-					super.onPositiveClick();
+				public void onClick(DialogInterface dialog, int which) {
 					finish();
-				}
-
-			};
-
-			dialog.show();
-			dialog.transformAsOkDialog();
-			dialog.setDialogText(R.string.no_network);
+				}})
+				.setTitle(R.string.network)
+				.setMessage(R.string.no_network)
+				.show();
 		} else{
 			LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
 			locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, this, getMainLooper());
@@ -179,41 +177,32 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 
 	@Override
 	public void onUserNetworkErrorAuthentication() {
-		CustomYesNoDialog dialog = new CustomYesNoDialog(this){
+		new AlertDialog.Builder(this).setPositiveButton(R.string.ok, new OnClickListener(){
 
 			@Override
-			public void onPositiveClick() {
-				super.onPositiveClick();
+			public void onClick(DialogInterface dialog, int which) {
 				finish();
-			}
-
-		};
-
-		dialog.show();
-		dialog.transformAsOkDialog();
-		dialog.setDialogText(R.string.no_network);
+			}})
+			.setTitle(R.string.network)
+			.setMessage(R.string.no_network)
+			.show();
 	}
 
 	@Override
 	public void onUserServerErrorAuthentication() {
-		CustomYesNoDialog dialog = new CustomYesNoDialog(this){
+		new AlertDialog.Builder(this).setPositiveButton(R.string.ok, new OnClickListener(){
 
 			@Override
-			public void onPositiveClick() {
-				super.onPositiveClick();
-				finish();
-			}
-
-		};
-
-		dialog.show();
-		dialog.transformAsOkDialog();
-		dialog.setDialogText(R.string.server_error);
+			public void onClick(DialogInterface dialog, int which) {
+				
+			}})
+			.setTitle(R.string.network)
+			.setMessage(R.string.server_error)
+			.show();
 	}
 
 	@Override
 	public void onConnection() {
-		Server.setEventsListener(null);
 		goToPublicChat();
 	}
 
@@ -235,26 +224,19 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
-				CustomYesNoDialog dialog = new CustomYesNoDialog(this){
-					
+				new AlertDialog.Builder(this).setPositiveButton(R.string.retry, new OnClickListener(){
+
 					@Override
-					public void onPositiveClick() {
-						super.onPositiveClick();
+					public void onClick(DialogInterface dialog, int which) {
 						SplashscreenActivity.show(SplashscreenActivity.this);
 						finish();
-					}
-					
-					@Override
-					public void onNegativeClick() {
-						super.onNegativeClick();
-						finish();
-					}
+					}})
+					.setNegativeButton(R.string.no, null)
+					.setTitle(R.string.location)
+					.setMessage(R.string.location_not_found)
+					.show();
 
-				};
 
-				dialog.show();
-				dialog.setYesText(R.string.retry);
-				dialog.setDialogText(getString(R.string.location_not_found));
 			}
 			catch (NullPointerException e) {
 				e.printStackTrace();
@@ -265,19 +247,19 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void onProviderEnabled(String provider) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void onProviderDisabled(String provider) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

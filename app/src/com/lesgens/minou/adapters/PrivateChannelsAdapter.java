@@ -87,7 +87,11 @@ public class PrivateChannelsAdapter extends ArrayAdapter<User>{
 		
 		Message lastMessage = DatabaseHelper.getInstance().getLastMessage(user);
 		if(lastMessage != null){
-			holder.lastMessage.setText(lastMessage.getMessage());
+			if(lastMessage.getMessage() != null){
+				holder.lastMessage.setText(lastMessage.getMessage());
+			} else{
+				holder.lastMessage.setText(R.string.picture);
+			}
 			holder.timeLastMessage.setText(sdfMessage.format(lastMessage.getTimestamp()));
 			holder.dayLastMessage.setText(getTimeText(lastMessage.getTimestamp()));
 		}

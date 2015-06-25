@@ -1,6 +1,9 @@
 package com.lesgens.minou;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -15,7 +18,6 @@ import com.lesgens.minou.adapters.PrivateChannelsAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.User;
-import com.lesgens.minou.views.CustomYesNoDialog;
 
 public class PrivateChannelChooserFragment extends MinouFragment {
 	private ListView listView;
@@ -52,20 +54,19 @@ public class PrivateChannelChooserFragment extends MinouFragment {
 				final int arg2, final long arg3) {
 
 			final User user = adapter.getItem(arg2);
-			CustomYesNoDialog dialog = new CustomYesNoDialog(getActivity()){
+			
+			new AlertDialog.Builder(getActivity()).setPositiveButton(R.string.yes, new OnClickListener(){
 
 				@Override
-				public void onPositiveClick() {
-					super.onPositiveClick();
+				public void onClick(DialogInterface dialog, int which) {
 					DatabaseHelper.getInstance().removePrivateChannel(user.getId());
 					DatabaseHelper.getInstance().removeAllMessages(user.getId());
 					adapter.remove(user);
-				}
-
-			};
-
-			dialog.show();
-			dialog.setDialogText(R.string.delete_channel);			
+				}})
+				.setNegativeButton(R.string.no, null)
+				.setTitle(R.string.delete)
+				.setMessage(R.string.delete_channel)
+				.show();	
 			return true;
 		}
 
@@ -79,6 +80,10 @@ public class PrivateChannelChooserFragment extends MinouFragment {
 			ChatActivity.show(getActivity());
 			getActivity().finish();
 		}
+	}
+
+	public PrivateChannelsAdapter getAdapter() {
+		return adapter;
 	}
 
 	

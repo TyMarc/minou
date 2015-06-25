@@ -7,7 +7,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -40,7 +42,6 @@ import com.lesgens.minou.receivers.NetworkStateReceiver;
 import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverListener;
 import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
-import com.lesgens.minou.views.CustomYesNoDialog;
 
 public class ChatActivity extends MinouActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener {
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
@@ -107,7 +108,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 		refreshChannel();
 
 
-		Server.setEventsListener(this);
+		Server.addEventsListener(this);
 
 		scheduler = Executors.newSingleThreadScheduledExecutor();
 
@@ -243,25 +244,22 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 	}
 
 	@Override
-	public boolean onEventsReceived(final List<Event> events, final String channel) {
+	public void onNewEvent(final Event event, final String channel) {
 		Log.i(TAG, "channel received=" + channel + " this channel=" + channelNamespace);
 		if(!channel.equals(channelNamespace)){
-			return false;
+			return ;
 		}
 		runOnUiThread(new Runnable(){
 
 			@Override
 			public void run() {
-				for(Event e : events){
-					if(!Controller.getInstance().getBlockedPeople(ChatActivity.this).contains(((Message) e).getUser().getId())){
-						chatAdapter.addMessage((Message) e);
-						chatAdapter.notifyDataSetChanged();
-						scrollMyListViewToBottom();
-					}
-				}
+				if(!Controller.getInstance().getBlockedPeople(ChatActivity.this).contains(((Message) event).getUser().getId())){
+					chatAdapter.addMessage((Message) event);
+					chatAdapter.notifyDataSetChanged();
+					scrollMyListViewToBottom();
+				}				
 			}});
 
-		return true;
 	}
 
 	private class OnItemLongClickListenerUser implements OnItemLongClickListener{
@@ -269,26 +267,29 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 		@Override
 		public boolean onItemLongClick(final AdapterView<?> arg0, final View arg1,
 				final int arg2, final long arg3) {
-
 			final Message message = chatAdapter.getItem(arg2);
-			if(message.getUser().getId().equals(Controller.getInstance().getAuthId()) || 
-					DatabaseHelper.getInstance().getPrivateChannels().contains(message.getUser())){
-				return true;
+			if(message.getUser().getId().equals(Controller.getInstance().getAuthId()) || isPrivate()){
+				return false;
 			}
-			CustomYesNoDialog dialog = new CustomYesNoDialog(ChatActivity.this){
+			
+			new AlertDialog.Builder(ChatActivity.this).setPositiveButton(R.string.yes, new DialogInterface.OnClickListener(){
 
 				@Override
-				public void onPositiveClick() {
-					super.onPositiveClick();
-					DatabaseHelper.getInstance().addPrivateChannel(message.getUser().getUsername(), message.getUser().getId());
-					Server.subscribeToPrivateChannel(ChatActivity.this, message.getUser());
-					refreshChannel();
-				}
-
-			};
-
-			dialog.show();
-			dialog.setDialogText(R.string.add_channel);			
+				public void onClick(DialogInterface dialog, int which) {
+					if(DatabaseHelper.getInstance().getPrivateChannels().contains(message.getUser())){
+						Controller.getInstance().setCurrentChannel(message.getUser());
+					} else{
+						DatabaseHelper.getInstance().addPrivateChannel(message.getUser().getUsername(), message.getUser().getId());
+						Server.subscribeToPrivateChannel(ChatActivity.this, message.getUser());
+					}
+					ChatActivity.show(ChatActivity.this);
+					finish();
+				}})
+				.setNegativeButton(R.string.no, null)
+				.setTitle(R.string.pm)
+				.setMessage(R.string.add_channel)
+				.show();
+			
 			return true;
 		}
 

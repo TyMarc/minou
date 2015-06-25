@@ -1,6 +1,9 @@
 package com.lesgens.minou;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -15,7 +18,6 @@ import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.views.CustExpListview;
-import com.lesgens.minou.views.CustomYesNoDialog;
 
 public class PublicChannelChooserFragment extends MinouFragment {
 	private CustExpListview elv;
@@ -27,7 +29,7 @@ public class PublicChannelChooserFragment extends MinouFragment {
 		View v = inflater.inflate(R.layout.exp_list_view, container, false);
 
 		elv = (CustExpListview) v.findViewById(R.id.exp_list_view);
-		//elv.setOnItemLongClickListener(new OnItemLongClickListenerChannel());
+		elv.setOnItemLongClickListener(new OnItemLongClickListenerChannel());
 
 		return v;
 	}
@@ -98,21 +100,20 @@ public class PublicChannelChooserFragment extends MinouFragment {
 		@Override
 		public boolean onItemLongClick(final AdapterView<?> arg0, final View arg1,
 				final int arg2, final long arg3) {
-			CustomYesNoDialog dialog = new CustomYesNoDialog(getActivity()){
+			new AlertDialog.Builder(getActivity()).setPositiveButton(R.string.yes, new OnClickListener(){
 
 				@Override
-				public void onPositiveClick() {
-					super.onPositiveClick();
+				public void onClick(DialogInterface dialog, int which) {
 					//final Channel channel = adapter.getItem(arg2);
 					//DatabaseHelper.getInstance().removePublicChannel(channel.getNamespace());
 					//DatabaseHelper.getInstance().removeAllMessages(channel.getNamespace());
 					//adapter.remove(channel);
-				}
-
-			};
-
-			dialog.show();
-			dialog.setDialogText(R.string.delete_channel);			
+				}})
+				.setNegativeButton(R.string.no, null)
+				.setTitle(R.string.delete)
+				.setMessage(R.string.delete_channel)
+				.show();
+	
 			return true;
 		}
 

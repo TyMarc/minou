@@ -3,8 +3,11 @@ package com.lesgens.minou.application;
 import android.app.Application;
 import android.util.Log;
 
+import com.lesgens.minou.MinouActivity;
+
 public class MinouApplication extends Application {
 	private static final String TAG = "Minou_Application";
+	private static MinouActivity currentActivity = null;
 
 	@Override
 	public void onCreate(){
@@ -26,4 +29,12 @@ public class MinouApplication extends Application {
 	}
 
 	private static boolean activityVisible;
+
+	public static void setCurrentActivity(MinouActivity activity) {
+		currentActivity = activity;
+	}
+	
+	public static MinouActivity getCurrentActivity() {
+		return currentActivity;
+	}
 }
