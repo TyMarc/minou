@@ -33,7 +33,8 @@
     <string name="avatar">Avatar</string>
     <string name="conversations">Conversations</string>
     <string name="profile">Profile</string>
-    <string name="change_picture">Change picture</string>
+    <string name="change_picture">Change Avatar</string>
+    <string name="change_username">Change Username</string>
     <string name="picture">Picture</string>
     <string name="pm">PM</string>
     <string name="delete">Delete</string>
@@ -42,4 +43,7 @@
     <string name="take_picture">Take A Picture</string>
     <string name="pick_picture">Picture From Gallery</string>
     <string name="file_transfer">Share</string>
+    <string name="change_avatar">Change Avatar</string>
+    <string name="enter_username">Enter your new username</string>
+    <string name="generate">Generate New Avatar</string>
 </resources>

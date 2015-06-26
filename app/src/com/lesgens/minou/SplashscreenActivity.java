@@ -79,6 +79,9 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		if(Server.isConnected()){
+			goToPublicChat();
+		}
 		Controller.getInstance().setDimensionAvatar(this);
 		//Remove title bar
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);

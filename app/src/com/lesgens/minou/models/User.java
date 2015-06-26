@@ -41,5 +41,9 @@ public class User extends Channel{
 	public void setAvatar(Bitmap avatar) {
 		this.avatar = avatar;
 	}
+
+	public void setUsername(String username) {
+		this.name = username;
+	}
 	
 }

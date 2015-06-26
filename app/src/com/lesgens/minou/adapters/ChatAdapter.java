@@ -52,6 +52,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 	static class ViewHolder {
 		public TextView name;
 		public ImageView avatar;
+		public View avatarCircle;
 		public TextView message;
 		public TextView time;
 		public TextView timePicture;
@@ -93,6 +94,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			ViewHolder viewHolder = new ViewHolder();
 			viewHolder.name = (TextView) rowView.findViewById(R.id.name);
 			viewHolder.avatar = (ImageView) rowView.findViewById(R.id.avatar);
+			viewHolder.avatarCircle = rowView.findViewById(R.id.avatar_circle);
 			viewHolder.message = (TextView) rowView.findViewById(R.id.message);
 			viewHolder.time = (TextView) rowView.findViewById(R.id.time);
 			viewHolder.timePicture = (TextView) rowView.findViewById(R.id.time_picture);
@@ -135,6 +137,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 				holder.avatar.setImageBitmap(message.getUser().getAvatar());
 			} else{
 				holder.avatar.setVisibility(View.GONE);
+				holder.avatarCircle.setVisibility(View.GONE);
 			}
 		}
 

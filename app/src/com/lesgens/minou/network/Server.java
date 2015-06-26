@@ -52,6 +52,7 @@ public class Server {
 	private static CrossbarConnectionListener crossbarConnectionListener = null;
 	private static String address = "https://minou-backend.herokuapp.com/";
 	private static String TAG = "Server";
+	private static boolean isConnected = false;
 	private static WampClient client;
 	private static class PokeCrossbarServer extends TimerTask {
 		public void run() {
@@ -163,9 +164,12 @@ public class Server {
 						if(crossbarConnectionListener != null){
 							crossbarConnectionListener.onConnection();
 						}
+						
+						isConnected = true;
 					}
 					else if (t1 instanceof WampClient.ClientDisconnected) {
 						closeSubscriptions();
+						isConnected = false;
 					}
 				}
 			}, new Action1<Throwable>() {
@@ -374,6 +378,10 @@ public class Server {
 
 	public static void removeCrossbarConnectionListener(CrossbarConnectionListener listener) {
 		crossbarConnectionListener = null;
+	}
+	
+	public static boolean isConnected(){
+		return isConnected;
 	}
 
 	private static void readAuth(Reader in) throws IOException {
