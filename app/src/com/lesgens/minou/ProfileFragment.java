@@ -39,7 +39,7 @@ public class ProfileFragment extends MinouFragment implements OnClickListener {
 
 		((TextView) v.findViewById(R.id.username)).setText(Controller.getInstance().getMyself().getUsername());
 
-		((ImageView) v.findViewById(R.id.avatar)).setImageBitmap(Controller.getInstance().getMyself().getAvatar());
+		((ImageView) v.findViewById(R.id.avatar)).setImageBitmap(Utils.cropToCircle(Controller.getInstance().getMyself().getAvatar()));
 
 		v.findViewById(R.id.change_picture).setOnClickListener(this);
 		v.findViewById(R.id.change_username).setOnClickListener(this);
@@ -102,7 +102,7 @@ public class ProfileFragment extends MinouFragment implements OnClickListener {
 					final byte[] byteArray = Utils.prepareImageFT(getActivity(), bitmap, imageUri);
 
 					Controller.getInstance().getMyself().setAvatar(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length));
-					((ImageView) getView().findViewById(R.id.avatar)).setImageBitmap(Controller.getInstance().getMyself().getAvatar());
+					((ImageView) getView().findViewById(R.id.avatar)).setImageBitmap(Utils.cropToCircle(Controller.getInstance().getMyself().getAvatar()));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -157,7 +157,7 @@ public class ProfileFragment extends MinouFragment implements OnClickListener {
 	private void generateNewAvatar(){
 		Controller.getInstance().getMyself().setAvatar(AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), 
 				Controller.getInstance().getDimensionAvatar()));
-		((ImageView) getView().findViewById(R.id.avatar)).setImageBitmap(Controller.getInstance().getMyself().getAvatar());
+		((ImageView) getView().findViewById(R.id.avatar)).setImageBitmap(Utils.cropToCircle(Controller.getInstance().getMyself().getAvatar()));
 	}
 
 	@Override

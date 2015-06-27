@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <LinearLayout
+        android:id="@+id/top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/dark_main_color"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/current_city"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/gen_sel"
+            android:drawableLeft="@drawable/up_arrow"
+            android:drawablePadding="5dp"
+            android:gravity="center_vertical"
+            android:padding="10dp"
+            android:text="@string/add_location"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/list"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@+id/bottom_bar"
+        android:layout_below="@id/top_bar"
+        android:dividerHeight="1px" />
+
+    <RelativeLayout
+        android:id="@+id/bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/dark_main_color" >
+
+        <TextView
+            android:id="@+id/add_location"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/gen_sel"
+            android:drawableLeft="@drawable/add"
+            android:drawablePadding="5dp"
+            android:gravity="center_vertical"
+            android:padding="10dp"
+            android:text="@string/add_location"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/add_channel"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/gen_sel"
+            android:drawablePadding="5dp"
+            android:drawableRight="@drawable/add"
+            android:gravity="center_vertical"
+            android:padding="10dp"
+            android:text="@string/add_channel"
+            android:textColor="@color/white" />
+    </RelativeLayout>
+
+</RelativeLayout>

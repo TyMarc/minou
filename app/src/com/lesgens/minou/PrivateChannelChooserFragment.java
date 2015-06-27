@@ -19,25 +19,25 @@ import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.User;
 
-public class PrivateChannelChooserFragment extends MinouFragment {
+public class PrivateChannelChooserFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener {
 	private ListView listView;
 	private PrivateChannelsAdapter adapter;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater,
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		View v = inflater.inflate(R.layout.list_view, container, false);
-		
-		listView = (ListView) v.findViewById(android.R.id.list);
-		listView.setOnItemClickListener(new OnItemClickListenerPrivate());
-		listView.setOnItemLongClickListener(new OnItemLongClickListenerPrivateChannel());
+		View v = inflater.inflate(R.layout.private_channels, container, false);
+
+		listView = (ListView) v.findViewById(R.id.list);
+		listView.setOnItemClickListener(this);
+		listView.setOnItemLongClickListener(this);
 		return v;
 	}
-	
+
 	@Override
 	public void onResume(){
 		super.onResume();
-		
+
 		adapter = new PrivateChannelsAdapter(getActivity(), DatabaseHelper.getInstance().getPrivateChannels());
 		listView.setAdapter(adapter);
 	}
@@ -46,45 +46,40 @@ public class PrivateChannelChooserFragment extends MinouFragment {
 	public String getTitle(final Context context) {
 		return context.getResources().getString(R.string.conversations);
 	}
-	
-	private class OnItemLongClickListenerPrivateChannel implements OnItemLongClickListener{
 
-		@Override
-		public boolean onItemLongClick(final AdapterView<?> arg0, final View arg1,
-				final int arg2, final long arg3) {
 
-			final User user = adapter.getItem(arg2);
-			
-			new AlertDialog.Builder(getActivity()).setPositiveButton(R.string.yes, new OnClickListener(){
+	@Override
+	public boolean onItemLongClick(final AdapterView<?> arg0, final View arg1,
+			final int arg2, final long arg3) {
 
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					DatabaseHelper.getInstance().removePrivateChannel(user.getId());
-					DatabaseHelper.getInstance().removeAllMessages(user.getId());
-					adapter.remove(user);
-				}})
-				.setNegativeButton(R.string.no, null)
-				.setTitle(R.string.delete)
-				.setMessage(R.string.delete_channel)
-				.show();	
-			return true;
-		}
+		final User user = adapter.getItem(arg2);
 
+		new AlertDialog.Builder(getActivity()).setPositiveButton(R.string.yes, new OnClickListener(){
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				DatabaseHelper.getInstance().removePrivateChannel(user.getId());
+				DatabaseHelper.getInstance().removeAllMessages(user.getNamespace());
+				adapter.remove(user);
+			}})
+			.setNegativeButton(R.string.no, null)
+			.setTitle(R.string.delete)
+			.setMessage(R.string.delete_channel)
+			.show();	
+		return true;
 	}
-	
-	private class OnItemClickListenerPrivate implements OnItemClickListener{
-		@Override
-		public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
-			final User user = adapter.getItem(position);
-			Controller.getInstance().setCurrentChannel(user);
-			ChatActivity.show(getActivity());
-			getActivity().finish();
-		}
+
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
+		final User user = adapter.getItem(position);
+		Controller.getInstance().setCurrentChannel(user);
+		ChatActivity.show(getActivity());
+		getActivity().finish();
 	}
 
 	public PrivateChannelsAdapter getAdapter() {
 		return adapter;
 	}
 
-	
+
 }

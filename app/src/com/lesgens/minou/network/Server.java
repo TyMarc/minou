@@ -38,6 +38,7 @@ import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
 import com.lesgens.minou.models.Channel;
+import com.lesgens.minou.models.City;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.HTTPRequest.RequestType;
@@ -129,9 +130,9 @@ public class Server {
 
 						subscribeToPrivateChannel(context, Controller.getInstance().getMyself());
 
-						subscribeToChannel(context, Controller.getInstance().getGeolocation().getCountryNameSpace());
-						subscribeToChannel(context, Controller.getInstance().getGeolocation().getStateNameSpace());
-						subscribeToChannel(context, Controller.getInstance().getGeolocation().getCityNameSpace());
+						subscribeToCity(context, Controller.getInstance().getGeolocation().getCountryNameSpace());
+						subscribeToCity(context, Controller.getInstance().getGeolocation().getStateNameSpace());
+						subscribeToCity(context, Controller.getInstance().getGeolocation().getCityNameSpace());
 
 						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace())) {
 							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace());
@@ -149,6 +150,16 @@ public class Server {
 						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general")) {
 							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general");
 						}
+						
+						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getStateNameSpace() + ".general")) {
+							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getStateNameSpace() + ".general");
+						}
+						
+						if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace() + ".general")) {
+							DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace() + ".general");
+						}
+						
+						
 
 						for(String channel : DatabaseHelper.getInstance().getPublicChannels()){
 							subscribeToChannel(context, channel);
@@ -209,8 +220,18 @@ public class Server {
 
 	private static void initChannels(final Context context){
 		final String channelName = Channel.WORLDWIDE_CHANNEL;		
-		Controller.getInstance().initChannelContainer(createChannel(context, Channel.BASE_PUBLIC_CHANNEL));
-		subscribeToChannel(context, channelName);
+		Controller.getInstance().initChannelContainer(createChannelCity(context, Channel.BASE_PUBLIC_CHANNEL));
+		subscribeToCity(context, channelName);
+	}
+	
+	public static void subscribeToCity(final Context context, final String channelName){
+		if(Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
+			return;
+		}
+
+		final City city = createChannelCity(context, channelName);
+
+		Controller.getInstance().getChannelsContainer().addSubscription(city);
 	}
 
 	public static void subscribeToChannel(final Context context, final String channelName){
@@ -224,6 +245,9 @@ public class Server {
 	}
 
 	public static void subscribeToPrivateChannel(final Context context, final User user){
+		if(Controller.getInstance().getChannelsContainer().isContainSubscription(user.getNamespace())){
+			return;
+		}
 
 		final User userToAdd = createPrivateChannel(context, user);
 
@@ -273,6 +297,50 @@ public class Server {
 
 		return channel;
 	}
+	
+	private static City createChannelCity(final Context context, final String channelName){
+		final String fullChannelName = Utils.getNormalizedString(channelName);
+		Log.i(TAG, "Subscribing to: " + fullChannelName);
+		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName);
+		final City city = new City(fullChannelName, channelSubscription);
+		channelSubscription.forEach(new Action1<PubSubData>(){
+
+			@Override
+			public void call(PubSubData msg) {
+				Log.i(TAG, "Received new message " + msg);
+				final String id = msg.keywordArguments().get("from").asText();
+				final User user = Controller.getInstance().getUser(id, msg.keywordArguments().get("fake_name").asText());
+				final String content = msg.keywordArguments().get("content") != null ? msg.keywordArguments().get("content").asText() : "";
+				byte[] data = null;
+				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getAuthId());
+				try {
+					data = msg.keywordArguments().get("picture") != null ? msg.keywordArguments().get("picture").binaryValue() : null;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				final boolean isIncoming = !id.equals(Controller.getInstance().getAuthId());
+				Message m = new Message(user, content, user.getName(), city, isIncoming, data);
+				boolean isGoodChannel = false;
+				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
+					if(city.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
+						isGoodChannel = true;
+					}
+				}
+				for(EventsListener el : eventsListeners) {
+					el.onNewEvent(m, city.getNamespace());
+				}
+				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
+				if((!MinouApplication.isActivityVisible() || !isGoodChannel) 
+						&& (PreferencesController.isPublicNotificationsEnabled(context, fullChannelName) 
+								|| m.getMessage().toLowerCase().contains(Controller.getInstance().getMyself().getUsername().toLowerCase()))
+								&& isIncoming){
+					Log.i(TAG, "Application not visible, should send notification");
+					NotificationHelper.notify(context, city, user, content);
+				}
+			}});
+
+		return city;
+	}
 
 	private static User createPrivateChannel(final Context context, final User userToCreate){
 		final String fullChannelName = Utils.getNormalizedString(Channel.BASE_CHANNEL + userToCreate.getId().replace(".", "_").replace("-", "_"));
@@ -316,16 +384,16 @@ public class Server {
 		return userToCreate;
 	}
 
-	public static void sendMessage(final String message){
-		String fullChannelName = Controller.getInstance().getCurrentChannel().getNamespace().toLowerCase().replace("-", "_");
+	public static void sendMessage(final String message, final String channelNamespace){
+		String fullChannelName = channelNamespace.toLowerCase().replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=" + message + " fullChannelName=" + fullChannelName);
 		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message));
 	}
 
-	public static void sendMessage(final byte[] picture){
-		String fullChannelName = Controller.getInstance().getCurrentChannel().getNamespace().toLowerCase().replace("-", "_");
+	public static void sendMessage(final byte[] picture, final String channelNamespace){
+		String fullChannelName = channelNamespace.toLowerCase().replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName);

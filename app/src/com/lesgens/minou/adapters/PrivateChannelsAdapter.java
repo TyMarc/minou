@@ -18,6 +18,7 @@ import com.lesgens.minou.R;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
+import com.lesgens.minou.utils.Utils;
 
 public class PrivateChannelsAdapter extends ArrayAdapter<User>{
 	private Context mContext;
@@ -82,7 +83,7 @@ public class PrivateChannelsAdapter extends ArrayAdapter<User>{
 		holder.name.setText(channelName);
 		
 		if(user.getAvatar() != null){
-			holder.avatar.setImageBitmap(user.getAvatar());
+			holder.avatar.setImageBitmap(Utils.cropToCircle(user.getAvatar()));
 		}
 		
 		Message lastMessage = DatabaseHelper.getInstance().getLastMessage(user);

@@ -57,16 +57,8 @@
         android:layout_below="@id/avatar_desc"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="5dp"
-        android:background="@color/white"
+        android:background="@drawable/avatar_bg"
         android:scaleType="fitCenter" />
-
-    <View
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_below="@id/avatar_desc"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="5dp"
-        android:background="@drawable/profile_avatar_bg" />
 
     <TextView
         android:id="@+id/change_picture"

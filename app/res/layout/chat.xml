@@ -28,10 +28,22 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
+            android:layout_toLeftOf="@+id/public_btn"
             android:layout_toRightOf="@id/back_btn"
             android:text="@string/hello_world"
             android:textColor="@color/white"
             android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/public_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="10dp"
+            android:layout_toLeftOf="@+id/settings_btn"
+            android:background="@drawable/gen_sel"
+            android:padding="10dp"
+            android:src="@drawable/add" />
 
         <ImageView
             android:id="@+id/settings_btn"
@@ -45,11 +57,18 @@
             android:src="@drawable/ic_settings" />
     </RelativeLayout>
 
+    <RelativeLayout
+        android:id="@+id/public_chooser"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_below="@id/topBar"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/connection_problem"
         android:layout_width="match_parent"
         android:layout_height="20dp"
-        android:layout_below="@id/topBar"
+        android:layout_below="@id/public_chooser"
         android:background="@color/red"
         android:gravity="center"
         android:text="@string/lost_connectivity"

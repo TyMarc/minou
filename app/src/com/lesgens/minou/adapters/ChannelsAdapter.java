@@ -3,6 +3,8 @@ package com.lesgens.minou.adapters;
 import java.util.ArrayList;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,11 +13,13 @@ import android.widget.TextView;
 
 import com.lesgens.minou.R;
 import com.lesgens.minou.models.Channel;
+import com.lesgens.minou.models.City;
 import com.lesgens.minou.utils.Utils;
 
 public class ChannelsAdapter extends ArrayAdapter<Channel>{
 	private Context mContext;
 	private LayoutInflater mInflater = null;
+	private int normalColor;
 
 	private ArrayList<Channel> channels;
 
@@ -23,6 +27,7 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 		super(context,R.layout.public_channel_item, chatValue);
 		mContext = context;     
 		channels = chatValue;
+		normalColor = context.getResources().getColor(R.color.main_color);
 	}
 	
 	static class ViewHolder {
@@ -43,11 +48,7 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 		Channel channel = channels.get(position);
 
 		if(convertView == null){
-			if(channel.getChannels().size() > 0){
-				rowView = getInflater().inflate(R.layout.public_channel_expandable_item, parent, false);
-			} else{
-				rowView = getInflater().inflate(R.layout.public_channel_item, parent, false);
-			}
+			rowView = getInflater().inflate(R.layout.public_channel_item, parent, false);
 			
 			ViewHolder holder = new ViewHolder();
 			holder.name = (TextView) rowView.findViewById(R.id.name);
@@ -59,8 +60,15 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 		ViewHolder holder = (ViewHolder) rowView.getTag();
 	
 		String channelName = Utils.capitalizeFirstLetters(channel.getName().replace("_", " "));
-				
-		holder.name.setText(channelName);
+		
+		if(channel instanceof City){
+			holder.name.setBackgroundColor(Color.LTGRAY);
+			holder.name.setTextColor(Color.BLACK);
+			holder.name.setText(channelName);
+		} else {
+			holder.name.setTextColor(normalColor);
+			holder.name.setText(channelName);
+		}
 
 		return rowView;
 	}

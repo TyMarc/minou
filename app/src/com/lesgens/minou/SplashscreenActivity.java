@@ -88,12 +88,6 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 
 		setContentView(R.layout.splashscreen);
 		
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-		    Window window = getWindow();
-		    window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-		    window.setStatusBarColor(getResources().getColor(R.color.dark_main_color));
-		}
-
 		DatabaseHelper.init(this);
 
 		TextView tv = (TextView) findViewById(R.id.splash_text);

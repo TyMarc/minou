@@ -94,7 +94,12 @@ public class Channel {
 	}
 
 	public int getNumberOfChildren(){
-		int nb = channels.size();
+		int nb = 0;
+		for(Channel c: channels){
+			if(!(c instanceof City)){
+				nb++;
+			}
+		}
 		for(Channel c: channels){
 			nb += c.getNumberOfChildren();
 		}

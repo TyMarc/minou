@@ -22,6 +22,7 @@ import android.widget.TextView;
 import com.lesgens.minou.ImageViewerActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.models.Message;
+import com.lesgens.minou.utils.Utils;
 
 public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHeadersAdapter, OnClickListener{
 	private Context mContext;
@@ -134,7 +135,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 
 		if(holder.avatar != null){
 			if(!isPrivate){
-				holder.avatar.setImageBitmap(message.getUser().getAvatar());
+				holder.avatar.setImageBitmap(Utils.cropToCircle(message.getUser().getAvatar()));
 			} else{
 				holder.avatar.setVisibility(View.GONE);
 				holder.avatarCircle.setVisibility(View.GONE);

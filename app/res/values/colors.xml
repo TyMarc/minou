@@ -5,6 +5,7 @@
     <color name="dark_main_color_semi_trans">#80D84315</color>
     <color name="white">#FCFCFC</color>
     <color name="grey">#c2c2c2</color>
+    <color name="grey_almost_white">#F8F8F8</color>
     <color name="faded_black">#0D000000</color>
     <color name="darker_grey">#a2a2a2</color>
     <color name="black">#000000</color>

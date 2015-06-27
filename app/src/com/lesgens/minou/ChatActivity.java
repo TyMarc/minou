@@ -15,16 +15,15 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
@@ -45,7 +44,7 @@ import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverList
 import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
 
-public class ChatActivity extends MinouActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener {
+public class ChatActivity extends MinouFragmentActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener {
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 	private static final int PICK_IMAGE_ACTIVITY_REQUEST_CODE = 101;
 	private static final String TAG = "ChannelChatActivity";
@@ -60,6 +59,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 	private NetworkStateReceiver networkStateReceiver;
 	private Uri imageUri;
 	private String channelNamespace;
+	private PublicChannelChooserFragment publicChooserFragment;
 
 	public static void show(final Context context){
 		Intent i = new Intent(context, ChatActivity.class);
@@ -75,11 +75,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 
 		setContentView(R.layout.chat);
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-			Window window = getWindow();
-			window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-			window.setStatusBarColor(getResources().getColor(R.color.dark_main_color));
-		}
+		publicChooserFragment = PublicChannelChooserFragment.createFragmentWithoutBottomBar();
 
 		channelTextView = (TextView) findViewById(R.id.channel_name);
 
@@ -107,6 +103,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 
 		findViewById(R.id.back_btn).setOnClickListener(this);
 		findViewById(R.id.settings_btn).setOnClickListener(this);
+		findViewById(R.id.public_btn).setOnClickListener(this);
 
 		listMessages = (StickyListHeadersListView) findViewById(R.id.list);
 		listMessages.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
@@ -176,7 +173,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 				Message message = new Message(Controller.getInstance().getMyself(), text, false);
 				chatAdapter.addMessage(message);
 				chatAdapter.notifyDataSetChanged();
-				Server.sendMessage(message.getMessage());
+				Server.sendMessage(message.getMessage(), channelNamespace);
 				DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getAuthId(), channelNamespace);
 				editText.setText("");
 				scrollMyListViewToBottom();
@@ -187,26 +184,40 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 			showMenuFT();
 		} else if(v.getId() == R.id.settings_btn){
 			ChannelSettingsActivity.show(this);
+		} else if(v.getId() == R.id.public_btn){
+			togglePublicChooser();
 		}
 	}
-	
+
+	private void togglePublicChooser(){
+		if(findViewById(R.id.public_chooser).getVisibility() == View.GONE){
+			findViewById(R.id.public_chooser).setVisibility(View.VISIBLE);
+			FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+			ft.add(R.id.public_chooser, publicChooserFragment).commit();
+		} else{
+			findViewById(R.id.public_chooser).setVisibility(View.GONE);
+			FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+			ft.remove(publicChooserFragment).commit();
+		}
+	}
+
 	private void showMenuFT(){
 		CharSequence fts[] = new CharSequence[] {getResources().getString(R.string.take_picture), getResources().getString(R.string.pick_picture)};
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.file_transfer);
 		builder.setItems(fts, new DialogInterface.OnClickListener() {
-		    @Override
-		    public void onClick(DialogInterface dialog, int which) {
-		        switch(which){
-		        case 0:
-		        	takePhoto();
-		        	break;
-		        case 1:
-		        	pickPicture();
-		        	break;
-		        }
-		    }
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				switch(which){
+				case 0:
+					takePhoto();
+					break;
+				case 1:
+					pickPicture();
+					break;
+				}
+			}
 		});
 		builder.show();
 	}
@@ -275,7 +286,7 @@ public class ChatActivity extends MinouActivity implements OnClickListener, Even
 					chatAdapter.addMessage(message);
 					chatAdapter.notifyDataSetChanged();
 
-					Server.sendMessage(byteArray);
+					Server.sendMessage(byteArray, channelNamespace);
 
 					DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getAuthId(), channelNamespace);
 					scrollMyListViewToBottom();

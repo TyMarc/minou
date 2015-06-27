@@ -84,7 +84,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 		Log.i(TAG, "Adding " + channel + " to db");
 		ContentValues cv = new ContentValues();
-		cv.put("channel", channel);
+		cv.put("channel", channel.toLowerCase().replace("-", "_"));
 		db.insert("minou_public", null, cv);
 	}
 	
@@ -162,15 +162,15 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public void removeAllMessages(final String channel){
 		SQLiteDatabase db = this.getWritableDatabase();
 		
-		db.delete("minou_message", "channel = ?", new String[]{channel});
-		db.delete("minou_message", "channel LIKE ?", new String[]{channel + ".*"});
+		db.delete("minou_message", "channel = ?", new String[]{channel.toLowerCase().replace("-", "_")});
+		db.delete("minou_message", "channel LIKE ?", new String[]{channel.toLowerCase().replace("-", "_") + ".%"});
 	}
 	
-	public void addPrivateChannel(String userName, String userToken){
+	public void addPrivateChannel(String userName, String id){
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		ContentValues cv = new ContentValues();
-		cv.put("channel", userToken);
+		cv.put("channel", id);
 		cv.put("userName", userName);
 		db.insert("minou_private", null, cv);
 	}
@@ -211,7 +211,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public void removePublicChannel(String channel) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
-		db.delete("minou_public", "channel LIKE ?", new String[]{channel + ".*"});
+		db.delete("minou_public", "channel = ?", new String[]{channel.toLowerCase().replace("-", "_")});
+		db.delete("minou_public", "channel LIKE ?", new String[]{channel.toLowerCase().replace("-", "_") + ".%"});
 	}
 	
 	public long getLastMessageFetched(String channel){
