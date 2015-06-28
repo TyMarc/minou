@@ -15,6 +15,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.conn.HttpHostConnectException;
@@ -24,7 +25,7 @@ import android.util.SparseArray;
 
 public class HTTPRequest {
 	public enum RequestType {
-		POST, GET
+		POST, GET, PUT
 	};
 
 	public enum StatusCode {
@@ -83,6 +84,10 @@ public class HTTPRequest {
 				}
 				HttpGet httpGet = new HttpGet(URL);
 				httpRequest = httpGet;
+			} else if(requestType == RequestType.PUT) {
+				HttpPut httpPut = new HttpPut(URL);
+				httpPut.setEntity(new UrlEncodedFormEntity(data));
+				httpRequest = httpPut;
 			} else { // assume POST
 				HttpPost httpPost = new HttpPost(URL);
 				httpPost.setEntity(new UrlEncodedFormEntity(data));

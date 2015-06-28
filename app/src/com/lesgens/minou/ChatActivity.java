@@ -174,7 +174,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 				chatAdapter.addMessage(message);
 				chatAdapter.notifyDataSetChanged();
 				Server.sendMessage(message.getMessage(), channelNamespace);
-				DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getAuthId(), channelNamespace);
+				DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
 				editText.setText("");
 				scrollMyListViewToBottom();
 			}
@@ -288,7 +288,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 					Server.sendMessage(byteArray, channelNamespace);
 
-					DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getAuthId(), channelNamespace);
+					DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
 					scrollMyListViewToBottom();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -321,7 +321,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		public boolean onItemLongClick(final AdapterView<?> arg0, final View arg1,
 				final int arg2, final long arg3) {
 			final Message message = chatAdapter.getItem(arg2);
-			if(message.getUser().getId().equals(Controller.getInstance().getAuthId()) || isPrivate()){
+			if(message.getUser().getId().equals(Controller.getInstance().getId()) || isPrivate()){
 				return false;
 			}
 

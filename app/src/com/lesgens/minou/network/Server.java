@@ -111,7 +111,7 @@ public class Server {
 			builder.withUri("wss://minou-crossbar.herokuapp.com/ws")
 			.withRealm("minou")
 			.withInfiniteReconnects()
-			.withAuthId(Controller.getInstance().getAuthId())
+			.withAuthId(Controller.getInstance().getId())
 			.withAuthMethod(new WampCraAuthentication())
 			.withReconnectInterval(2, TimeUnit.SECONDS);
 			// Create a client through the builder. This will not immediatly start
@@ -268,13 +268,13 @@ public class Server {
 				final User user = Controller.getInstance().getUser(id, msg.keywordArguments().get("fake_name").asText());
 				final String content = msg.keywordArguments().get("content") != null ? msg.keywordArguments().get("content").asText() : "";
 				byte[] data = null;
-				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getAuthId());
+				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getId());
 				try {
 					data = msg.keywordArguments().get("picture") != null ? msg.keywordArguments().get("picture").binaryValue() : null;
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				final boolean isIncoming = !id.equals(Controller.getInstance().getAuthId());
+				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
 				Message m = new Message(user, content, user.getName(), channel, isIncoming, data);
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
@@ -312,13 +312,13 @@ public class Server {
 				final User user = Controller.getInstance().getUser(id, msg.keywordArguments().get("fake_name").asText());
 				final String content = msg.keywordArguments().get("content") != null ? msg.keywordArguments().get("content").asText() : "";
 				byte[] data = null;
-				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getAuthId());
+				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getId());
 				try {
 					data = msg.keywordArguments().get("picture") != null ? msg.keywordArguments().get("picture").binaryValue() : null;
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				final boolean isIncoming = !id.equals(Controller.getInstance().getAuthId());
+				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
 				Message m = new Message(user, content, user.getName(), city, isIncoming, data);
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
@@ -360,7 +360,7 @@ public class Server {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				final boolean isIncoming = !id.equals(Controller.getInstance().getAuthId());
+				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
 				Message m = new Message(user, content, user.getUsername(), userToCreate, isIncoming, data);
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
@@ -406,7 +406,7 @@ public class Server {
 
 	private static ObjectNode getObjectNodeMessage(final String message){
 		ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
-		ob.put("from", Controller.getInstance().getAuthId());
+		ob.put("from", Controller.getInstance().getId());
 		ob.put("fake_name", Controller.getInstance().getMyself().getUsername());
 		ob.put("content", message);
 		return ob;
@@ -414,7 +414,7 @@ public class Server {
 
 	private static ObjectNode getObjectNodeMessage(final byte[] picture){
 		ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
-		ob.put("from", Controller.getInstance().getAuthId());
+		ob.put("from", Controller.getInstance().getId());
 		ob.put("fake_name", Controller.getInstance().getMyself().getName());
 		ob.put("picture", picture);
 		return ob;
@@ -451,6 +451,53 @@ public class Server {
 	public static boolean isConnected(){
 		return isConnected;
 	}
+	
+	public static void changeUsername(String newUsername) {
+		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
+
+			@Override
+			protected String doInBackground(String... arg0) {
+				String finalAddress = address + "me";
+				List<NameValuePair> data = new ArrayList<NameValuePair>();
+				data.add(new BasicNameValuePair("fake_name", arg0[0]));
+				Log.i(TAG, "New username: " + arg0[0]);
+				List<NameValuePair> headers = new ArrayList<NameValuePair>();
+				headers.add(new BasicNameValuePair("X-User-Token", arg0[1]));
+				HTTPRequest request = new HTTPRequest(finalAddress, RequestType.PUT, data, headers);
+				return request.getOutput();
+			}
+
+			@Override
+			protected void onPostExecute(String result) {
+				super.onPostExecute(result);
+				Log.i(TAG, "Auth response's json: "+ result);
+			}
+
+		};
+		request.execute(newUsername, Controller.getInstance().getToken());
+	}  
+	
+	public static void getMyself() {
+		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
+
+			@Override
+			protected String doInBackground(String... arg0) {
+				String finalAddress = address + "me";
+				List<NameValuePair> headers = new ArrayList<NameValuePair>();
+				headers.add(new BasicNameValuePair("X-User-Token", arg0[0]));
+				HTTPRequest request = new HTTPRequest(finalAddress, RequestType.GET, null, headers);
+				return request.getOutput();
+			}
+
+			@Override
+			protected void onPostExecute(String result) {
+				super.onPostExecute(result);
+				Log.i(TAG, "Auth response's json: "+ result);
+			}
+
+		};
+		request.execute(Controller.getInstance().getToken());
+	}  
 
 	private static void readAuth(Reader in) throws IOException {
 		JsonReader reader = new JsonReader(in);
@@ -459,19 +506,19 @@ public class Server {
 		while(reader.hasNext()){
 			String name = reader.nextName();
 			if (name.equals("token")) {
-				reader.nextString();
+				Controller.getInstance().setToken(reader.nextString());
 			} else if (name.equals("fake_name")) {
 				fakeName = reader.nextString();
 			} else if (name.equals("secret")) {
 				Controller.getInstance().setSecret(reader.nextString());
 			} else if (name.equals("id")) {
-				Controller.getInstance().setAuthId(reader.nextString());
+				Controller.getInstance().setId(reader.nextString());
 			} else if (name.equals("role")) {
 				Controller.getInstance().setRole(Roles.fromString(reader.nextString()));
 			}
 		}
 		reader.endObject();
 		reader.close();
-		Controller.getInstance().setMyOwnUser(new User(fakeName, Channel.BASE_CHANNEL + Controller.getInstance().getAuthId(), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), Controller.getInstance().getAuthId()));
+		Controller.getInstance().setMyOwnUser(new User(fakeName, Channel.BASE_CHANNEL + Controller.getInstance().getId(), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), Controller.getInstance().getId()));
 	}
 }

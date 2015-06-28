@@ -27,13 +27,15 @@ public class Controller {
 	private Channel channelsContainer;
 	private Channel currentChannel;
 	private Geolocation geolocation;
-	private String authId;
+	private String id;
 	private Roles role;
+	private String token;
 
 	private static Controller controller;
 
 	private Controller(){
 		secret = "";
+		token = "";
 		users = new HashMap<String, User>();
 	}
 
@@ -57,11 +59,11 @@ public class Controller {
 		users.put(user.getId(), user);
 	}
 
-	public User getUser(String tokenId){
-		if(users.get(tokenId) == null){
-			users.put(tokenId, new User(tokenId, Channel.BASE_CHANNEL + tokenId.replace(".", "_"), AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), tokenId));
+	public User getUser(String id){
+		if(users.get(id) == null){
+			users.put(id, new User(id, Channel.BASE_CHANNEL + id.replace(".", "_"), AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), id));
 		}
-		return users.get(tokenId);
+		return users.get(id);
 	}
 	
 	public User getUserByName(String name){
@@ -77,6 +79,8 @@ public class Controller {
 	public User getUser(final String remoteId, final String userName){
 		if(users.get(remoteId) == null){
 			users.put(remoteId, new User(userName, Channel.BASE_CHANNEL + remoteId.replace(".", "_"), AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), remoteId));
+		} else if(!users.get(remoteId).getUsername().equals(userName)){
+			users.get(remoteId).setUsername(userName);
 		}
 		return users.get(remoteId);
 	}
@@ -95,10 +99,6 @@ public class Controller {
 
 	public User getMyself(){
 		return myselfUser;
-	}
-
-	public String getMyId(){
-		return myselfUser.getId().substring(0, myselfUser.getId().indexOf("."));
 	}
 
 	public void setDimensionAvatar(Context context) {
@@ -181,12 +181,12 @@ public class Controller {
 		this.geolocation = geolocation;
 	}
 
-	public void setAuthId(String authId) {
-		this.authId = authId;
+	public void setId(String id) {
+		this.id = id;
 	}
 	
-	public String getAuthId(){
-		return authId;
+	public String getId(){
+		return id;
 	}
 
 	public void setRole(Roles role) {
@@ -195,6 +195,14 @@ public class Controller {
 	
 	public Roles getRole(){
 		return role;
+	}
+
+	public void setToken(String token) {
+		this.token = token;
+	}
+	
+	public String getToken(){
+		return token;
 	}
 
 }

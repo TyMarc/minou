@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.network.Server;
 import com.lesgens.minou.utils.AvatarGenerator;
 import com.lesgens.minou.utils.Utils;
 
@@ -76,7 +77,8 @@ public class ProfileFragment extends MinouFragment implements OnClickListener {
 		  .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 		    public void onClick(DialogInterface dialog, int whichButton) {
 		      String username = editUsername.getText().toString();
-		      if(!username.isEmpty()){
+		      if(!username.isEmpty() && !username.equals(Controller.getInstance().getMyself().getUsername())){
+		    	  Server.changeUsername(username);
 		    	  Controller.getInstance().getMyself().setUsername(username);
 		    	  ((TextView) getView().findViewById(R.id.username)).setText(username);
 		      }
