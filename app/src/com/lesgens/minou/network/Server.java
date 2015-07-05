@@ -401,7 +401,7 @@ public class Server {
 	}
 
 	public static void sendStayAliveMessage(){
-		client.publish("minou.ping", new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(""));
+		client.publish("heartbeat", new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(""));
 	}
 
 	private static ObjectNode getObjectNodeMessage(final String message){
