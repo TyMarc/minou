@@ -92,7 +92,7 @@ public class PublicChannelChooserFragment extends MinouFragment implements OnCli
 
 	@Override
 	public int getTitleDrawableId() {
-		return R.drawable.add_location;
+		return R.drawable.location;
 	}
 
 
@@ -111,7 +111,7 @@ public class PublicChannelChooserFragment extends MinouFragment implements OnCli
 			}})
 			.setNegativeButton(R.string.no, null)
 			.setTitle(R.string.delete)
-			.setMessage(R.string.delete_channel)
+			.setMessage(R.string.delete_topic)
 			.show();
 
 		return true;

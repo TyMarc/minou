@@ -58,7 +58,7 @@
             android:drawableRight="@drawable/add"
             android:gravity="center_vertical"
             android:padding="10dp"
-            android:text="@string/add_channel"
+            android:text="@string/add_topic"
             android:textColor="@color/white" />
     </RelativeLayout>
 

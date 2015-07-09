@@ -26,6 +26,7 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 	private PrivateChannelChooserFragment privateChannelChooserFragment;
 	private PublicChannelChooserFragment publicChannelChooserFragment;
 	private ProfileFragment profileFragment;
+	private ContactsFragment contactsFragment;
 	private SlidingTabLayout tabs;
 	
 	public static void show(final Context context){
@@ -33,9 +34,9 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 		context.startActivity(i);
 	}
 
-	public static void show(final Context context, boolean isPrivate){
+	public static void show(final Context context, int position){
 		Intent i = new Intent(context, HomeActivity.class);
-		i.putExtra("isPrivate", isPrivate);
+		i.putExtra("position", position);
 		context.startActivity(i);
 	}
 
@@ -46,6 +47,8 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 		fragments = new ArrayList<MinouFragment>();
 		privateChannelChooserFragment = new PrivateChannelChooserFragment();
 		fragments.add(privateChannelChooserFragment);
+		contactsFragment = new ContactsFragment();
+		fragments.add(contactsFragment);
 		publicChannelChooserFragment = new PublicChannelChooserFragment();
 		fragments.add(publicChannelChooserFragment);
 		profileFragment = new ProfileFragment();
@@ -58,8 +61,7 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 		mViewPager.setAdapter(mMinouPagerAdapter);
 		mViewPager.addOnPageChangeListener(this);
 
-		final boolean isPrivate = getIntent().getBooleanExtra("isPrivate", true);
-		selectedPosition = isPrivate ? 0 : 1;
+		selectedPosition = getIntent().getIntExtra("position", 0);
 		mViewPager.setCurrentItem(selectedPosition);
 		
 		 // Assiging the Sliding Tab Layout View

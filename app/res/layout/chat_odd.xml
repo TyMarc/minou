@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_marginLeft="58dp"
-        android:background="@drawable/chat_outgoing"
+        android:background="@drawable/chat_outgoing_sel"
         android:paddingLeft="10dp"
         android:paddingRight="15dp" >
 

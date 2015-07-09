@@ -20,6 +20,9 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 	private LayoutInflater mInflater = null;
 	private int normalColor;
 	private int lightColor;
+	private int addedPadding;
+	private int baseLeftPadding;
+	private int baseRightPadding;
 
 	private ArrayList<Channel> channels;
 
@@ -29,6 +32,9 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 		channels = chatValue;
 		normalColor = context.getResources().getColor(R.color.main_color);
 		lightColor = context.getResources().getColor(R.color.light_main_color);
+		addedPadding = Utils.dpInPixels(context, 20);
+		baseLeftPadding = Utils.dpInPixels(context, 30);
+		baseRightPadding = Utils.dpInPixels(context, 20);
 	}
 	
 	static class ViewHolder {
@@ -66,9 +72,14 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 			holder.name.setBackgroundColor(lightColor);
 			holder.name.setTextColor(Color.WHITE);
 			holder.name.setText(channelName);
+			holder.name.setCompoundDrawablesWithIntrinsicBounds(R.drawable.down, 0, 0, 0);
+			holder.name.setPadding(baseLeftPadding, 0, baseRightPadding, 0);
 		} else {
+			holder.name.setBackgroundColor(Color.WHITE);
 			holder.name.setTextColor(normalColor);
 			holder.name.setText(channelName);
+			holder.name.setPadding(baseLeftPadding + addedPadding, 0, baseRightPadding, 0);
+			holder.name.setCompoundDrawablesWithIntrinsicBounds(R.drawable.down_orange, 0, 0, 0);
 		}
 
 		return rowView;

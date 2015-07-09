@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_marginRight="58dp"
         android:layout_toRightOf="@id/avatar"
-        android:background="@drawable/chat_incoming"
+        android:background="@drawable/chat_incoming_sel"
         android:paddingLeft="15dp"
         android:paddingRight="10dp" >
 

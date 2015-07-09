@@ -51,5 +51,9 @@ public class User extends Channel{
 	public void setUsername(String username) {
 		this.name = username;
 	}
+
+	public void setIsContact(boolean isContact) {
+		this.isContact = isContact;
+	}
 	
 }

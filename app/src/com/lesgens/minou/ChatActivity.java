@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -22,14 +23,17 @@ import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.lesgens.minou.utils.ExpandCollapseAnimation;
 import com.lesgens.minou.adapters.ChatAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
@@ -47,7 +51,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 	private static final int PICK_IMAGE_ACTIVITY_REQUEST_CODE = 101;
 	private static final String TAG = "ChannelChatActivity";
-	private ImageView sendBt;
 	private ChatAdapter chatAdapter;
 	private StickyListHeadersListView listMessages;
 	private EditText editText;
@@ -59,6 +62,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	private Uri imageUri;
 	private String channelNamespace;
 	private PublicChannelChooserFragment publicChooserFragment;
+	private boolean animationOnGoing;
 
 	public static void show(final Context context){
 		Intent i = new Intent(context, ChatActivity.class);
@@ -87,12 +91,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		editText = (EditText) findViewById(R.id.editText);
 		editText.clearFocus();
 
-		if(!isPrivate()){
-			findViewById(R.id.topBar).setBackgroundColor(getResources().getColor(R.color.dark_main_color));
-		}
-
-		sendBt = (ImageView) findViewById(R.id.send);
-		sendBt.setOnClickListener(this);
+		findViewById(R.id.send).setOnClickListener(this);
 
 		if(getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA) == false){
 			findViewById(R.id.send_ft).setVisibility(View.GONE);
@@ -134,7 +133,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	@Override
 	public void onResume(){
 		super.onResume();
-		
+
 		Server.addEventsListener(this);
 
 		networkStateReceiver.addListener(this);
@@ -147,7 +146,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		if(future != null){
 			future.cancel(true);
 		}
-		
+
 		Server.removeEventsListener(this);
 
 		networkStateReceiver.removeListener(this);
@@ -187,18 +186,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		}
 	}
 
-	private void togglePublicChooser(){
-		if(findViewById(R.id.public_chooser).getVisibility() == View.GONE){
-			findViewById(R.id.public_chooser).setVisibility(View.VISIBLE);
-			FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-			ft.add(R.id.public_chooser, publicChooserFragment).commit();
-		} else{
-			findViewById(R.id.public_chooser).setVisibility(View.GONE);
-			FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-			ft.remove(publicChooserFragment).commit();
-		}
-	}
-
 	private void showMenuFT(){
 		CharSequence fts[] = new CharSequence[] {getResources().getString(R.string.take_picture), getResources().getString(R.string.pick_picture)};
 
@@ -218,6 +205,131 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			}
 		});
 		builder.show();
+	}
+
+	private void showLongClickBubble(final Message message){
+		CharSequence fts[];
+
+		final boolean isContact = DatabaseHelper.getInstance().isContact(message.getUser().getId());
+		if(!isContact){
+			fts = new CharSequence[] {getResources().getString(R.string.dialog_add_contact), 
+					getResources().getString(R.string.dialog_add_contact_pm), getResources().getString(R.string.dialog_delete_message)};
+		} else {
+			fts = new CharSequence[] {getResources().getString(R.string.dialog_pm)
+					, getResources().getString(R.string.dialog_delete_message)};
+		}
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.options);
+		builder.setItems(fts, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				if(!isContact){
+					switch(which){
+					case 0:
+						addContact(message.getUser());
+						break;
+					case 1:
+						addContact(message.getUser());
+						pmUser(message.getUser());
+						break;
+					case 2:
+						deleteMessage(message);
+						break;
+					}
+				} else{
+					switch(which){
+					case 0:
+						pmUser(message.getUser());
+						break;
+					case 1:
+						deleteMessage(message);
+						break;
+					}
+				}
+			}
+		});
+		builder.show();
+	}
+
+	private void showLongClickBubblePrivateOrOwn(final Message message){
+		CharSequence fts[] = new CharSequence[] {getResources().getString(R.string.dialog_delete_message)};
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.options);
+		builder.setItems(fts, new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+
+				switch(which){
+				case 0:
+					deleteMessage(message);
+					break;
+				}
+			}
+		});
+		builder.show();
+	}
+
+	private void deleteMessage(final Message message){
+		DatabaseHelper.getInstance().removeMessage(message);
+		chatAdapter.remove(message);
+		chatAdapter.notifyDataSetChanged();
+	}
+
+	private void addContact(final User user){
+		DatabaseHelper.getInstance().setUserAsContact(user);
+	}
+
+	private void pmUser(final User user){
+		Controller.getInstance().setCurrentChannel(user);
+		ChatActivity.show(ChatActivity.this);
+		finish();
+	}
+	
+	private void togglePublicChooser() {
+		if(!animationOnGoing){
+			if(findViewById(R.id.public_chooser).getVisibility() == View.GONE){
+				animationOnGoing = true;
+				FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+				ft.add(R.id.public_chooser, publicChooserFragment).commit();
+				Animation dropDown = new ExpandCollapseAnimation(findViewById(R.id.public_chooser), 200, 0);
+				dropDown.setAnimationListener(new AnimationListener(){
+
+					@Override
+					public void onAnimationStart(Animation animation) {
+						findViewById(R.id.public_chooser_sep).setVisibility(View.VISIBLE);
+					}
+
+					@Override
+					public void onAnimationEnd(Animation animation) {
+						animationOnGoing = false;
+					}
+
+					@Override
+					public void onAnimationRepeat(Animation animation) {}});
+				findViewById(R.id.public_chooser).startAnimation(dropDown);
+			} else{
+				animationOnGoing = true;
+				Animation dropDown = new ExpandCollapseAnimation(findViewById(R.id.public_chooser), 200, 1);
+				dropDown.setAnimationListener(new AnimationListener(){
+
+					@Override
+					public void onAnimationStart(Animation animation) {}
+
+					@Override
+					public void onAnimationEnd(Animation animation) {
+						findViewById(R.id.public_chooser_sep).setVisibility(View.GONE);
+						FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+						ft.remove(publicChooserFragment).commit();
+						animationOnGoing = false;
+					}
+
+					@Override
+					public void onAnimationRepeat(Animation animation) {}});
+				findViewById(R.id.public_chooser).startAnimation(dropDown);
+			}
+		}
 	}
 
 	private void scrollMyListViewToBottom() {
@@ -248,7 +360,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 	@Override
 	public void onBackPressed(){
-		HomeActivity.show(this, isPrivate());
+		HomeActivity.show(this, isPrivate() ? 0 : 2);
 		finish();
 	}
 
@@ -320,21 +432,10 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 				final int arg2, final long arg3) {
 			final Message message = chatAdapter.getItem(arg2);
 			if(message.getUser().getId().equals(Controller.getInstance().getId()) || isPrivate()){
-				return false;
+				showLongClickBubblePrivateOrOwn(message);
+			} else{
+				showLongClickBubble(message);
 			}
-
-			new AlertDialog.Builder(ChatActivity.this).setPositiveButton(R.string.yes, new DialogInterface.OnClickListener(){
-
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					Controller.getInstance().setCurrentChannel(message.getUser());
-					ChatActivity.show(ChatActivity.this);
-					finish();
-				}})
-				.setNegativeButton(R.string.no, null)
-				.setTitle(R.string.pm)
-				.setMessage(R.string.add_channel)
-				.show();
 
 			return true;
 		}
@@ -345,12 +446,20 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	@Override
 	public void onNetworkAvailable() {
 		tvConnectionProblem.setVisibility(View.GONE);
-		sendBt.setEnabled(true);
+		for(int i=0;i<((ViewGroup) findViewById(R.id.bottomBar)).getChildCount();i++){
+			View child=((ViewGroup) findViewById(R.id.bottomBar)).getChildAt(i);
+			child.setEnabled(true);
+		}
+		findViewById(R.id.bottomBar).setBackgroundColor(Color.WHITE);
 	}
 
 	@Override
 	public void onNetworkUnavailable() {
 		tvConnectionProblem.setVisibility(View.VISIBLE);
-		sendBt.setEnabled(false);
+		for(int i=0;i<((ViewGroup) findViewById(R.id.bottomBar)).getChildCount();i++){
+			View child=((ViewGroup) findViewById(R.id.bottomBar)).getChildAt(i);
+			child.setEnabled(false);
+		}
+		findViewById(R.id.bottomBar).setBackgroundColor(Color.YELLOW);
 	}
 }

@@ -13,19 +13,19 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 
-import com.lesgens.minou.adapters.PrivateChannelsAdapter;
+import com.lesgens.minou.adapters.ContactsAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.User;
 
-public class PrivateChannelChooserFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener {
+public class ContactsFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener {
 	private ListView listView;
-	private PrivateChannelsAdapter adapter;
+	private ContactsAdapter adapter;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater,
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		View v = inflater.inflate(R.layout.private_channels, container, false);
+		View v = inflater.inflate(R.layout.contacts, container, false);
 
 		listView = (ListView) v.findViewById(R.id.list);
 		listView.setOnItemClickListener(this);
@@ -44,7 +44,7 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 
 	@Override
 	public int getTitleDrawableId() {
-		return R.drawable.single_chat;
+		return R.drawable.group_chat;
 	}
 
 
@@ -59,27 +59,24 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				DatabaseHelper.getInstance().removeAllMessages(user.getNamespace());
+				DatabaseHelper.getInstance().removeContact(user);
 				adapter.remove(userId);
+				adapter.notifyDataSetChanged();
 			}})
 			.setNegativeButton(R.string.no, null)
 			.setTitle(R.string.delete)
-			.setMessage(R.string.delete_conversation)
+			.setMessage(R.string.delete_contact)
 			.show();	
 		return true;
 	}
 
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
-		final String userId = adapter.getItem(position);
-		final User user = DatabaseHelper.getInstance().getUser(userId);
-		Controller.getInstance().setCurrentChannel(user);
-		ChatActivity.show(getActivity());
-		getActivity().finish();
+		// TODO: Contact screen
 	}
 
 	public void refreshList() {
-		adapter = new PrivateChannelsAdapter(getActivity(), DatabaseHelper.getInstance().getPrivateChannels());
+		adapter = new ContactsAdapter(getActivity(), DatabaseHelper.getInstance().getContacts());
 		listView.setAdapter(adapter);
 	}
 

@@ -143,4 +143,12 @@
         </ImageView>
     </RelativeLayout>
 
+    <View
+        android:id="@+id/public_chooser_sep"
+        android:layout_width="match_parent"
+        android:layout_height="5dp"
+        android:layout_below="@id/public_chooser"
+        android:background="@drawable/bottom_shadow"
+        android:visibility="gone" />
+
 </RelativeLayout>

@@ -305,6 +305,20 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		return usersId;		
 	}
 	
+	public ArrayList<String> getContacts(){
+		ArrayList<String> usersId = new ArrayList<String>();
+		SQLiteDatabase db = this.getReadableDatabase();
+
+		Cursor c = db.rawQuery("SELECT userId FROM minou_users WHERE isContact = 1;", null);
+		
+		while(c.moveToNext()){
+			String userId = c.getString(0);
+			usersId.add(userId);
+		}
+		
+		return usersId;		
+	}
+	
 	public void removePublicChannel(String channel) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
@@ -326,6 +340,54 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 	public void eraseBD(){
 		this.onUpgrade(getWritableDatabase(), 0, 1);
+	}
+
+	public boolean isContact(String userId) {
+		SQLiteDatabase db = this.getReadableDatabase();
+
+		Cursor c = db.rawQuery("SELECT isContact FROM minou_users WHERE userId = ?;", new String[]{userId});
+		
+		while(c.moveToNext()){
+			return c.getInt(0) == 1;
+		}
+		
+		return false;		
+	}
+
+	public void setUserAsContact(final User user) {
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		final String userId = user.getId();
+		ContentValues cv = new ContentValues();
+		cv.put("isContact", 1);
+		db.update("minou_users", cv, "userId = ?", new String[]{userId});
+		
+		if(userCache.containsKey(userId)){
+			userCache.get(userId).setIsContact(true);
+		} else{
+			userCache.put(userId, user);
+		}
+	}
+
+	public void removeMessage(Message message) {
+		SQLiteDatabase db = this.getWritableDatabase();
+		
+		db.delete("minou_message", "message_id = ?", new String[]{message.getId().toString()});
+	}
+
+	public void removeContact(User user) {
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		final String userId = user.getId();
+		ContentValues cv = new ContentValues();
+		cv.put("isContact", 0);
+		db.update("minou_users", cv, "userId = ?", new String[]{userId});
+		
+		if(userCache.containsKey(userId)){
+			userCache.get(userId).setIsContact(false);
+		} else{
+			userCache.put(userId, user);
+		}
 	}
 
 }
