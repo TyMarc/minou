@@ -4,7 +4,6 @@ import java.io.File;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -136,8 +135,8 @@ public class ProfileFragment extends MinouFragment implements OnClickListener {
 	}
 
 	@Override
-	public String getTitle(final Context context) {
-		return context.getResources().getString(R.string.profile);
+	public int getTitleDrawableId() {
+		return R.drawable.settings;
 	}
 
 	private void takePhoto() {

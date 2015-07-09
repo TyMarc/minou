@@ -248,7 +248,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 	@Override
 	public void onBackPressed(){
-		ChannelPickerActivity.show(this, isPrivate());
+		HomeActivity.show(this, isPrivate());
 		finish();
 	}
 

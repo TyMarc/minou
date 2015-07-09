@@ -54,7 +54,7 @@
             android:layout_marginRight="10dp"
             android:background="@drawable/gen_sel"
             android:padding="7dp"
-            android:src="@drawable/ic_settings" />
+            android:src="@drawable/settings" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -127,7 +127,7 @@
             android:layout_toLeftOf="@+id/send"
             android:background="@drawable/gen_black_sel"
             android:padding="5dp"
-            android:src="@drawable/ic_menu_attachment" />
+            android:src="@drawable/share" />
 
         <ImageView
             android:id="@+id/send"

@@ -53,7 +53,7 @@
         <activity android:name="com.lesgens.minou.AddAChannelActivity" >
         </activity>
         <activity
-            android:name="com.lesgens.minou.ChannelPickerActivity"
+            android:name="com.lesgens.minou.HomeActivity"
             android:configChanges="orientation|keyboard|screenSize" >
         </activity>
         <activity android:name="com.lesgens.minou.ChannelSettingsActivity" >

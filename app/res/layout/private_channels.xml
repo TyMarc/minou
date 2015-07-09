@@ -10,6 +10,15 @@
         android:layout_above="@+id/bottom_bar"
         android:dividerHeight="1px" />
 
+    <TextView
+        android:id="@android:id/empty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:text="@string/empty_privates"
+        android:textSize="18sp" />
+
     <RelativeLayout
         android:id="@+id/bottom_bar"
         android:layout_width="match_parent"
@@ -24,7 +33,7 @@
             android:background="@drawable/gen_sel"
             android:gravity="center_vertical"
             android:padding="8dp"
-            android:src="@drawable/group_chat"
+            android:src="@drawable/create_group_chat"
             android:tint="@color/white" />
 
         <ImageView
@@ -35,7 +44,7 @@
             android:background="@drawable/gen_sel"
             android:gravity="center_vertical"
             android:padding="8dp"
-            android:src="@drawable/single_chat"
+            android:src="@drawable/create_single_chat"
             android:tint="@color/white" />
     </RelativeLayout>
 

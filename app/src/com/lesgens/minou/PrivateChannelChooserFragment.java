@@ -1,7 +1,6 @@
 package com.lesgens.minou;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
@@ -31,6 +30,8 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 		listView = (ListView) v.findViewById(R.id.list);
 		listView.setOnItemClickListener(this);
 		listView.setOnItemLongClickListener(this);
+		
+		listView.setEmptyView(v.findViewById(android.R.id.empty));
 		return v;
 	}
 
@@ -42,8 +43,8 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 	}
 
 	@Override
-	public String getTitle(final Context context) {
-		return context.getResources().getString(R.string.conversations);
+	public int getTitleDrawableId() {
+		return R.drawable.create_single_chat;
 	}
 
 

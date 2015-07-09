@@ -175,7 +175,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 
 	public void goToPublicChat(){
 		Server.setCrossbarConnectionListener(null);
-		ChannelPickerActivity.show(this);
+		HomeActivity.show(this);
 		finish();
 	}
 

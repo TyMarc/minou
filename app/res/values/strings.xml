@@ -47,4 +47,5 @@
     <string name="enter_username">Enter your new username</string>
     <string name="generate">Generate New Avatar</string>
     <string name="add_channel">Add topic</string>
+    <string name="empty_privates">You currently don't have any conversations!</string>
 </resources>
