@@ -2,6 +2,7 @@
 <resources>
     <color name="main_color">#FF5722</color>
     <color name="dark_main_color">#D84315</color>
+    <color name="light_main_color">#FF7043</color>
     <color name="dark_main_color_semi_trans">#80D84315</color>
     <color name="white">#FCFCFC</color>
     <color name="grey">#c2c2c2</color>

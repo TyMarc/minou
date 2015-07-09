@@ -19,7 +19,7 @@
             android:drawablePadding="5dp"
             android:gravity="center_vertical"
             android:padding="10dp"
-            android:text="@string/add_location"
+            android:text="@string/hello_world"
             android:textColor="@color/white" />
     </LinearLayout>
 
@@ -36,19 +36,17 @@
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:layout_alignParentBottom="true"
-        android:background="@color/dark_main_color" >
+        android:background="@color/light_main_color" >
 
-        <TextView
+        <ImageView
             android:id="@+id/add_location"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:background="@drawable/gen_sel"
-            android:drawableLeft="@drawable/add"
-            android:drawablePadding="5dp"
             android:gravity="center_vertical"
-            android:padding="10dp"
-            android:text="@string/add_location"
-            android:textColor="@color/white" />
+            android:padding="8dp"
+            android:src="@drawable/add_location"
+            android:tint="@color/white" />
 
         <TextView
             android:id="@+id/add_channel"

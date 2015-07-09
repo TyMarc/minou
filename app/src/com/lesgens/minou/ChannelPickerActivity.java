@@ -1,12 +1,9 @@
 package com.lesgens.minou;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -14,8 +11,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.view.Window;
-import android.view.WindowManager;
 
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.models.Event;
@@ -61,17 +56,19 @@ public class ChannelPickerActivity extends FragmentActivity implements OnPageCha
 		mViewPager.setAdapter(mMinouPagerAdapter);
 		mViewPager.addOnPageChangeListener(this);
 
-		Server.addEventsListener(this);
-
 		final boolean isPrivate = getIntent().getBooleanExtra("isPrivate", true);
 		selectedPosition = isPrivate ? 0 : 1;
 		mViewPager.setCurrentItem(selectedPosition);
 	}
+	
+	public void onResume(){
+		super.onResume();
+		Server.addEventsListener(this);
+	}
 
 	@Override
-	public void onDestroy(){
-		super.onDestroy();
-
+	public void onPause(){
+		super.onPause();
 		Server.removeEventsListener(this);
 	}
 
@@ -119,18 +116,14 @@ public class ChannelPickerActivity extends FragmentActivity implements OnPageCha
 	}
 
 	@Override
-	public void onNewEvent(Event event, String channel) {
+	public void onNewEvent(Event event) {
 		if(event.getChannel() instanceof User){
 			runOnUiThread(new Runnable(){
 
 				@Override
 				public void run() {
-					privateChannelChooserFragment.getAdapter().notifyDataSetChanged();
+					privateChannelChooserFragment.refreshList();
 				}});
 		}
-	}
-
-	@Override
-	public void onUserHistoryReceived(List<Event> events) {
 	}
 }

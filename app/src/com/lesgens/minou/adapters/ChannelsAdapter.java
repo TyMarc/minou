@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +19,7 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 	private Context mContext;
 	private LayoutInflater mInflater = null;
 	private int normalColor;
+	private int lightColor;
 
 	private ArrayList<Channel> channels;
 
@@ -28,6 +28,7 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 		mContext = context;     
 		channels = chatValue;
 		normalColor = context.getResources().getColor(R.color.main_color);
+		lightColor = context.getResources().getColor(R.color.light_main_color);
 	}
 	
 	static class ViewHolder {
@@ -62,8 +63,8 @@ public class ChannelsAdapter extends ArrayAdapter<Channel>{
 		String channelName = Utils.capitalizeFirstLetters(channel.getName().replace("_", " "));
 		
 		if(channel instanceof City){
-			holder.name.setBackgroundColor(Color.LTGRAY);
-			holder.name.setTextColor(Color.BLACK);
+			holder.name.setBackgroundColor(lightColor);
+			holder.name.setTextColor(Color.WHITE);
 			holder.name.setText(channelName);
 		} else {
 			holder.name.setTextColor(normalColor);

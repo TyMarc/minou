@@ -17,12 +17,10 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.facebook.Session;
@@ -89,6 +87,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 		setContentView(R.layout.splashscreen);
 		
 		DatabaseHelper.init(this);
+		DatabaseHelper.getInstance().preloadUsers();
 
 		TextView tv = (TextView) findViewById(R.id.splash_text);
 

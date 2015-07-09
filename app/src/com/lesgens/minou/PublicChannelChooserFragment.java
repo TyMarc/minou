@@ -57,7 +57,7 @@ public class PublicChannelChooserFragment extends MinouFragment implements OnCli
 		}
 		
 		v.findViewById(R.id.add_channel).setOnClickListener(this);
-		//v.findViewById(R.id.add_location).setOnClickListener(this);
+		v.findViewById(R.id.add_location).setOnClickListener(this);
 		v.findViewById(R.id.current_city).setOnClickListener(this);
 
 		return v;
@@ -121,9 +121,9 @@ public class PublicChannelChooserFragment extends MinouFragment implements OnCli
 	@Override
 	public void onClick(View v) {
 		if(v.getId() == R.id.add_channel){
-			AddAChannelActivity.show(getActivity(), false, Controller.getInstance().getCurrentChannel().getNamespace(), REQUEST_ADD_CHANNEL);
+			AddAChannelActivity.show(getActivity(), Controller.getInstance().getCurrentChannel().getNamespace(), REQUEST_ADD_CHANNEL);
 		} else if(v.getId() == R.id.add_location){
-			AddAChannelActivity.show(getActivity(), false, Controller.getInstance().getCurrentChannel().getNamespace(), REQUEST_ADD_LOCATION);
+			AddAChannelActivity.show(getActivity(), Controller.getInstance().getCurrentChannel().getNamespace(), REQUEST_ADD_LOCATION);
 		} else if(v.getId() == R.id.current_city) {
 			if(Controller.getInstance().getCurrentChannel().getParent() != null){
 				Controller.getInstance().setCurrentChannel(Controller.getInstance().getCurrentChannel().getParent());

@@ -21,7 +21,9 @@ import android.widget.TextView;
 
 import com.lesgens.minou.ImageViewerActivity;
 import com.lesgens.minou.R;
+import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.Message;
+import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.Utils;
 
 public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHeadersAdapter, OnClickListener{
@@ -53,7 +55,6 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 	static class ViewHolder {
 		public TextView name;
 		public ImageView avatar;
-		public View avatarCircle;
 		public TextView message;
 		public TextView time;
 		public TextView timePicture;
@@ -95,7 +96,6 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			ViewHolder viewHolder = new ViewHolder();
 			viewHolder.name = (TextView) rowView.findViewById(R.id.name);
 			viewHolder.avatar = (ImageView) rowView.findViewById(R.id.avatar);
-			viewHolder.avatarCircle = rowView.findViewById(R.id.avatar_circle);
 			viewHolder.message = (TextView) rowView.findViewById(R.id.message);
 			viewHolder.time = (TextView) rowView.findViewById(R.id.time);
 			viewHolder.timePicture = (TextView) rowView.findViewById(R.id.time_picture);
@@ -124,10 +124,12 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			holder.message.setText(message.getMessage());
 			holder.time.setText(sdfMessage.format(message.getTimestamp()));
 		}
+		
+		User user = DatabaseHelper.getInstance().getUser(message.getUserId());
 
 		if(holder.name != null){
 			if(!isPrivate){
-				holder.name.setText(message.getUser().getUsername());
+				holder.name.setText(user.getUsername());
 			} else{
 				holder.name.setVisibility(View.GONE);
 			}
@@ -135,10 +137,9 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 
 		if(holder.avatar != null){
 			if(!isPrivate){
-				holder.avatar.setImageBitmap(Utils.cropToCircle(message.getUser().getAvatar()));
+				holder.avatar.setImageBitmap(Utils.cropToCircle(user.getAvatar()));
 			} else{
 				holder.avatar.setVisibility(View.GONE);
-				holder.avatarCircle.setVisibility(View.GONE);
 			}
 		}
 

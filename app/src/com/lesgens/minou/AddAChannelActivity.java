@@ -1,5 +1,7 @@
 package com.lesgens.minou;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -7,6 +9,7 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.Spanned;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
@@ -17,19 +20,17 @@ import android.widget.TextView;
 import com.lesgens.minou.adapters.ChannelsAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.listeners.TrendingChannelsListener;
 import com.lesgens.minou.models.Channel;
-import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.utils.Utils;
 
-public class AddAChannelActivity extends MinouActivity implements OnClickListener, TextWatcher{
-	private boolean isPrivateChannelPicker;
+public class AddAChannelActivity extends MinouActivity implements OnClickListener, TextWatcher, TrendingChannelsListener{
 	private ChannelsAdapter adapter;
 	private String currentNamespace;
 
-	public static void show(final Activity activity, final boolean isPrivateChannelPicker, final String currentNamespace, final int requestCode) {
+	public static void show(final Activity activity, final String currentNamespace, final int requestCode) {
 		Intent i = new Intent(activity, AddAChannelActivity.class);
-		i.putExtra("isPrivateChannelPicker", isPrivateChannelPicker);
 		i.putExtra("currentNamespace", currentNamespace);
 		activity.startActivityForResult(i, requestCode);
 	}
@@ -43,10 +44,9 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 
 		setContentView(R.layout.add_a_channel);
 
-		isPrivateChannelPicker = getIntent().getBooleanExtra("isPrivateChannelPicker", false);
 		currentNamespace = getIntent().getStringExtra("currentNamespace");
 		if(currentNamespace == null) currentNamespace = Channel.BASE_CHANNEL;
-		
+
 		((TextView) findViewById(R.id.channel_name)).setText(Utils.capitalizeFirstLetters(Utils.getNameFromNamespace(currentNamespace)));
 
 		((EditText) findViewById(R.id.editText)).addTextChangedListener(this);
@@ -62,16 +62,14 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 				return null; 
 			}
 		};
+
+		findViewById(R.id.back_btn).setOnClickListener(this);
 		((EditText) findViewById(R.id.editText)).setFilters(new InputFilter[]{filter}); 
 
-		if(!isPrivateChannelPicker){
-			findViewById(R.id.currently_written).setOnClickListener(this);
-		} else {
-			findViewById(R.id.currently_written).setVisibility(View.GONE);
-		}
+		findViewById(R.id.currently_written).setOnClickListener(this);
 
-		adapter = new ChannelsAdapter(this, Server.getTrendingTopics());
-		((ListView) findViewById(R.id.list_view)).setAdapter(adapter);
+
+		Server.getTrendingTopics(Controller.getInstance().getCurrentChannel(), this);
 	}
 
 
@@ -82,24 +80,15 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 			if(!text.isEmpty()){
 				final String channelName = Utils.getNormalizedString(currentNamespace + "." + text);
 				if(!Controller.getInstance().getCurrentChannel().isContainSubscription(channelName)){
-					if(isPrivateChannelPicker){
-						final User user = Controller.getInstance().getUserByName(text);
-						DatabaseHelper.getInstance().addPrivateChannel(user.getName(), user.getId());
-						Server.subscribeToChannel(this, user.getId());
-						Controller.getInstance().setCurrentChannel(user.getId());
-						if(user != null){
-							setResult(RESULT_OK, new Intent(user.getId()));
-							finish();
-						}
-					} else{
-						DatabaseHelper.getInstance().addPublicChannel(channelName);
-						Server.subscribeToChannel(this, channelName);
-						Controller.getInstance().setCurrentChannel(channelName);
-						setResult(RESULT_OK);
-						finish();
-					}
+					DatabaseHelper.getInstance().addPublicChannel(channelName);
+					Server.subscribeToChannel(this, channelName);
+					Controller.getInstance().setCurrentChannel(channelName);
+					setResult(RESULT_OK);
+					finish();
 				}
 			}
+		} else if(v.getId() == R.id.back_btn){
+			onBackPressed();
 		}
 	}
 
@@ -115,6 +104,19 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 
 	@Override
 	public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
+	}
+
+	@Override
+	public void onTrendingChannelsFetched(ArrayList<Channel> topics) {
+		findViewById(R.id.progress_trending).setVisibility(View.GONE);
+		adapter = new ChannelsAdapter(this, topics);
+		((ListView) findViewById(R.id.list_view)).setAdapter(adapter);
+	}
+
+	@Override
+	public void onTrendingChannelsError(Throwable throwable) {
+		findViewById(R.id.progress_trending).setVisibility(View.GONE);
+		Log.i("AddAChannelActivity", "Error when fetching trending channels: " + throwable.getMessage());
 	}
 
 

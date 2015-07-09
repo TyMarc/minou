@@ -2,7 +2,6 @@ package com.lesgens.minou.controllers;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import android.app.Activity;
 import android.content.Context;
@@ -14,15 +13,12 @@ import com.lesgens.minou.enums.Roles;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.Geolocation;
 import com.lesgens.minou.models.User;
-import com.lesgens.minou.utils.AvatarGenerator;
 import com.lesgens.minou.utils.Utils;
 
 public class Controller {
 	private static final String TAG = "Controller";
-	private HashMap<String, User> users;
 	private Session session;
 	private User myselfUser;
-	private int dimensionAvatar;
 	private String secret;
 	private Channel channelsContainer;
 	private Channel currentChannel;
@@ -30,13 +26,13 @@ public class Controller {
 	private String id;
 	private Roles role;
 	private String token;
+	private int dimensionAvatar;
 
 	private static Controller controller;
 
 	private Controller(){
 		secret = "";
 		token = "";
-		users = new HashMap<String, User>();
 	}
 
 	public static Controller getInstance(){
@@ -55,36 +51,6 @@ public class Controller {
 		channelsContainer = channel;
 	}
 
-	public void addUser(User user){
-		users.put(user.getId(), user);
-	}
-
-	public User getUser(String id){
-		if(users.get(id) == null){
-			users.put(id, new User(id, Channel.BASE_CHANNEL + id.replace(".", "_"), AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), id));
-		}
-		return users.get(id);
-	}
-	
-	public User getUserByName(String name){
-		for(User user : users.values()){
-			if(user.getName() != null && user.getName().toLowerCase().equals(name.toLowerCase())){
-				return user;
-			}
-		}
-		
-		return null;
-	}
-	
-	public User getUser(final String remoteId, final String userName){
-		if(users.get(remoteId) == null){
-			users.put(remoteId, new User(userName, Channel.BASE_CHANNEL + remoteId.replace(".", "_"), AvatarGenerator.generate(dimensionAvatar, dimensionAvatar), remoteId));
-		} else if(!users.get(remoteId).getUsername().equals(userName)){
-			users.get(remoteId).setUsername(userName);
-		}
-		return users.get(remoteId);
-	}
-
 	public Session getSession() {
 		return session;
 	}
@@ -99,14 +65,6 @@ public class Controller {
 
 	public User getMyself(){
 		return myselfUser;
-	}
-
-	public void setDimensionAvatar(Context context) {
-		dimensionAvatar = Utils.dpInPixels(context, 50);
-	}
-
-	public int getDimensionAvatar() {
-		return dimensionAvatar;
 	}
 
 	public void addBlockPerson(Activity activity, String id){
@@ -203,6 +161,14 @@ public class Controller {
 	
 	public String getToken(){
 		return token;
+	}
+	
+	public void setDimensionAvatar(final Context context){
+		dimensionAvatar = Utils.dpInPixels(context, 50);
+	}
+
+	public int getDimensionAvatar() {
+		return dimensionAvatar;
 	}
 
 }

@@ -21,7 +21,7 @@
     <string name="cancel">Cancel</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
-    <string name="channels">Channels</string>
+    <string name="channels">Topics</string>
     <string name="private_message">Private Messages</string>
     <string name="delete_channel">Do you want to delete this channel?</string>
     <string name="pm_dialog">Do you want to pm this user?</string>
@@ -46,8 +46,5 @@
     <string name="change_avatar">Change Avatar</string>
     <string name="enter_username">Enter your new username</string>
     <string name="generate">Generate New Avatar</string>
-    <string name="add_channel">Add channel</string>
-    <string name="add_location">Add location</string>
-    <string name="create_group">Create a group</string>
-    <string name="create_single">Create a convo</string>
+    <string name="add_channel">Add topic</string>
 </resources>

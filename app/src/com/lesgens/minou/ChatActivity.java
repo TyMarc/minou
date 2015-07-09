@@ -1,7 +1,6 @@
 package com.lesgens.minou;
 
 import java.io.File;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -113,13 +112,9 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 		refreshChannel();
 
-
-		Server.addEventsListener(this);
-
 		scheduler = Executors.newSingleThreadScheduledExecutor();
 
 	}
-
 
 	public void refreshChannel(){
 		channelNamespace = Controller.getInstance().getCurrentChannel().getNamespace();
@@ -139,6 +134,8 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	@Override
 	public void onResume(){
 		super.onResume();
+		
+		Server.addEventsListener(this);
 
 		networkStateReceiver.addListener(this);
 		this.registerReceiver(networkStateReceiver, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
@@ -150,6 +147,8 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		if(future != null){
 			future.cancel(true);
 		}
+		
+		Server.removeEventsListener(this);
 
 		networkStateReceiver.removeListener(this);
 		this.unregisterReceiver(networkStateReceiver);
@@ -162,7 +161,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		if(scheduler != null){
 			scheduler.shutdownNow();
 		}
-		Server.removeEventsListener(this);
 	}
 
 	@Override
@@ -297,9 +295,9 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	}
 
 	@Override
-	public void onNewEvent(final Event event, final String channel) {
-		Log.i(TAG, "channel received=" + channel + " this channel=" + channelNamespace);
-		if(!channel.equals(channelNamespace)){
+	public void onNewEvent(final Event event) {
+		Log.i(TAG, "channel received=" + event.getChannel().getName() + " this channel=" + channelNamespace);
+		if(!event.getChannel().getNamespace().equals(channelNamespace)){
 			return ;
 		}
 		runOnUiThread(new Runnable(){
@@ -329,12 +327,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 				@Override
 				public void onClick(DialogInterface dialog, int which) {
-					if(DatabaseHelper.getInstance().getPrivateChannels().contains(message.getUser())){
-						Controller.getInstance().setCurrentChannel(message.getUser());
-					} else{
-						DatabaseHelper.getInstance().addPrivateChannel(message.getUser().getUsername(), message.getUser().getId());
-						Controller.getInstance().setCurrentChannel(message.getUser());
-					}
+					Controller.getInstance().setCurrentChannel(message.getUser());
 					ChatActivity.show(ChatActivity.this);
 					finish();
 				}})
@@ -346,12 +339,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			return true;
 		}
 
-	}
-
-
-
-	@Override
-	public void onUserHistoryReceived(List<Event> events) {
 	}
 
 

@@ -20,7 +20,7 @@ import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.Utils;
 
-public class PrivateChannelsAdapter extends ArrayAdapter<User>{
+public class PrivateChannelsAdapter extends ArrayAdapter<String>{
 	private Context mContext;
 	private LayoutInflater mInflater = null;
 	private SimpleDateFormat sdfMessage = new SimpleDateFormat("HH:mm");
@@ -30,17 +30,17 @@ public class PrivateChannelsAdapter extends ArrayAdapter<User>{
 	private Date sameWeek;
 	private Calendar sameYear;
 
-	private ArrayList<User> users;
+	private ArrayList<String> usersId;
 
-	public PrivateChannelsAdapter(Context context, ArrayList<User> users) {  
-		super(context,R.layout.private_channel_item, users);
+	public PrivateChannelsAdapter(Context context, ArrayList<String> usersId) {  
+		super(context,R.layout.private_channel_item, usersId);
 		mContext = context;     
 		sameYear = Calendar.getInstance();
 		sameYear.add(Calendar.DAY_OF_MONTH, -7);
 		sameWeek = sameYear.getTime();
 		sameYear.add(Calendar.DAY_OF_MONTH, +7);
 		sameYear.set(Calendar.DAY_OF_YEAR, 0);
-		this.users = users;     
+		this.usersId = usersId;     
 	}
 	
 	static class ViewHolder {
@@ -76,7 +76,8 @@ public class PrivateChannelsAdapter extends ArrayAdapter<User>{
 			rowView = convertView;
 		}
 		
-		User user = users.get(position);
+		String userId = usersId.get(position);
+		User user = DatabaseHelper.getInstance().getUser(userId);
 		ViewHolder holder = (ViewHolder) rowView.getTag();
 		final String channelName = user.getUsername();
 		

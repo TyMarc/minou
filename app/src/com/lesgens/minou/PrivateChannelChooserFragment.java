@@ -38,8 +38,7 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 	public void onResume(){
 		super.onResume();
 
-		adapter = new PrivateChannelsAdapter(getActivity(), DatabaseHelper.getInstance().getPrivateChannels());
-		listView.setAdapter(adapter);
+		refreshList();
 	}
 
 	@Override
@@ -52,15 +51,15 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 	public boolean onItemLongClick(final AdapterView<?> arg0, final View arg1,
 			final int arg2, final long arg3) {
 
-		final User user = adapter.getItem(arg2);
+		final String userId = adapter.getItem(arg2);
+		final User user = DatabaseHelper.getInstance().getUser(userId);
 
 		new AlertDialog.Builder(getActivity()).setPositiveButton(R.string.yes, new OnClickListener(){
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				DatabaseHelper.getInstance().removePrivateChannel(user.getId());
 				DatabaseHelper.getInstance().removeAllMessages(user.getNamespace());
-				adapter.remove(user);
+				adapter.remove(userId);
 			}})
 			.setNegativeButton(R.string.no, null)
 			.setTitle(R.string.delete)
@@ -71,14 +70,16 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
-		final User user = adapter.getItem(position);
+		final String userId = adapter.getItem(position);
+		final User user = DatabaseHelper.getInstance().getUser(userId);
 		Controller.getInstance().setCurrentChannel(user);
 		ChatActivity.show(getActivity());
 		getActivity().finish();
 	}
 
-	public PrivateChannelsAdapter getAdapter() {
-		return adapter;
+	public void refreshList() {
+		adapter = new PrivateChannelsAdapter(getActivity(), DatabaseHelper.getInstance().getPrivateChannels());
+		listView.setAdapter(adapter);
 	}
 
 

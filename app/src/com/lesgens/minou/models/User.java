@@ -4,14 +4,20 @@ import android.graphics.Bitmap;
 
 public class User extends Channel{
 	private Bitmap avatar;
-	private String tokenId;
+	private String userId;
 	private String name;
+	private boolean isContact;
 	
-	public User(String name, String namespace, Bitmap avatar, String tokenId){
+	public User(String name, String namespace, Bitmap avatar, String userId, boolean isContact){
 		super(namespace, null);
 		this.name = name;
 		this.avatar = avatar;
-		this.tokenId = tokenId;
+		this.userId = userId;
+		this.isContact = isContact;
+	}
+	
+	public boolean isContact(){
+		return isContact;
 	}
 	
 	public Bitmap getAvatar(){
@@ -19,7 +25,7 @@ public class User extends Channel{
 	}
 
 	public String getId() {
-		return tokenId;
+		return userId;
 	}
 	
 	public String getUsername(){
@@ -29,8 +35,8 @@ public class User extends Channel{
 	@Override
 	public boolean equals(Object o) {
 		if(o instanceof User){
-			if(((User) o).getId() != null && tokenId != null){
-				if(((User) o).getId().toLowerCase().equals(tokenId.toLowerCase())){
+			if(((User) o).getId() != null && userId != null){
+				if(((User) o).getId().toLowerCase().equals(userId.toLowerCase())){
 					return true;
 				}
 			}

@@ -6,13 +6,8 @@
         android:id="@+id/avatar"
         android:layout_width="40dp"
         android:layout_height="40dp"
+        android:background="@drawable/avatar_bg"
         android:scaleType="fitCenter" />
-    
-    <View
-        android:id="@+id/avatar_circle"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:background="@drawable/avatar_bg" />
 
     <RelativeLayout
         android:id="@+id/chat_holder"

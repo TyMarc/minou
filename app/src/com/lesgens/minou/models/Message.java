@@ -12,6 +12,7 @@ public class Message extends Event{
 	private ArrayList<UUID> idsMessage;
 	private boolean isIncoming;
 	private byte[] data;
+	private String userId;
 
 	public Message(User user, String message, boolean isIncoming){
 		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, message,  isIncoming, null);
@@ -27,11 +28,16 @@ public class Message extends Event{
 	
 	public Message(UUID id, Timestamp timestamp, Channel channel, User user, String message, boolean isIncoming, byte[] data) {
 		super(id, timestamp, channel, user);
+		userId = user.getId();
 		this.message = message;
 		this.isIncoming = isIncoming;
 		idsMessage = new ArrayList<UUID>();
 		idsMessage.add(id);
 		this.data = data;
+	}
+	
+	public String getUserId(){
+		return userId;
 	}
 
 	public boolean isIncoming(){

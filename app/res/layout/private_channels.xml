@@ -15,32 +15,28 @@
         android:layout_width="match_parent"
         android:layout_height="45dp"
         android:layout_alignParentBottom="true"
-        android:background="@color/dark_main_color" >
+        android:background="@color/light_main_color" >
 
-        <TextView
+        <ImageView
             android:id="@+id/create_group"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:background="@drawable/gen_sel"
-            android:drawableLeft="@drawable/add"
-            android:drawablePadding="5dp"
             android:gravity="center_vertical"
-            android:padding="10dp"
-            android:text="@string/create_group"
-            android:textColor="@color/white" />
+            android:padding="8dp"
+            android:src="@drawable/group_chat"
+            android:tint="@color/white" />
 
-        <TextView
+        <ImageView
             android:id="@+id/create_single"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_alignParentRight="true"
             android:background="@drawable/gen_sel"
-            android:drawablePadding="5dp"
-            android:drawableRight="@drawable/add"
             android:gravity="center_vertical"
-            android:padding="10dp"
-            android:text="@string/create_single"
-            android:textColor="@color/white" />
+            android:padding="8dp"
+            android:src="@drawable/single_chat"
+            android:tint="@color/white" />
     </RelativeLayout>
 
 </RelativeLayout>
