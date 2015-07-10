@@ -16,6 +16,9 @@
 
 <resources>
 
+     <declare-styleable name="TintableImageView">
+        <attr name="tint" format="reference|color" />
+    </declare-styleable>
     <declare-styleable name="SlidingMenu">
         <attr name="mode">
             <enum name="left" value="0" />

@@ -54,7 +54,7 @@
             android:layout_marginRight="10dp"
             android:background="@drawable/gen_sel"
             android:padding="7dp"
-            android:src="@drawable/settings" />
+            android:src="@drawable/options" />
     </RelativeLayout>
 
     <RelativeLayout

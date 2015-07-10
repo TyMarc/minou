@@ -14,7 +14,6 @@ import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 
 import com.lesgens.minou.adapters.ContactsAdapter;
-import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.User;
 
@@ -72,7 +71,14 @@ public class ContactsFragment extends MinouFragment implements OnItemClickListen
 
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
-		// TODO: Contact screen
+		final String userId = adapter.getItem(position);
+		showDialog(userId);
+	}
+	
+	private void showDialog(final String userId) {
+	    // Create the fragment and show it as a dialog.
+		ContactDialogFragment newFragment = ContactDialogFragment.newInstance(userId);
+	    newFragment.show(getFragmentManager(), "dialog");
 	}
 
 	public void refreshList() {

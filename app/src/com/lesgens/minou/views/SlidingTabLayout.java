@@ -7,6 +7,8 @@ import android.util.SparseArray;
 import android.view.View;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TableRow.LayoutParams;
 
 import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.MinouPagerAdapter;
@@ -47,7 +49,7 @@ public class SlidingTabLayout extends HorizontalScrollView {
     }
 
     private static final int TITLE_OFFSET_DIPS = 24;
-    private static final int TAB_VIEW_PADDING_DIPS = 14;
+    private static final int TAB_VIEW_PADDING_DIPS = 12;
 
     private int mTitleOffset;
 
@@ -239,15 +241,16 @@ public class SlidingTabLayout extends HorizontalScrollView {
     }
     
     protected ImageView createDefaultImageView(Context context) {
-        ImageView imageView = new ImageView(context);
+        TintableImageView imageView = new TintableImageView(context);
 
         int padding = (int) (TAB_VIEW_PADDING_DIPS * getResources().getDisplayMetrics().density);
         imageView.setPadding(padding, padding, padding, padding);
-
-        int width = (int) (getResources().getDisplayMetrics().widthPixels / mViewPager.getAdapter().getCount());
-        imageView.setMinimumWidth(width);
         
-        imageView.setColorFilter(context.getResources().getColor(R.color.main_color));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        params.weight = 1;
+        imageView.setLayoutParams(params);
+        
+        imageView.setColorFilter(context.getResources().getColorStateList(R.color.tab_sel));
 
         return imageView;
     }
