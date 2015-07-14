@@ -42,17 +42,20 @@
     <string name="delete">Delete</string>
     <string name="location">Location</string>
     <string name="network">Network</string>
-    <string name="take_picture">Take A Picture</string>
-    <string name="pick_picture">Picture From Gallery</string>
+    <string name="take_picture">Take a picture</string>
+    <string name="pick_picture">Picture from gallery</string>
     <string name="file_transfer">Share</string>
     <string name="change_avatar">Change Avatar</string>
     <string name="enter_username">Enter your new username</string>
-    <string name="generate">Generate New Avatar</string>
+    <string name="generate">Generate new avatar</string>
     <string name="add_topic">Add topic</string>
-    <string name="dialog_add_contact">Add as a Contact</string>
-    <string name="dialog_add_contact_pm">Add as a Contact and PM</string>
+    <string name="dialog_add_contact">Add as a contact</string>
+    <string name="dialog_add_contact_pm">Add as a contact and PM</string>
     <string name="dialog_delete_message">Delete message</string>
     <string name="empty_privates">You currently don\'t have\nany conversations</string>
     <string name="empty_contacts">You currently don\'t have\nany contacts</string>
     <string name="send_message">Send message</string>
+    <string name="create_single">Create a conversation</string>
+    <string name="create_group">Create a group chat</string>
+    <string name="done">Done</string>
 </resources>

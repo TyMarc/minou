@@ -20,6 +20,7 @@ import android.util.Log;
 
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.models.Channel;
+import com.lesgens.minou.models.ContactPicker;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.AvatarGenerator;
@@ -317,6 +318,20 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		}
 		
 		return usersId;		
+	}
+	
+	public ArrayList<ContactPicker> getContactsForPicker(){
+		ArrayList<ContactPicker> contacts = new ArrayList<ContactPicker>();
+		SQLiteDatabase db = this.getReadableDatabase();
+
+		Cursor c = db.rawQuery("SELECT userId FROM minou_users WHERE isContact = 1;", null);
+		
+		while(c.moveToNext()){
+			String userId = c.getString(0);
+			contacts.add(new ContactPicker(userId));
+		}
+		
+		return contacts;		
 	}
 	
 	public void removePublicChannel(String channel) {

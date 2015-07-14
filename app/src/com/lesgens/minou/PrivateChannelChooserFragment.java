@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,9 +19,10 @@ import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.User;
 
-public class PrivateChannelChooserFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener {
+public class PrivateChannelChooserFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener, android.view.View.OnClickListener {
 	private ListView listView;
 	private PrivateChannelsAdapter adapter;
+	private ContactPickerFragment contactPickerFragment;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater,
@@ -30,7 +32,10 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 		listView = (ListView) v.findViewById(R.id.list);
 		listView.setOnItemClickListener(this);
 		listView.setOnItemLongClickListener(this);
-		
+
+		v.findViewById(R.id.create_single).setOnClickListener(this);
+		v.findViewById(R.id.create_group).setOnClickListener(this);
+
 		listView.setEmptyView(v.findViewById(android.R.id.empty));
 		return v;
 	}
@@ -81,6 +86,33 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 	public void refreshList() {
 		adapter = new PrivateChannelsAdapter(getActivity(), DatabaseHelper.getInstance().getPrivateChannels());
 		listView.setAdapter(adapter);
+	}
+
+	@Override
+	public void onClick(View arg0) {
+		if(arg0.getId() == R.id.create_single){
+			contactPickerFragment = ContactPickerFragment.newInstance(ContactPickerFragment.MODE_SINGLE);
+			FragmentTransaction ft = getFragmentManager().beginTransaction();
+			ft.add(android.R.id.content, contactPickerFragment).commit();
+		} else if(arg0.getId() == R.id.create_group) {
+			contactPickerFragment = ContactPickerFragment.newInstance(ContactPickerFragment.MODE_GROUP);
+			FragmentTransaction ft = getFragmentManager().beginTransaction();
+			ft.add(android.R.id.content, contactPickerFragment).commit();
+		}
+	}
+	
+	public boolean isPickerOpen(){
+		if(contactPickerFragment.isFragmentUIActive()){
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public void closePicker(){
+		if(contactPickerFragment.isFragmentUIActive()){
+			contactPickerFragment.slideOut();
+		}
 	}
 
 

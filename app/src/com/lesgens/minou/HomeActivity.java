@@ -126,6 +126,8 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 	public void onBackPressed(){
 		if(selectedPosition != 0){
 			mViewPager.setCurrentItem(0);
+		} else if (privateChannelChooserFragment.isPickerOpen()) {
+			privateChannelChooserFragment.closePicker();
 		} else{
 			super.onBackPressed();
 		}

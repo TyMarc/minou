@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TableRow.LayoutParams;
 
 import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.MinouPagerAdapter;
