@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +18,10 @@ import com.lesgens.minou.adapters.ContactsAdapter;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.User;
 
-public class ContactsFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener {
+public class ContactsFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener, android.view.View.OnClickListener {
 	private ListView listView;
 	private ContactsAdapter adapter;
+	private ContactPickerFragment contactPickerFragment;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater,
@@ -31,6 +33,8 @@ public class ContactsFragment extends MinouFragment implements OnItemClickListen
 		listView.setOnItemLongClickListener(this);
 		
 		listView.setEmptyView(v.findViewById(android.R.id.empty));
+		
+		v.findViewById(R.id.add_contact).setOnClickListener(this);
 		return v;
 	}
 
@@ -86,5 +90,27 @@ public class ContactsFragment extends MinouFragment implements OnItemClickListen
 		listView.setAdapter(adapter);
 	}
 
+	@Override
+	public void onClick(View arg0) {
+		if(arg0.getId() == R.id.add_contact){
+			contactPickerFragment = ContactPickerFragment.newInstance(ContactPickerFragment.MODE_SEEN);
+			FragmentTransaction ft = getFragmentManager().beginTransaction();
+			ft.add(android.R.id.content, contactPickerFragment).commit();
+		}
+	}
+	
+	public boolean isPickerOpen(){
+		if(contactPickerFragment != null && contactPickerFragment.isFragmentUIActive()){
+			return true;
+		}
+		
+		return false;
+	}
+	
+	public void closePicker(){
+		if(contactPickerFragment != null && contactPickerFragment.isFragmentUIActive()){
+			contactPickerFragment.slideOut();
+		}
+	}
 
 }

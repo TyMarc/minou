@@ -49,8 +49,8 @@
     <string name="enter_username">Enter your new username</string>
     <string name="generate">Generate new avatar</string>
     <string name="add_topic">Add topic</string>
-    <string name="dialog_add_contact">Add as a contact</string>
-    <string name="dialog_add_contact_pm">Add as a contact and PM</string>
+    <string name="dialog_add_contact">Add contact</string>
+    <string name="dialog_add_contact_pm">Add contact and PM</string>
     <string name="dialog_delete_message">Delete message</string>
     <string name="empty_privates">You currently don\'t have\nany conversations</string>
     <string name="empty_contacts">You currently don\'t have\nany contacts</string>

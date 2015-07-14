@@ -568,7 +568,6 @@ public class Server {
 				@Override
 				public void call(Throwable arg0) {
 					Log.i(TAG, "Error on last private messages, error=" + arg0.getMessage());
-					arg0.printStackTrace();
 				}});
 	}
 

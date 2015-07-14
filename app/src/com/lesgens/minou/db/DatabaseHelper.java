@@ -334,6 +334,20 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		return contacts;		
 	}
 	
+	public ArrayList<ContactPicker> getNonContactsForPicker() {
+		ArrayList<ContactPicker> contacts = new ArrayList<ContactPicker>();
+		SQLiteDatabase db = this.getReadableDatabase();
+
+		Cursor c = db.rawQuery("SELECT userId FROM minou_users WHERE isContact = 0;", null);
+		
+		while(c.moveToNext()){
+			String userId = c.getString(0);
+			contacts.add(new ContactPicker(userId));
+		}
+		
+		return contacts;
+	}
+	
 	public void removePublicChannel(String channel) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		

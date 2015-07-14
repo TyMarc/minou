@@ -115,5 +115,4 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 		}
 	}
 
-
 }

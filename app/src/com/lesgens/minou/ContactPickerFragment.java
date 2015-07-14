@@ -28,6 +28,7 @@ import com.lesgens.minou.models.User;
 public class ContactPickerFragment extends MinouFragment implements OnItemClickListener, OnClickListener {
 	public static final int MODE_SINGLE = 0;
 	public static final int MODE_GROUP = 1;
+	public static final int MODE_SEEN = 2;
 	private int mode = -1;
 	private ListView listView;
 	private ContactPickerAdapter adapter;
@@ -58,9 +59,12 @@ public class ContactPickerFragment extends MinouFragment implements OnItemClickL
 		if(mode == MODE_SINGLE){
 			listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 			((TextView) v.findViewById(R.id.header)).setText(getActivity().getResources().getString(R.string.create_single));
-		} else {
+		} else if(mode == MODE_GROUP){
 			listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 			((TextView) v.findViewById(R.id.header)).setText(getActivity().getResources().getString(R.string.create_group));
+		} else if(mode == MODE_SEEN) {
+			listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+			((TextView) v.findViewById(R.id.header)).setText(getActivity().getResources().getString(R.string.dialog_add_contact));
 		}
 
 		v.findViewById(R.id.close).setOnClickListener(this);
@@ -137,21 +141,22 @@ public class ContactPickerFragment extends MinouFragment implements OnItemClickL
 				ChatActivity.show(getActivity());
 				getActivity().finish();
 			} else if(mode == MODE_GROUP && checkedUsers.size() >= 2) {
+			} else{
+				slideOut();
 			}
+		} else{
+			slideOut();
 		}
-
 	}
 
 
 	public void refreshList() {
 		ArrayList<ContactPicker> list = new ArrayList<ContactPicker>();
-		list.add(new ContactPicker("allo"));
-		list.add(new ContactPicker("fdsfsd"));
-		list.add(new ContactPicker("dsfsd"));
-		list.add(new ContactPicker("vdfgfd"));
-		list.add(new ContactPicker("qscca"));
-		list.add(new ContactPicker("erew"));
-		DatabaseHelper.getInstance().getContactsForPicker();
+		if(mode == MODE_GROUP || mode == MODE_SINGLE){
+			list = DatabaseHelper.getInstance().getContactsForPicker();
+		} else if(mode == MODE_SEEN){
+			list = DatabaseHelper.getInstance().getNonContactsForPicker();
+		}
 		adapter = new ContactPickerAdapter(getActivity(), list);
 		listView.setAdapter(adapter);
 	}

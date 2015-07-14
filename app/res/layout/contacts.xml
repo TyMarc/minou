@@ -26,6 +26,16 @@
         android:layout_alignParentBottom="true"
         android:background="@color/light_main_color" >
 
+        <ImageView
+            android:id="@+id/add_contact"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/gen_sel"
+            android:gravity="center_vertical"
+            android:padding="8dp"
+            android:src="@drawable/create_single_chat"
+            android:tint="@color/white" />
     </RelativeLayout>
 
 </RelativeLayout>
