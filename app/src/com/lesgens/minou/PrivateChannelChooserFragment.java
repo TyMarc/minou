@@ -102,7 +102,7 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 	}
 	
 	public boolean isPickerOpen(){
-		if(contactPickerFragment.isFragmentUIActive()){
+		if(contactPickerFragment != null && contactPickerFragment.isFragmentUIActive()){
 			return true;
 		}
 		
@@ -110,7 +110,7 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 	}
 	
 	public void closePicker(){
-		if(contactPickerFragment.isFragmentUIActive()){
+		if(contactPickerFragment != null && contactPickerFragment.isFragmentUIActive()){
 			contactPickerFragment.slideOut();
 		}
 	}
