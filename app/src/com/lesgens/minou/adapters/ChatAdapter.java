@@ -22,6 +22,7 @@ import android.widget.TextView;
 import com.lesgens.minou.ImageViewerActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.Utils;
@@ -78,7 +79,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 		View rowView;
 		Message message = messages.get(position);
 
-		android.util.Log.i("ChannelChatAdapter", "isIncoming="+message.isIncoming() + " message=" + message.getMessage());
+		android.util.Log.i("ChannelChatAdapter", "isIncoming="+message.isIncoming() + " message=" + message.getContent());
 		if(!message.isIncoming()){
 			rowView = getInflater().inflate(R.layout.chat_odd, parent, false);
 
@@ -117,12 +118,14 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			Bitmap bitmap = BitmapFactory.decodeByteArray(message.getData(), 0, message.getData().length);
 			holder.picture.setImageBitmap(bitmap);
 			holder.picture.setOnClickListener(this);
+			setImdn(message.getStatus(), holder.timePicture);
 		} else{
 			holder.message.setVisibility(View.VISIBLE);
 			holder.time.setVisibility(View.VISIBLE);
 			holder.timePicture.setVisibility(View.GONE);
-			holder.message.setText(message.getMessage());
+			holder.message.setText(message.getContent());
 			holder.time.setText(sdfMessage.format(message.getTimestamp()));
+			setImdn(message.getStatus(), holder.time);
 		}
 		
 		User user = DatabaseHelper.getInstance().getUser(message.getUserId());
@@ -144,6 +147,26 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 		}
 
 		return rowView;
+	}
+	
+	private void setImdn(final SendingStatus status, TextView time){
+		switch(status){
+		case SENT:
+			time.setCompoundDrawablesWithIntrinsicBounds(R.drawable.sent, 0, 0, 0);
+			break;
+		case PENDING:
+			time.setCompoundDrawablesWithIntrinsicBounds(R.drawable.pending, 0, 0, 0);
+			break;
+		case READ:
+			time.setCompoundDrawablesWithIntrinsicBounds(R.drawable.read, 0, 0, 0);
+			break;
+		case RECEIVED:
+			time.setCompoundDrawablesWithIntrinsicBounds(R.drawable.sent, 0, 0, 0);
+			break;
+		default:
+			time.setCompoundDrawablesWithIntrinsicBounds(R.drawable.failed, 0, 0, 0);
+			break;
+		}
 	}
 
 	public void addMessage(Message message){

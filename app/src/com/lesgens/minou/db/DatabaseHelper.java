@@ -19,6 +19,7 @@ import android.graphics.Color;
 import android.util.Log;
 
 import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.ContactPicker;
@@ -50,7 +51,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 	public void onCreate(SQLiteDatabase db)
 	{
-		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userId TEXT, message TEXT, data BLOB, timestamp LONG, isIncoming INTEGER DEFAULT 0, status INTEGER DEFAULT 0);");
+		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userId TEXT, content TEXT, data BLOB, timestamp LONG, isIncoming INTEGER DEFAULT 0, status INTEGER DEFAULT 0, msgType TEXT);");
 		db.execSQL("CREATE TABLE minou_last_message (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT, timestamp LONG);");
 		db.execSQL("CREATE TABLE minou_public (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT);");
 		db.execSQL("CREATE TABLE minou_users (id INTEGER PRIMARY KEY AUTOINCREMENT, userId TEXT, username TEXT, avatarURL TEXT, avatar BLOB, isContact INTEGER DEFAULT 0);");
@@ -75,12 +76,14 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		Log.i(TAG, " adding message to database to channel=" + channel.toLowerCase().replace("-", "_") + " timestamp=" + timestamp);
 		ContentValues cv = new ContentValues();
 		cv.put("message_id",m.getId().toString());
-		cv.put("message", m.getMessage());
+		cv.put("content", m.getContent());
 		cv.put("data", m.getData());
 		cv.put("isIncoming", m.isIncoming() ? 1 : 0);
 		cv.put("timestamp", timestamp);
 		cv.put("userId", userId);
 		cv.put("channel", channel.toLowerCase().replace("-", "_"));
+		cv.put("msgType", m.getMsgType().toString());
+		cv.put("status", m.getStatus().getIntValue());
 		db.insert("minou_message", null, cv);
 		
 		cv = new ContentValues();
@@ -92,6 +95,17 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			db.update("minou_last_message", cv, "channel = ?", new String[]{channel.toLowerCase().replace("-", "_")});
 		}
 		
+	}
+	
+	public void updateMessageData(Message m){
+		SQLiteDatabase db = this.getWritableDatabase();
+		
+		Log.i(TAG, " updating message with content=" + m.getContent());
+		ContentValues cv = new ContentValues();
+		cv.put("msgType", m.getMsgType().toString());
+		cv.put("status", m.getStatus().getIntValue());
+		cv.put("data", m.getData());
+		db.update("minou_message", cv, "message_id = ?", new String[]{m.getId().toString()});
 	}
 	
 	public void addPublicChannel(final String channel){
@@ -250,7 +264,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		SQLiteDatabase db = this.getReadableDatabase();
 		Log.i(TAG, "get Messages for channel=" + channel.getNamespace().toLowerCase().replace("-", "_"));
 
-		Cursor c = db.rawQuery("SELECT message_id, timestamp, message, isIncoming, data, userId, status FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, content, isIncoming, data, userId, status, msgType FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
 		Message message;
 		while(c.moveToNext()){
 			UUID id = UUID.fromString(c.getString(0));
@@ -261,8 +275,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			String userId = c.getString(5);
 			User user = getUser(userId);
 			int status = c.getInt(6);
+			String msgType = c.getString(7);
 			message = new Message(id, timestamp, channel, 
-					user, text, isIncoming, data, SendingStatus.fromInt(status));
+					user, text, isIncoming, data, SendingStatus.fromInt(status), MessageType.fromString(msgType));
 			messages.add(message);
 		}
 		
@@ -273,7 +288,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		SQLiteDatabase db = this.getReadableDatabase();
 		Log.i(TAG, "get last Message for channel=" + channel.getNamespace().toLowerCase().replace("-", "_"));
 
-		Cursor c = db.rawQuery("SELECT message_id, timestamp, message, isIncoming, data, userId, status FROM minou_message WHERE channel = ? ORDER BY timestamp DESC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, content, isIncoming, data, userId, status, msgType FROM minou_message WHERE channel = ? ORDER BY timestamp DESC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
 		Message message = null;
 		if(c.moveToNext()){
 			UUID id = UUID.fromString(c.getString(0));
@@ -284,8 +299,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			String userId = c.getString(5);
 			User user = getUser(userId);
 			int status = c.getInt(6);
+			String msgType = c.getString(7);
 			message = new Message(id, timestamp, channel, 
-					user, text, isIncoming, data, SendingStatus.fromInt(status));
+					user, text, isIncoming, data, SendingStatus.fromInt(status), MessageType.fromString(msgType));
 		}
 		
 		return message;

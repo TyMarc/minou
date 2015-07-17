@@ -35,6 +35,7 @@ import com.lesgens.minou.adapters.ChatAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
@@ -155,10 +156,10 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		if(v.getId() == R.id.send){
 			final String text = editText.getText().toString();
 			if(!text.isEmpty()){
-				Message message = new Message(Controller.getInstance().getMyself(), text, false, SendingStatus.PENDING);
+				Message message = new Message(Controller.getInstance().getMyself(), text, false, SendingStatus.PENDING, MessageType.TEXT);
 				chatAdapter.addMessage(message);
 				chatAdapter.notifyDataSetChanged();
-				Server.sendMessage(message.getMessage(), channelNamespace);
+				Server.sendMessage(message, channelNamespace);
 				DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
 				editText.setText("");
 				scrollMyListViewToBottom();
@@ -380,11 +381,12 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 					final byte[] byteArray = Utils.prepareImageFT(ChatActivity.this, bitmap, imageUri);
 
-					Message message = new Message(Controller.getInstance().getMyself(), byteArray, false, SendingStatus.PENDING);
+					String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
+					Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, false, SendingStatus.PENDING, MessageType.IMAGE);
 					chatAdapter.addMessage(message);
 					chatAdapter.notifyDataSetChanged();
 
-					Server.sendMessage(message, channelNamespace);
+					Server.sendPicture(message, channelNamespace);
 
 					DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
 					scrollMyListViewToBottom();

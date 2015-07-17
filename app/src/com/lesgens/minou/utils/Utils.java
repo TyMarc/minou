@@ -1,14 +1,16 @@
 package com.lesgens.minou.utils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,21 +20,15 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.params.AllClientPNames;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.lesgens.minou.controllers.Controller;
-import com.lesgens.minou.network.HTTPRequest;
-import com.lesgens.minou.network.HTTPRequest.RequestType;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -48,7 +44,6 @@ import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.location.Address;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
@@ -300,6 +295,33 @@ public class Utils {
 		}
 
 		return null;
+	}
+	
+	public static byte[] read(File file) throws IOException {
+	    ByteArrayOutputStream ous = null;
+	    InputStream ios = null;
+	    try {
+	        byte[] buffer = new byte[4096];
+	        ous = new ByteArrayOutputStream();
+	        ios = new FileInputStream(file);
+	        int read = 0;
+	        while ( (read = ios.read(buffer)) != -1 ) {
+	            ous.write(buffer, 0, read);
+	        }
+	    } finally { 
+	        try {
+	             if ( ous != null ) 
+	                 ous.close();
+	        } catch ( IOException e) {
+	        }
+
+	        try {
+	             if ( ios != null ) 
+	                  ios.close();
+	        } catch ( IOException e) {
+	        }
+	    }
+	    return ous.toByteArray();
 	}
 
 }

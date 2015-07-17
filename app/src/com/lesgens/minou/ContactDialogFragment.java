@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
@@ -97,10 +98,11 @@ public class ContactDialogFragment extends DialogFragment implements OnClickList
 
 					final byte[] byteArray = Utils.prepareImageFT(getActivity(), bitmap, imageUri);
 
-					Message message = new Message(Controller.getInstance().getMyself(), byteArray, false, SendingStatus.PENDING);
+					String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
+					Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, false, SendingStatus.PENDING, MessageType.IMAGE);
 
 					final String channelNamespace = Controller.getInstance().getCurrentChannel().getNamespace();
-					Server.sendMessage(message, channelNamespace);
+					Server.sendPicture(message, channelNamespace);
 
 					DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
 				} catch (Exception e) {

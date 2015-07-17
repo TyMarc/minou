@@ -34,7 +34,6 @@ import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
 import com.lesgens.minou.models.Geolocation;
-import com.lesgens.minou.network.FileManagerS3;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.utils.Utils;
 import com.todddavies.components.progressbar.ProgressWheel;
@@ -214,7 +213,6 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 
 	@Override
 	public void onConnected() {
-		FileManagerS3.init(this);
 		goToHome();
 	}
 

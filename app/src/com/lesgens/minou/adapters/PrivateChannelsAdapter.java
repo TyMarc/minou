@@ -89,8 +89,8 @@ public class PrivateChannelsAdapter extends ArrayAdapter<String>{
 		
 		Message lastMessage = DatabaseHelper.getInstance().getLastMessage(user);
 		if(lastMessage != null){
-			if(lastMessage.getMessage() != null && !lastMessage.getMessage().isEmpty()){
-				holder.lastMessage.setText(lastMessage.getMessage());
+			if(lastMessage.getContent() != null && !lastMessage.getContent().isEmpty()){
+				holder.lastMessage.setText(lastMessage.getContent());
 			} else{
 				holder.lastMessage.setText(R.string.picture);
 			}

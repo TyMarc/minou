@@ -39,10 +39,12 @@ import com.lesgens.minou.application.MinouApplication;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.Roles;
 import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
+import com.lesgens.minou.listeners.MinouProgressListener;
 import com.lesgens.minou.listeners.TrendingChannelsListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
 import com.lesgens.minou.models.Channel;
@@ -288,20 +290,13 @@ public class Server {
 				final String id = msg.keywordArguments().get("from").asText();
 				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
 
-				String content = "";
-				byte[] data = null;
-				if(type.equals("text/plain")){
-					content = msg.keywordArguments().get("content").asText();
-				} else if(type.equals("image/jpeg")){
-					try {
-						data = msg.keywordArguments().get("content").binaryValue();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
+				String content = msg.keywordArguments().get("content").asText();
+
 				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getId());
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-				Message m = new Message(user, content, user.getName(), channel, isIncoming, data, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT);
+				Message m = new Message(user, content, user.getName(), channel, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+
+				
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
 					if(channel.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
@@ -314,7 +309,7 @@ public class Server {
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
 				if((!MinouApplication.isActivityVisible() || !isGoodChannel) 
 						&& (PreferencesController.isPublicNotificationsEnabled(context, fullChannelName) 
-								|| m.getMessage().toLowerCase().contains(Controller.getInstance().getMyself().getUsername().toLowerCase()))
+								|| m.getContent().toLowerCase().contains(Controller.getInstance().getMyself().getUsername().toLowerCase()))
 								&& isIncoming){
 					Log.i(TAG, "Application not visible, should send notification");
 					NotificationHelper.notify(context, channel, user, content);
@@ -344,21 +339,13 @@ public class Server {
 				Log.i(TAG, "Received new message " + msg);
 				final String id = msg.keywordArguments().get("from").asText();
 				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
-				String content = "";
-				byte[] data = null;
-				if(type.equals("text/plain")){
-					content = msg.keywordArguments().get("content").asText();
-				} else if(type.equals("image/jpeg")){
-					try {
-						data = msg.keywordArguments().get("content").binaryValue();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
+				String content = msg.keywordArguments().get("content").asText();
+
 				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getId());
 
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-				Message m = new Message(user, content, user.getName(), city, isIncoming, data, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT);
+				Message m = new Message(user, content, user.getName(), city, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+				
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
 					if(city.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
@@ -371,7 +358,7 @@ public class Server {
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
 				if((!MinouApplication.isActivityVisible() || !isGoodChannel) 
 						&& (PreferencesController.isPublicNotificationsEnabled(context, fullChannelName) 
-								|| m.getMessage().toLowerCase().contains(Controller.getInstance().getMyself().getUsername().toLowerCase()))
+								|| m.getContent().toLowerCase().contains(Controller.getInstance().getMyself().getUsername().toLowerCase()))
 								&& isIncoming){
 					Log.i(TAG, "Application not visible, should send notification");
 					NotificationHelper.notify(context, city, user, content);
@@ -399,19 +386,11 @@ public class Server {
 				final String id = msg.keywordArguments().get("from").asText();
 				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
 
-				String content = "";
-				byte[] data = null;
-				if(type.equals("text/plain")){
-					content = msg.keywordArguments().get("content").asText();
-				} else if(type.equals("image/jpeg")){
-					try {
-						data = msg.keywordArguments().get("content").binaryValue();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
+				String content = msg.keywordArguments().get("content").asText();
+
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-				Message m = new Message(user, content, user.getUsername(), userToCreate, isIncoming, data, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT);
+				Message m = new Message(user, content, user.getUsername(), userToCreate, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+				
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
 					if(user.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
@@ -439,43 +418,40 @@ public class Server {
 		return userToCreate;
 	}
 
-	public static void sendMessage(final String message, final String channelNamespace){
+	public static void sendMessage(final Message message, final String channelNamespace){
 		String fullChannelName = channelNamespace.toLowerCase().replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=" + message + " fullChannelName=" + fullChannelName);
-		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message)).forEach(new Action1<Long>(){
+		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message.getContent()))
+		.forEach(new Action1<Long>(){
 
 			@Override
 			public void call(Long arg0) {
-				// TODO Auto-generated method stub
-
+				message.setStatus(SendingStatus.SENT);
 			}}
 		, new Action1<Throwable>(){
 
 			@Override
 			public void call(Throwable arg0) {
-				// TODO Auto-generated method stub
-
+				message.setStatus(SendingStatus.FAILED);
 			}});
 	}
 
-	public static void sendMessage(final Message message, final String channelNamespace){
+	public static void sendPicture(final Message message, final String channelNamespace){
 		String fullChannelName = channelNamespace.toLowerCase().replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName);
-		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
-		message.setFilename(filename);
-		FileManagerS3.getInstance().uploadPicture(filename, message.getData(), message);
+		FileManagerS3.getInstance().uploadPicture(message.getContent(), message.getData(), new MinouProgressListener(message, channelNamespace));
 		
 	}
 	
-	public static void publishMessage(final Message message){
-		String fullChannelName = message.getChannel().getNamespace().toLowerCase().replace("-", "_");
+	public static void publishPicture(final Message message, final String channelNamespace){
+		String fullChannelName = channelNamespace.toLowerCase().replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
-		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodePicture(message.getFilename()));
+		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodePicture(message.getContent()));
 	}
 
 	public static void sendStayAliveMessage(){
@@ -595,19 +571,11 @@ public class Server {
 					final String id = msg.get("user").asText();
 					final User user = DatabaseHelper.getInstance().getUser(id);
 					final long sentAt = msg.get("sent_at").asLong() * 1000;
-					String content = "";
-					byte[] data = null;
-					if(type.equals("text/plain")){
-						content = msg.get("content").asText();
-					} else if(type.equals("image/jpeg")){
-						try {
-							data = msg.get("content").binaryValue();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					}
+					String content = msg.get("content").asText();
+
 					final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-					Message m = new Message(user, content, user.getUsername(), channel, isIncoming, data, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT);
+					Message m = new Message(user, content, user.getUsername(), channel, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+					
 					for(EventsListener el : eventsListeners) {
 						el.onNewEvent(m);
 					}
@@ -641,19 +609,11 @@ public class Server {
 					final String id = msg.get("user").asText();
 					final User user = DatabaseHelper.getInstance().getUser(id);
 					final long sentAt = msg.get("sent_at").asLong() * 1000;
-					String content = "";
-					byte[] data = null;
-					if(type.equals("text/plain")){
-						content = msg.get("content").asText();
-					} else if(type.equals("image/jpeg")){
-						try {
-							data = msg.get("content").binaryValue();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					}
+					String content = msg.get("content").asText();
+
 					final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-					Message m = new Message(user, content, user.getUsername(), userMessages, isIncoming, data, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT);
+					Message m = new Message(user, content, user.getUsername(), userMessages, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+					
 					for(EventsListener el : eventsListeners) {
 						el.onNewEvent(m);
 					}
@@ -672,7 +632,7 @@ public class Server {
 		ob.put("from", Controller.getInstance().getId());
 		ob.put("user_name", Controller.getInstance().getMyself().getUsername());
 		ob.put("content", message);
-		ob.put("type", "text/plain");
+		ob.put("content_type", "text/plain");
 		return ob;
 	}
 
@@ -681,7 +641,7 @@ public class Server {
 		ob.put("from", Controller.getInstance().getId());
 		ob.put("user_name", Controller.getInstance().getMyself().getName());
 		ob.put("content", filename);
-		ob.put("type", "image/jpeg");
+		ob.put("content_type", "image/jpeg");
 		return ob;
 	}
 
