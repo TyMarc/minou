@@ -40,6 +40,7 @@ import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.Roles;
+import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.listeners.TrendingChannelsListener;
@@ -154,7 +155,8 @@ public class Server {
 						}
 
 						getTopicsCount();
-						
+						getUsers(DatabaseHelper.getInstance().getUsersId());
+
 						timer = new Timer();
 						timer.schedule(new PokeCrossbarServer(), 0, 35000);
 
@@ -167,7 +169,7 @@ public class Server {
 						closeSubscriptions();
 						isConnected = false;
 					} else if (t1 instanceof WampClient.ClientConnecting) {
-						
+
 					}
 				}
 			}, new Action1<Throwable>() {
@@ -191,7 +193,7 @@ public class Server {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private static void addGeolocationChannels(){
 		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace())) {
 			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace());
@@ -284,7 +286,7 @@ public class Server {
 				String type = msg.keywordArguments().get("type").asText();
 				Log.i(TAG, "Received new message of type=" + type);
 				final String id = msg.keywordArguments().get("from").asText();
-				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("fake_name").asText());
+				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
 
 				String content = "";
 				byte[] data = null;
@@ -299,7 +301,7 @@ public class Server {
 				}
 				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getId());
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-				Message m = new Message(user, content, user.getName(), channel, isIncoming, data);
+				Message m = new Message(user, content, user.getName(), channel, isIncoming, data, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT);
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
 					if(channel.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
@@ -323,8 +325,8 @@ public class Server {
 				public void call(Throwable arg0) {
 					Log.i(TAG, "Error on channel, error=" + arg0.getMessage());
 				}});
-		
-		
+
+
 
 		return channel;
 	}
@@ -341,7 +343,7 @@ public class Server {
 				String type = msg.keywordArguments().get("type").asText();
 				Log.i(TAG, "Received new message " + msg);
 				final String id = msg.keywordArguments().get("from").asText();
-				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("fake_name").asText());
+				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
 				String content = "";
 				byte[] data = null;
 				if(type.equals("text/plain")){
@@ -356,7 +358,7 @@ public class Server {
 				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getId());
 
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-				Message m = new Message(user, content, user.getName(), city, isIncoming, data);
+				Message m = new Message(user, content, user.getName(), city, isIncoming, data, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT);
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
 					if(city.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
@@ -395,7 +397,7 @@ public class Server {
 				String type = msg.keywordArguments().get("type").asText();
 				Log.i(TAG, "Received new private message " + msg);
 				final String id = msg.keywordArguments().get("from").asText();
-				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("fake_name").asText());
+				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
 
 				String content = "";
 				byte[] data = null;
@@ -409,7 +411,7 @@ public class Server {
 					}
 				}
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-				Message m = new Message(user, content, user.getUsername(), userToCreate, isIncoming, data);
+				Message m = new Message(user, content, user.getUsername(), userToCreate, isIncoming, data, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT);
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
 					if(user.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
@@ -442,21 +444,44 @@ public class Server {
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=" + message + " fullChannelName=" + fullChannelName);
-		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message));
+		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message)).forEach(new Action1<Long>(){
+
+			@Override
+			public void call(Long arg0) {
+				// TODO Auto-generated method stub
+
+			}}
+		, new Action1<Throwable>(){
+
+			@Override
+			public void call(Throwable arg0) {
+				// TODO Auto-generated method stub
+
+			}});
 	}
 
-	public static void sendMessage(final byte[] picture, final String channelNamespace){
+	public static void sendMessage(final Message message, final String channelNamespace){
 		String fullChannelName = channelNamespace.toLowerCase().replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName);
-		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(picture));
+		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
+		message.setFilename(filename);
+		FileManagerS3.getInstance().uploadPicture(filename, message.getData(), message);
+		
+	}
+	
+	public static void publishMessage(final Message message){
+		String fullChannelName = message.getChannel().getNamespace().toLowerCase().replace("-", "_");
+		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
+		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
+		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodePicture(message.getFilename()));
 	}
 
 	public static void sendStayAliveMessage(){
 		client.publish("heartbeat", new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(""));
 	}
-	
+
 	public static void getTopicsCount(){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		for(String ns : Controller.getInstance().getChannelsContainer().getAllChannelsNamespace()){
@@ -477,7 +502,7 @@ public class Server {
 					final int count = msg.get("count").asInt();
 					Controller.getInstance().getChannelsContainer().getChannelByName(namespace).setCount(count);
 				}
-				
+
 			}}, new Action1<Throwable>(){
 
 				@Override
@@ -486,11 +511,40 @@ public class Server {
 				}});
 	}
 
+	public static void getUsers(final ArrayList<String> usersId){
+		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
+		for(String userId : usersId){
+			an.add(TextNode.valueOf(userId));
+		}
+		client.call("plugin.profile.get_info", an, new ObjectNode(JsonNodeFactory.instance))
+		.forEach(new Action1<Reply>(){
+
+			@Override
+			public void call(Reply reply) {
+				Log.i(TAG, "Received users");
+				JsonNode msg = null;
+				Iterator<JsonNode> iterator = reply.arguments().get(0).elements();
+				while(iterator.hasNext()){
+					msg = iterator.next();
+					Log.i(TAG, "User=" + msg);
+					final String userId = msg.get("id").asText();
+					final String username = msg.get("user_name").asText();
+					DatabaseHelper.getInstance().setUsernameForUser(userId, username);
+				}
+
+			}}, new Action1<Throwable>(){
+
+				@Override
+				public void call(Throwable throwable) {
+					Log.i(TAG, "Get users information" + throwable.getMessage());
+				}});
+	}
+
 	public static void getTrendingTopics(final Channel channel, final TrendingChannelsListener listener){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		an.add(TextNode.valueOf(channel.getNamespace() + ".*"));
 		an.add(IntNode.valueOf(25));
-		
+
 		client.call("plugin.population.top_topics", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 
@@ -553,7 +607,7 @@ public class Server {
 						}
 					}
 					final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-					Message m = new Message(user, content, user.getUsername(), channel, isIncoming, data);
+					Message m = new Message(user, content, user.getUsername(), channel, isIncoming, data, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT);
 					for(EventsListener el : eventsListeners) {
 						el.onNewEvent(m);
 					}
@@ -599,7 +653,7 @@ public class Server {
 						}
 					}
 					final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-					Message m = new Message(user, content, user.getUsername(), userMessages, isIncoming, data);
+					Message m = new Message(user, content, user.getUsername(), userMessages, isIncoming, data, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT);
 					for(EventsListener el : eventsListeners) {
 						el.onNewEvent(m);
 					}
@@ -616,17 +670,17 @@ public class Server {
 	private static ObjectNode getObjectNodeMessage(final String message){
 		ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
 		ob.put("from", Controller.getInstance().getId());
-		ob.put("fake_name", Controller.getInstance().getMyself().getUsername());
+		ob.put("user_name", Controller.getInstance().getMyself().getUsername());
 		ob.put("content", message);
 		ob.put("type", "text/plain");
 		return ob;
 	}
 
-	private static ObjectNode getObjectNodeMessage(final byte[] picture){
+	private static ObjectNode getObjectNodePicture(final String filename){
 		ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
 		ob.put("from", Controller.getInstance().getId());
-		ob.put("fake_name", Controller.getInstance().getMyself().getName());
-		ob.put("content", picture);
+		ob.put("user_name", Controller.getInstance().getMyself().getName());
+		ob.put("content", filename);
 		ob.put("type", "image/jpeg");
 		return ob;
 	}
@@ -666,7 +720,7 @@ public class Server {
 			protected String doInBackground(String... arg0) {
 				String finalAddress = address + "me";
 				List<NameValuePair> data = new ArrayList<NameValuePair>();
-				data.add(new BasicNameValuePair("fake_name", arg0[0]));
+				data.add(new BasicNameValuePair("user_name", arg0[0]));
 				Log.i(TAG, "New username: " + arg0[0]);
 				List<NameValuePair> headers = new ArrayList<NameValuePair>();
 				headers.add(new BasicNameValuePair("X-User-Token", arg0[1]));
@@ -709,13 +763,13 @@ public class Server {
 	private static void readAuth(Reader in) throws IOException {
 		JsonReader reader = new JsonReader(in);
 		reader.beginObject();
-		String fakeName = "";
+		String userName = "";
 		while(reader.hasNext()){
 			String name = reader.nextName();
 			if (name.equals("token")) {
 				Controller.getInstance().setToken(reader.nextString());
-			} else if (name.equals("fake_name")) {
-				fakeName = reader.nextString();
+			} else if (name.equals("user_name")) {
+				userName = reader.nextString();
 			} else if (name.equals("secret")) {
 				Controller.getInstance().setSecret(reader.nextString());
 			} else if (name.equals("id")) {
@@ -726,6 +780,6 @@ public class Server {
 		}
 		reader.endObject();
 		reader.close();
-		Controller.getInstance().setMyOwnUser(new User(fakeName, Channel.BASE_CHANNEL + Controller.getInstance().getId(), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), Controller.getInstance().getId(), false));
+		Controller.getInstance().setMyOwnUser(new User(userName, Channel.BASE_CHANNEL + Controller.getInstance().getId(), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), Controller.getInstance().getId(), false));
 	}
 }

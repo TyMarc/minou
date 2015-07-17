@@ -1,17 +1,38 @@
 package com.lesgens.minou.utils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.params.AllClientPNames;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.network.HTTPRequest;
+import com.lesgens.minou.network.HTTPRequest.RequestType;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -25,7 +46,9 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.location.Address;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
@@ -55,42 +78,42 @@ public class Utils {
 		realImage.recycle();
 		return newBitmap;
 	}
-	
+
 	public static Bitmap cropToCircle(Bitmap bitmap){
 		Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
 				bitmap.getHeight(), Config.ARGB_8888);
-        Canvas canvas = new Canvas(output);
+		Canvas canvas = new Canvas(output);
 
-        final int color = 0xff424242;
-        final Paint paint = new Paint();
-        final Rect rect = new Rect(0, 0, bitmap.getWidth(),
-        		bitmap.getHeight());
+		final int color = 0xff424242;
+		final Paint paint = new Paint();
+		final Rect rect = new Rect(0, 0, bitmap.getWidth(),
+				bitmap.getHeight());
 
-        paint.setAntiAlias(true);
-        canvas.drawARGB(0, 0, 0, 0);
-        paint.setColor(color);
-        canvas.drawCircle(bitmap.getWidth() / 2,
-        		bitmap.getHeight() / 2, bitmap.getWidth() / 2, paint);
-        paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
-        canvas.drawBitmap(bitmap, rect, rect, paint);
-        return output;
+		paint.setAntiAlias(true);
+		canvas.drawARGB(0, 0, 0, 0);
+		paint.setColor(color);
+		canvas.drawCircle(bitmap.getWidth() / 2,
+				bitmap.getHeight() / 2, bitmap.getWidth() / 2, paint);
+		paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
+		canvas.drawBitmap(bitmap, rect, rect, paint);
+		return output;
 	}
-	
+
 	public static Bitmap cropToSquare(Bitmap bitmap){
-	    int width  = bitmap.getWidth();
-	    int height = bitmap.getHeight();
-	    int newWidth = (height > width) ? width : height;
-	    int newHeight = (height > width)? height - ( height - width) : height;
-	    int cropW = (width - height) / 2;
-	    cropW = (cropW < 0)? 0: cropW;
-	    int cropH = (height - width) / 2;
-	    cropH = (cropH < 0)? 0: cropH;
-	    Bitmap cropImg = Bitmap.createBitmap(bitmap, cropW, cropH, newWidth, newHeight);
-	    bitmap.recycle();
+		int width  = bitmap.getWidth();
+		int height = bitmap.getHeight();
+		int newWidth = (height > width) ? width : height;
+		int newHeight = (height > width)? height - ( height - width) : height;
+		int cropW = (width - height) / 2;
+		cropW = (cropW < 0)? 0: cropW;
+		int cropH = (height - width) / 2;
+		cropH = (cropH < 0)? 0: cropH;
+		Bitmap cropImg = Bitmap.createBitmap(bitmap, cropW, cropH, newWidth, newHeight);
+		bitmap.recycle();
 
-	    return cropImg;
+		return cropImg;
 	}
-	
+
 	/**
 	 * Rotate an image if required.
 	 * @param img
@@ -99,17 +122,17 @@ public class Utils {
 	 */
 	private static Bitmap rotateImageIfRequired(Context context, Bitmap img, Uri selectedImage) {
 
-	    // Detect rotation
-	    int rotation = getRotation(context, selectedImage);
-	    if(rotation!=0){
-	        Matrix matrix = new Matrix();
-	        matrix.postRotate(rotation);
-	        Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
-	        img.recycle();
-	        return rotatedImg;        
-	    }else{
-	        return img;
-	    }
+		// Detect rotation
+		int rotation = getRotation(context, selectedImage);
+		if(rotation!=0){
+			Matrix matrix = new Matrix();
+			matrix.postRotate(rotation);
+			Bitmap rotatedImg = Bitmap.createBitmap(img, 0, 0, img.getWidth(), img.getHeight(), matrix, true);
+			img.recycle();
+			return rotatedImg;        
+		}else{
+			return img;
+		}
 	}
 
 	/**
@@ -119,21 +142,21 @@ public class Utils {
 	 * @return
 	 */
 	private static int getRotation(Context context, Uri selectedImage) {
-	    int rotation =0;
-	    ContentResolver content = context.getContentResolver();
+		int rotation =0;
+		ContentResolver content = context.getContentResolver();
 
 
-	    Cursor mediaCursor = content.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-	            new String[] { "orientation", "date_added" },null, null,"date_added desc");
+		Cursor mediaCursor = content.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+				new String[] { "orientation", "date_added" },null, null,"date_added desc");
 
-	    if (mediaCursor != null && mediaCursor.getCount() !=0 ) {
-	        while(mediaCursor.moveToNext()){
-	            rotation = mediaCursor.getInt(0);
-	            break;
-	        }
-	    }
-	    mediaCursor.close();
-	    return rotation;
+		if (mediaCursor != null && mediaCursor.getCount() !=0 ) {
+			while(mediaCursor.moveToNext()){
+				rotation = mediaCursor.getInt(0);
+				break;
+			}
+		}
+		mediaCursor.close();
+		return rotation;
 	}
 
 	public static byte[] prepareImageFT(final Context context, Bitmap image, Uri selectedImage){
@@ -142,13 +165,13 @@ public class Utils {
 		}
 
 		image = rotateImageIfRequired(context, image, selectedImage);
-		
+
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		image.compress(CompressFormat.JPEG, 70, bos);
 		image.recycle();
-		
+
 		Log.i(TAG, "Scaled down image size= " + bos.size()/1024 + "kb");
-		
+
 		return bos.toByteArray();
 	}
 
@@ -216,6 +239,67 @@ public class Utils {
 
 	public static String getNameFromNamespace(String namespace) {
 		return namespace.substring(namespace.lastIndexOf(".") + 1);
+	}
+
+	public static Address getFromLocation(double lat, double lng) {
+
+		String address = String.format(Locale.ENGLISH, "http://maps.googleapis.com/maps/api/geocode/json?latlng=%1$f,%2$f&sensor=false&language=" + Locale.getDefault().getCountry(), lat, lng);
+		HttpGet httpGet = new HttpGet(address);
+		HttpClient client = new DefaultHttpClient();
+		client.getParams().setParameter(AllClientPNames.USER_AGENT, "Mozilla/5.0 (Java) Gecko/20081007 java-geocoder");
+		client.getParams().setIntParameter(AllClientPNames.CONNECTION_TIMEOUT, 5 * 1000);
+		client.getParams().setIntParameter(AllClientPNames.SO_TIMEOUT, 25 * 1000);
+		HttpResponse response;
+
+		try {
+			response = client.execute(httpGet);
+			HttpEntity entity = response.getEntity();
+			String json = EntityUtils.toString(entity, "UTF-8");
+
+			JSONObject jsonObject = new JSONObject(json);
+
+			if ("OK".equalsIgnoreCase(jsonObject.getString("status"))) {
+				JSONArray results = jsonObject.getJSONArray("results");
+				if (results.length() > 0) {
+					JSONObject result = results.getJSONObject(0);
+					Address addr = new Address(Locale.getDefault());
+
+					JSONArray components = result.getJSONArray("address_components");
+					String streetNumber = "";
+					String route = "";
+					for (int a = 0; a < components.length(); a++) {
+						JSONObject component = components.getJSONObject(a);
+						JSONArray types = component.getJSONArray("types");
+						for (int j = 0; j < types.length(); j++) {
+							String type = types.getString(j);
+							if (type.equals("locality")) {
+								addr.setLocality(component.getString("long_name"));
+							} else if (type.equals("street_number")) {
+								streetNumber = component.getString("long_name");
+							} else if (type.equals("route")) {
+								route = component.getString("long_name");
+							}
+						}
+					}
+					addr.setAddressLine(0, route + " " + streetNumber);
+
+					addr.setLatitude(result.getJSONObject("geometry").getJSONObject("location").getDouble("lat"));
+					addr.setLongitude(result.getJSONObject("geometry").getJSONObject("location").getDouble("lng"));
+					return addr;
+
+				}
+			}
+
+
+		} catch (ClientProtocolException e) {
+			Log.e("Utils", "Error calling Google geocode webservice.", e);
+		} catch (IOException e) {
+			Log.e("Utils", "Error calling Google geocode webservice.", e);
+		} catch (JSONException e) {
+			Log.e("Utils", "Error parsing Google geocode webservice response.", e);
+		}
+
+		return null;
 	}
 
 }

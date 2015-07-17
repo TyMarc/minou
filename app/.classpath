@@ -13,5 +13,8 @@
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="lib" path="libs/jawampa-0.2.1.jar"/>
 	<classpathentry kind="lib" path="libs/netty-all-4.0.28.Final.jar"/>
+	<classpathentry kind="lib" path="libs/aws-android-sdk-cognito-2.2.3.jar"/>
+	<classpathentry kind="lib" path="libs/aws-android-sdk-core-2.2.3.jar"/>
+	<classpathentry kind="lib" path="libs/aws-android-sdk-s3-2.2.3.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

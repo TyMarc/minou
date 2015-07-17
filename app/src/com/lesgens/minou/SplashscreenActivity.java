@@ -17,6 +17,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -27,12 +28,15 @@ import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
 import com.facebook.widget.LoginButton;
+import com.lesgens.minou.application.MinouApplication;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
 import com.lesgens.minou.models.Geolocation;
+import com.lesgens.minou.network.FileManagerS3;
 import com.lesgens.minou.network.Server;
+import com.lesgens.minou.utils.Utils;
 import com.todddavies.components.progressbar.ProgressWheel;
 
 public class SplashscreenActivity extends MinouActivity implements
@@ -40,8 +44,8 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 	private Location mLastLocation;
 	private static final String[] PERMISSIONS = {"public_profile"};
 	private boolean mConnected = false;
-	private boolean authenticated = false;
-	private boolean geolocated = false;
+	private static boolean authenticated = false;
+	private static boolean geolocated = false;
 
 	private UiLifecycleHelper uiHelper;
 
@@ -86,7 +90,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		setContentView(R.layout.splashscreen);
-		
+
 		DatabaseHelper.init(this);
 		DatabaseHelper.getInstance().preloadUsers();
 
@@ -201,7 +205,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				
+
 			}})
 			.setTitle(R.string.network)
 			.setMessage(R.string.server_error)
@@ -210,6 +214,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 
 	@Override
 	public void onConnected() {
+		FileManagerS3.init(this);
 		goToHome();
 	}
 
@@ -218,6 +223,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 		mLastLocation = location;
 		if (mLastLocation != null) {
 			Geocoder geoCoder = new Geocoder(this, Locale.CANADA);
+			executeGeocoderFallback(mLastLocation.getLatitude(), mLastLocation.getLongitude());
 			try {
 				List<Address> address = geoCoder.getFromLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 1);
 				final String city = address.get(0).getLocality();
@@ -231,19 +237,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
-				new AlertDialog.Builder(this).setPositiveButton(R.string.retry, new OnClickListener(){
-
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						SplashscreenActivity.show(SplashscreenActivity.this);
-						finish();
-					}})
-					.setNegativeButton(R.string.no, null)
-					.setTitle(R.string.location)
-					.setMessage(R.string.location_not_found)
-					.show();
-
-
+				
 			}
 			catch (NullPointerException e) {
 				e.printStackTrace();
@@ -272,13 +266,56 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 	@Override
 	public void onConnecting() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void onDisonnected() {
 		// TODO Auto-generated method stub
-		
+
+	}
+
+	public static void executeGeocoderFallback(double lat, double lng){
+		AsyncTask<Double, Void, Address> request = new AsyncTask<Double, Void, Address>() {
+
+			@Override
+			protected Address doInBackground(Double... arg0) {
+				return Utils.getFromLocation(arg0[0], arg0[1]);
+			}
+
+			@Override
+			protected void onPostExecute(Address address) {
+				super.onPostExecute(address);
+				if(address != null){
+					final String city = address.getLocality();
+					final String country = address.getCountryName();
+					final String state = address.getAdminArea();
+					android.util.Log.i("Minou", "City name=" + city);
+					Controller.getInstance().setCity(new Geolocation(city, state, country));
+					geolocated = true;
+					if(authenticated){
+						Server.connectToCrossbar(MinouApplication.getCurrentActivity());
+					}
+				} else{
+					new AlertDialog.Builder(MinouApplication.getCurrentActivity()).setPositiveButton(R.string.retry, new OnClickListener(){
+
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							SplashscreenActivity.show(MinouApplication.getCurrentActivity());
+							MinouApplication.getCurrentActivity().finish();
+						}})
+						.setNegativeButton(R.string.no, null)
+						.setTitle(R.string.location)
+						.setMessage(R.string.location_not_found)
+						.show();
+
+				}
+
+			}
+
+
+		};
+		request.execute(lat, lng);
 	}
 
 }

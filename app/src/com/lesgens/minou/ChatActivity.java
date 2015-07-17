@@ -35,6 +35,7 @@ import com.lesgens.minou.adapters.ChatAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.models.Event;
@@ -154,7 +155,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		if(v.getId() == R.id.send){
 			final String text = editText.getText().toString();
 			if(!text.isEmpty()){
-				Message message = new Message(Controller.getInstance().getMyself(), text, false);
+				Message message = new Message(Controller.getInstance().getMyself(), text, false, SendingStatus.PENDING);
 				chatAdapter.addMessage(message);
 				chatAdapter.notifyDataSetChanged();
 				Server.sendMessage(message.getMessage(), channelNamespace);
@@ -379,11 +380,11 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 					final byte[] byteArray = Utils.prepareImageFT(ChatActivity.this, bitmap, imageUri);
 
-					Message message = new Message(Controller.getInstance().getMyself(), byteArray, false);
+					Message message = new Message(Controller.getInstance().getMyself(), byteArray, false, SendingStatus.PENDING);
 					chatAdapter.addMessage(message);
 					chatAdapter.notifyDataSetChanged();
 
-					Server.sendMessage(byteArray, channelNamespace);
+					Server.sendMessage(message, channelNamespace);
 
 					DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
 					scrollMyListViewToBottom();

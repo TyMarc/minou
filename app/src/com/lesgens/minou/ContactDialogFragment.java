@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
@@ -96,10 +97,10 @@ public class ContactDialogFragment extends DialogFragment implements OnClickList
 
 					final byte[] byteArray = Utils.prepareImageFT(getActivity(), bitmap, imageUri);
 
-					Message message = new Message(Controller.getInstance().getMyself(), byteArray, false);
+					Message message = new Message(Controller.getInstance().getMyself(), byteArray, false, SendingStatus.PENDING);
 
 					final String channelNamespace = Controller.getInstance().getCurrentChannel().getNamespace();
-					Server.sendMessage(byteArray, channelNamespace);
+					Server.sendMessage(message, channelNamespace);
 
 					DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
 				} catch (Exception e) {

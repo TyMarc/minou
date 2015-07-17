@@ -19,6 +19,7 @@ import android.graphics.Color;
 import android.util.Log;
 
 import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.ContactPicker;
 import com.lesgens.minou.models.Message;
@@ -49,10 +50,10 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 	public void onCreate(SQLiteDatabase db)
 	{
-		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userId TEXT, message TEXT, data BLOB, timestamp LONG, isIncoming INTEGER DEFAULT 0);");
+		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userId TEXT, message TEXT, data BLOB, timestamp LONG, isIncoming INTEGER DEFAULT 0, status INTEGER DEFAULT 0);");
 		db.execSQL("CREATE TABLE minou_last_message (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT, timestamp LONG);");
 		db.execSQL("CREATE TABLE minou_public (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT);");
-		db.execSQL("CREATE TABLE minou_users (id INTEGER PRIMARY KEY AUTOINCREMENT, userId TEXT, username TEXT, avatar BLOB, isContact INTEGER DEFAULT 0);");
+		db.execSQL("CREATE TABLE minou_users (id INTEGER PRIMARY KEY AUTOINCREMENT, userId TEXT, username TEXT, avatarURL TEXT, avatar BLOB, isContact INTEGER DEFAULT 0);");
 	}
 
 	@Override
@@ -230,13 +231,18 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		db.insert("minou_users", null, cv);
 	}
 	
-	private void setUsernameForUser(String userId, String username){
+	public void setUsernameForUser(String userId, String username){
 		SQLiteDatabase db = this.getWritableDatabase();
 		Log.i(TAG, "setting username for userId=" + userId + " for username=" + username);
 
 		ContentValues cv = new ContentValues();
 		cv.put("username", username);
 		db.update("minou_users", cv, "userId = ?", new String[]{userId});
+		
+		User user = userCache.get(userId);
+		if(user != null){
+			user.setUsername(username);
+		}
 	}
 
 	public ArrayList<Message> getMessages(Channel channel){
@@ -244,7 +250,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		SQLiteDatabase db = this.getReadableDatabase();
 		Log.i(TAG, "get Messages for channel=" + channel.getNamespace().toLowerCase().replace("-", "_"));
 
-		Cursor c = db.rawQuery("SELECT message_id, timestamp, message, isIncoming, data, userId FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, message, isIncoming, data, userId, status FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
 		Message message;
 		while(c.moveToNext()){
 			UUID id = UUID.fromString(c.getString(0));
@@ -254,8 +260,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			byte[] data = c.getBlob(4);
 			String userId = c.getString(5);
 			User user = getUser(userId);
+			int status = c.getInt(6);
 			message = new Message(id, timestamp, channel, 
-					user, text, isIncoming, data);
+					user, text, isIncoming, data, SendingStatus.fromInt(status));
 			messages.add(message);
 		}
 		
@@ -266,7 +273,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		SQLiteDatabase db = this.getReadableDatabase();
 		Log.i(TAG, "get last Message for channel=" + channel.getNamespace().toLowerCase().replace("-", "_"));
 
-		Cursor c = db.rawQuery("SELECT message_id, timestamp, message, isIncoming, data, userId FROM minou_message WHERE channel = ? ORDER BY timestamp DESC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, message, isIncoming, data, userId, status FROM minou_message WHERE channel = ? ORDER BY timestamp DESC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
 		Message message = null;
 		if(c.moveToNext()){
 			UUID id = UUID.fromString(c.getString(0));
@@ -276,8 +283,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			byte[] data = c.getBlob(4);
 			String userId = c.getString(5);
 			User user = getUser(userId);
+			int status = c.getInt(6);
 			message = new Message(id, timestamp, channel, 
-					user, text, isIncoming, data);
+					user, text, isIncoming, data, SendingStatus.fromInt(status));
 		}
 		
 		return message;
@@ -310,7 +318,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		ArrayList<String> usersId = new ArrayList<String>();
 		SQLiteDatabase db = this.getReadableDatabase();
 
-		Cursor c = db.rawQuery("SELECT userId FROM minou_users WHERE isContact = 1;", null);
+		Cursor c = db.rawQuery("SELECT userId FROM minou_users WHERE isContact = 1 AND userId != ?;", new String[]{Controller.getInstance().getId()});
 		
 		while(c.moveToNext()){
 			String userId = c.getString(0);
@@ -324,7 +332,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		ArrayList<ContactPicker> contacts = new ArrayList<ContactPicker>();
 		SQLiteDatabase db = this.getReadableDatabase();
 
-		Cursor c = db.rawQuery("SELECT userId FROM minou_users WHERE isContact = 1;", null);
+		Cursor c = db.rawQuery("SELECT userId FROM minou_users WHERE isContact = 1 AND userId != ?;", new String[]{Controller.getInstance().getId()});
 		
 		while(c.moveToNext()){
 			String userId = c.getString(0);
@@ -338,7 +346,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		ArrayList<ContactPicker> contacts = new ArrayList<ContactPicker>();
 		SQLiteDatabase db = this.getReadableDatabase();
 
-		Cursor c = db.rawQuery("SELECT userId FROM minou_users WHERE isContact = 0;", null);
+		Cursor c = db.rawQuery("SELECT userId FROM minou_users WHERE isContact = 0 AND userId != ?;", new String[]{Controller.getInstance().getId()});
 		
 		while(c.moveToNext()){
 			String userId = c.getString(0);
@@ -417,6 +425,10 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		} else{
 			userCache.put(userId, user);
 		}
+	}
+
+	public ArrayList<String> getUsersId() {
+		return new ArrayList<String>(userCache.keySet());
 	}
 
 }
