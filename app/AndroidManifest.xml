@@ -50,7 +50,9 @@
             android:name="com.lesgens.minou.ImageViewerActivity"
             android:label="@string/title_activity_image_viewer" >
         </activity>
-        <activity android:name="com.lesgens.minou.AddAChannelActivity" >
+        <activity
+            android:name="com.lesgens.minou.AddAChannelActivity"
+            android:configChanges="orientation|keyboard|screenSize" >
         </activity>
         <activity
             android:name="com.lesgens.minou.HomeActivity"

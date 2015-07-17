@@ -1,9 +1,7 @@
 package com.lesgens.minou;
 
 import java.io.File;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 import android.app.AlertDialog;
@@ -23,20 +21,21 @@ import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.animation.Animation;
-import android.view.animation.Animation.AnimationListener;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.lesgens.minou.utils.ExpandCollapseAnimation;
 import com.lesgens.minou.adapters.ChatAdapter;
 import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
@@ -44,17 +43,17 @@ import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.receivers.NetworkStateReceiver;
 import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverListener;
+import com.lesgens.minou.utils.ExpandCollapseAnimation;
 import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
 
-public class ChatActivity extends MinouFragmentActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener {
+public class ChatActivity extends MinouFragmentActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener, CrossbarConnectionListener {
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 	private static final int PICK_IMAGE_ACTIVITY_REQUEST_CODE = 101;
 	private static final String TAG = "ChannelChatActivity";
 	private ChatAdapter chatAdapter;
 	private StickyListHeadersListView listMessages;
 	private EditText editText;
-	private ScheduledExecutorService scheduler;
 	private Future<?> future;
 	private TextView tvConnectionProblem;
 	private TextView channelTextView;
@@ -110,9 +109,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		networkStateReceiver = new NetworkStateReceiver(this);
 
 		refreshChannel();
-
-		scheduler = Executors.newSingleThreadScheduledExecutor();
-
 	}
 
 	public void refreshChannel(){
@@ -135,7 +131,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		super.onResume();
 
 		Server.addEventsListener(this);
-
+		Server.addCrossbarConnectionListener(this);
 		networkStateReceiver.addListener(this);
 		this.registerReceiver(networkStateReceiver, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
 	}
@@ -148,18 +144,9 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		}
 
 		Server.removeEventsListener(this);
-
+		Server.removeCrossbarConnectionListener(this);
 		networkStateReceiver.removeListener(this);
 		this.unregisterReceiver(networkStateReceiver);
-
-	}
-
-	@Override
-	public void onDestroy(){
-		super.onDestroy();
-		if(scheduler != null){
-			scheduler.shutdownNow();
-		}
 	}
 
 	@Override
@@ -416,7 +403,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 			@Override
 			public void run() {
-				if(!Controller.getInstance().getBlockedPeople(ChatActivity.this).contains(((Message) event).getUser().getId())){
+				if(!PreferencesController.getBlockedPeople(ChatActivity.this).contains(((Message) event).getUser().getId())){
 					chatAdapter.addMessage((Message) event);
 					chatAdapter.notifyDataSetChanged();
 					scrollMyListViewToBottom();
@@ -461,5 +448,21 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			child.setEnabled(false);
 		}
 		findViewById(R.id.bottomBar).setBackgroundColor(Color.YELLOW);
+	}
+
+	@Override
+	public void onConnected() {
+		tvConnectionProblem.setVisibility(View.GONE);
+	}
+
+	@Override
+	public void onConnecting() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onDisonnected() {
+		tvConnectionProblem.setVisibility(View.VISIBLE);
 	}
 }

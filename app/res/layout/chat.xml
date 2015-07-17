@@ -11,15 +11,15 @@
         android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="@color/main_color"
-        android:paddingLeft="10dp" >
+        android:background="@color/main_color" >
 
         <ImageView
             android:id="@+id/back_btn"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_centerVertical="true"
             android:background="@drawable/gen_sel"
+            android:padding="5dp"
             android:src="@drawable/navigation_back" />
 
         <TextView
@@ -36,24 +36,22 @@
 
         <ImageView
             android:id="@+id/public_btn"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_centerVertical="true"
-            android:layout_marginRight="10dp"
             android:layout_toLeftOf="@+id/settings_btn"
             android:background="@drawable/gen_sel"
-            android:padding="10dp"
+            android:padding="15dp"
             android:src="@drawable/add" />
 
         <ImageView
             android:id="@+id/settings_btn"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:layout_marginRight="10dp"
             android:background="@drawable/gen_sel"
-            android:padding="7dp"
+            android:padding="12dp"
             android:src="@drawable/options" />
     </RelativeLayout>
 

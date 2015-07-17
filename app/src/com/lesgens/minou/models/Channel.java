@@ -19,12 +19,14 @@ public class Channel {
 	private String namespace;
 	private Observable<PubSubData> subscription;
 	private ArrayList<Channel> channels;
+	private int count;
 
 	public Channel(String namespace, Observable<PubSubData> subscription) {
 		channels = new ArrayList<Channel>();
 		this.name = Utils.getNameFromNamespace(namespace);
 		this.namespace = namespace;
 		this.subscription = subscription;
+		count = 0;
 	}
 
 	public Observable<PubSubData> getSubscription(){
@@ -84,6 +86,16 @@ public class Channel {
 			subscription.unsubscribeOn(Schedulers.immediate());
 		}
 	}
+	
+	public ArrayList<String> getAllChannelsNamespace(){
+		ArrayList<String> namespaces = new ArrayList<String>();
+		namespaces.add(namespace);
+		for(Channel c : channels){
+			namespaces.addAll(c.getAllChannelsNamespace());
+		}
+		
+		return namespaces;
+	}
 
 	public String getName(){
 		return name;
@@ -118,5 +130,13 @@ public class Channel {
 		}
 
 		return null;
+	}
+	
+	public int getCount(){
+		return count;
+	}
+
+	public void setCount(int count) {
+		this.count = count;
 	}
 }

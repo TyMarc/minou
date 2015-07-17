@@ -54,6 +54,7 @@
     <string name="dialog_delete_message">Delete message</string>
     <string name="empty_privates">You currently don\'t have\nany conversations</string>
     <string name="empty_contacts">You currently don\'t have\nany contacts</string>
+    <string name="empty_trending">There is no trending channels\nin this city.</string>
     <string name="send_message">Send message</string>
     <string name="create_single">Create a conversation</string>
     <string name="create_group">Create a group chat</string>

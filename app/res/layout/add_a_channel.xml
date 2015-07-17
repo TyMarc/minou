@@ -8,21 +8,23 @@
         android:id="@+id/search_bar"
         android:layout_width="fill_parent"
         android:layout_height="100dp"
-        android:background="@color/main_color" >
+        android:background="@color/main_color"
+        android:focusable="true"
+        android:focusableInTouchMode="true" >
 
         <RelativeLayout
             android:id="@+id/topBar"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:background="@color/main_color"
-            android:paddingLeft="10dp" >
+            android:layout_height="50dp"
+            android:background="@color/main_color" >
 
             <ImageView
                 android:id="@+id/back_btn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_centerVertical="true"
                 android:background="@drawable/gen_sel"
+                android:padding="5dp"
                 android:src="@drawable/navigation_back" />
 
             <TextView
@@ -53,7 +55,8 @@
                 android:background="@null"
                 android:inputType="textCapSentences"
                 android:paddingLeft="10dp"
-                android:paddingRight="10dp" />
+                android:paddingRight="10dp"
+                android:windowSoftInputMode="stateHidden" />
 
             <ImageView
                 android:id="@+id/search_btn"
@@ -97,6 +100,16 @@
             android:layout_width="70dp"
             android:layout_height="70dp"
             android:layout_centerInParent="true" />
+
+        <TextView
+            android:id="@android:id/empty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:text="@string/empty_trending"
+            android:textSize="18sp"
+            android:visibility="gone" />
     </RelativeLayout>
 
 </RelativeLayout>

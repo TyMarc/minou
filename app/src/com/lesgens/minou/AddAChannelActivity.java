@@ -17,16 +17,17 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.lesgens.minou.adapters.ChannelsAdapter;
+import com.lesgens.minou.adapters.ChannelsTrendingAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.listeners.TrendingChannelsListener;
 import com.lesgens.minou.models.Channel;
+import com.lesgens.minou.models.ChannelTrending;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.utils.Utils;
 
 public class AddAChannelActivity extends MinouActivity implements OnClickListener, TextWatcher, TrendingChannelsListener{
-	private ChannelsAdapter adapter;
+	private ChannelsTrendingAdapter adapter;
 	private String currentNamespace;
 
 	public static void show(final Activity activity, final String currentNamespace, final int requestCode) {
@@ -57,7 +58,7 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 				for (int i = start; i < end; i++) { 
 					if (!Character.isLetterOrDigit(source.charAt(i)) && source.charAt(i) != ' ') { 
 						return ""; 
-					} 
+					}
 				} 
 				return null; 
 			}
@@ -67,6 +68,7 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 		((EditText) findViewById(R.id.editText)).setFilters(new InputFilter[]{filter}); 
 
 		findViewById(R.id.currently_written).setOnClickListener(this);
+		findViewById(R.id.search_bar).requestFocus();
 
 
 		Server.getTrendingTopics(Controller.getInstance().getCurrentChannel(), this);
@@ -107,15 +109,21 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 	}
 
 	@Override
-	public void onTrendingChannelsFetched(ArrayList<Channel> topics) {
+	public void onTrendingChannelsFetched(ArrayList<ChannelTrending> topics) {
 		findViewById(R.id.progress_trending).setVisibility(View.GONE);
-		adapter = new ChannelsAdapter(this, topics);
-		((ListView) findViewById(R.id.list_view)).setAdapter(adapter);
+		if(topics.size() > 0) {
+			adapter = new ChannelsTrendingAdapter(this, topics);
+			((ListView) findViewById(R.id.list_view)).setAdapter(adapter);
+			findViewById(android.R.id.empty).setVisibility(View.GONE);
+		} else{
+			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
+		}
 	}
 
 	@Override
 	public void onTrendingChannelsError(Throwable throwable) {
 		findViewById(R.id.progress_trending).setVisibility(View.GONE);
+		findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
 		Log.i("AddAChannelActivity", "Error when fetching trending channels: " + throwable.getMessage());
 	}
 

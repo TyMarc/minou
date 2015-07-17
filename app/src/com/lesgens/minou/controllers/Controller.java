@@ -1,12 +1,8 @@
 package com.lesgens.minou.controllers;
 
 import java.text.Normalizer;
-import java.util.ArrayList;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.util.Log;
 
 import com.facebook.Session;
 import com.lesgens.minou.enums.Roles;
@@ -65,41 +61,6 @@ public class Controller {
 
 	public User getMyself(){
 		return myselfUser;
-	}
-
-	public void addBlockPerson(Activity activity, String id){
-		SharedPreferences sharedPref = activity.getPreferences(Context.MODE_PRIVATE);
-		SharedPreferences.Editor editor = sharedPref.edit();
-		String blocked = getBlockedPeopleString(activity);
-		if(blocked.isEmpty()){
-			blocked = id;
-		} else{
-			blocked += "," + id;
-		}
-		editor.putString("blockedList", blocked);
-		editor.commit();
-	}
-
-	private String getBlockedPeopleString(Activity activity){
-		SharedPreferences sharedPref = activity.getPreferences(Context.MODE_PRIVATE);
-		String blocked = sharedPref.getString("blockedList", "");
-
-		return blocked;
-
-	}
-
-	public ArrayList<String> getBlockedPeople(Activity activity){
-		SharedPreferences sharedPref = activity.getPreferences(Context.MODE_PRIVATE);
-		String blocked = sharedPref.getString("blockedList", "");
-
-		ArrayList<String> blockedPeople = new ArrayList<String>();
-		for(String b : blocked.split(",")){
-			blockedPeople.add(b);
-		}
-
-		Log.i(TAG, "blockedPeople=" + blockedPeople.toString());
-		return blockedPeople;
-
 	}
 
 	public void setSecret(String secret) {

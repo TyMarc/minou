@@ -1,5 +1,7 @@
 package com.lesgens.minou.controllers;
 
+import java.util.ArrayList;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -7,6 +9,7 @@ public class PreferencesController {
 	private static final String PREF_NAME = "minou_user_prefs";
 
 	public static final String DEFAULT_CHANNEL = "USER_PREF_DEFAULT_CHANNEL";
+	public static final String BLOCKED_USERS = "USER_PREF_BLOCKED_USERS";
 	public static final String NOTIFICATIONS_PUBLIC_CHANNEL = "USER_PREF_NOTIFICATIONS_PUBLIC_CHANNEL";
 	public static final String BLOCKED_NOTIFICATIONS_PRIVATE_CHANNEL = "USER_PREF_BLOCKED_NOTIFICATIONS_PRIVATE_CHANNEL";
 	public static final String BLOCKED_NOTIFICATIONS_MENTION_CHANNEL = "USER_PREF_BLOCKED_NOTIFICATIONS_MENTION_CHANNEL";
@@ -127,5 +130,40 @@ public class PreferencesController {
 			editor.commit();
 		}
 	}
+	
+	public static void addBlockPerson(Context context, String id){
+		SharedPreferences sharedPref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
+		String blocked = getBlockedPeopleString(context);
+		if(blocked.isEmpty()){
+			blocked = id;
+		} else{
+			blocked += "," + id;
+		}
+		editor.putString(BLOCKED_USERS, blocked);
+		editor.commit();
+	}
+
+	private static String getBlockedPeopleString(Context context){
+		SharedPreferences sharedPref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+		String blocked = sharedPref.getString(BLOCKED_USERS, "");
+
+		return blocked;
+
+	}
+
+	public static ArrayList<String> getBlockedPeople(Context context){
+		SharedPreferences sharedPref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+		String blocked = sharedPref.getString(BLOCKED_USERS, "");
+
+		ArrayList<String> blockedPeople = new ArrayList<String>();
+		for(String b : blocked.split(",")){
+			blockedPeople.add(b);
+		}
+
+		return blockedPeople;
+
+	}
+
 
 }

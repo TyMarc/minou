@@ -4,21 +4,26 @@ import java.util.ArrayList;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.view.View;
 
 import com.lesgens.minou.adapters.MinouPagerAdapter;
+import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
+import com.lesgens.minou.receivers.NetworkStateReceiver;
+import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverListener;
 import com.lesgens.minou.views.SlidingTabLayout;
 
-public class HomeActivity extends FragmentActivity implements OnPageChangeListener, EventsListener{
+public class HomeActivity extends FragmentActivity implements OnPageChangeListener, EventsListener, NetworkStateReceiverListener, CrossbarConnectionListener{
 	private MinouPagerAdapter mMinouPagerAdapter;
 	private ViewPager mViewPager;
 	private ArrayList<MinouFragment> fragments;
@@ -28,6 +33,7 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 	private ProfileFragment profileFragment;
 	private ContactsFragment contactsFragment;
 	private SlidingTabLayout tabs;
+	private NetworkStateReceiver networkStateReceiver;
 	
 	public static void show(final Context context){
 		Intent i = new Intent(context, HomeActivity.class);
@@ -78,7 +84,6 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 
 			@Override
 			public int getIndicatorColor(int position) {
-				// TODO Auto-generated method stub
 				return getResources().getColor(R.color.light_main_color);
 			}
         });
@@ -86,6 +91,7 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
         // Setting the ViewPager For the SlidingTabsLayout
         tabs.setViewPager(mViewPager);
 
+        networkStateReceiver = new NetworkStateReceiver(this);
 	}
 	
 	private class MinouPagerAdapterImpl extends MinouPagerAdapter{
@@ -114,12 +120,18 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 	public void onResume(){
 		super.onResume();
 		Server.addEventsListener(this);
+		Server.addCrossbarConnectionListener(this);
+		networkStateReceiver.addListener(this);
+		this.registerReceiver(networkStateReceiver, new IntentFilter(android.net.ConnectivityManager.CONNECTIVITY_ACTION));
 	}
 
 	@Override
 	public void onPause(){
 		super.onPause();
 		Server.removeEventsListener(this);
+		Server.removeCrossbarConnectionListener(this);
+		networkStateReceiver.removeListener(this);
+		this.unregisterReceiver(networkStateReceiver);
 	}
 
 	@Override
@@ -156,5 +168,29 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 					privateChannelChooserFragment.refreshList();
 				}});
 		}
+	}
+	
+	@Override
+	public void onNetworkAvailable() {
+		findViewById(R.id.connection_problem).setVisibility(View.GONE);
+	}
+
+	@Override
+	public void onNetworkUnavailable() {
+		findViewById(R.id.connection_problem).setVisibility(View.VISIBLE);
+	}
+
+	@Override
+	public void onConnected() {
+		findViewById(R.id.connection_problem).setVisibility(View.GONE);
+	}
+
+	@Override
+	public void onConnecting() {
+	}
+
+	@Override
+	public void onDisonnected() {
+		findViewById(R.id.connection_problem).setVisibility(View.VISIBLE);
 	}
 }

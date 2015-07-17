@@ -28,10 +28,6 @@ public class ChannelSettingsActivity extends MinouActivity implements OnClickLis
 
 		setContentView(R.layout.user_settings);
 
-		if(!isPrivate()){
-			findViewById(R.id.topBar).setBackgroundColor(getResources().getColor(R.color.dark_main_color));
-		}
-
 		findViewById(R.id.back_btn).setOnClickListener(this);
 
 		boolean isChecked = false;

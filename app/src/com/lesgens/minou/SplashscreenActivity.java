@@ -78,7 +78,8 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if(Server.isConnected()){
-			goToPublicChat();
+			goToHome();
+			return;
 		}
 		Controller.getInstance().setDimensionAvatar(this);
 		//Remove title bar
@@ -110,7 +111,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 		}
 
 		Server.addUserAuthenticatedListener(this);
-		Server.setCrossbarConnectionListener(this);
+		Server.addCrossbarConnectionListener(this);
 		LoginButton authButton = (LoginButton)findViewById(R.id.authButton);
 		authButton.setReadPermissions(PERMISSIONS);
 		uiHelper = new UiLifecycleHelper(this, callback);
@@ -119,8 +120,10 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 
 	public void onDestroy(){
 		super.onDestroy();
-		uiHelper.onDestroy();
-
+		if(uiHelper != null){
+			uiHelper.onDestroy();
+		}
+		Server.removeCrossbarConnectionListener(this);
 		Server.removeUserAuthenticatedListener(this);
 	}
 
@@ -173,8 +176,8 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 		return activeNetworkInfo != null && activeNetworkInfo.isConnected();
 	}
 
-	public void goToPublicChat(){
-		Server.setCrossbarConnectionListener(null);
+	public void goToHome(){
+		Server.removeCrossbarConnectionListener(this);
 		HomeActivity.show(this);
 		finish();
 	}
@@ -206,8 +209,8 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 	}
 
 	@Override
-	public void onConnection() {
-		goToPublicChat();
+	public void onConnected() {
+		goToHome();
 	}
 
 	@Override
@@ -264,6 +267,18 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 	public void onProviderDisabled(String provider) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void onConnecting() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onDisonnected() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

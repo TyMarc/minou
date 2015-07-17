@@ -10,12 +10,24 @@
         android:layout_width="match_parent"
         android:layout_height="46dp"
         android:background="@color/white" />
+    
+    <TextView
+        android:id="@+id/connection_problem"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_below="@id/tabs"
+        android:background="@color/red"
+        android:gravity="center"
+        android:text="@string/lost_connectivity"
+        android:textColor="@color/white"
+        android:textSize="12sp"
+        android:visibility="gone" />
 
     <android.support.v4.view.ViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/tabs" >
+        android:layout_below="@id/connection_problem" >
     </android.support.v4.view.ViewPager>
 
 </RelativeLayout>

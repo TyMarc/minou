@@ -3,6 +3,8 @@ package com.lesgens.minou.listeners;
 
 public interface CrossbarConnectionListener {
 	
-	public void onConnection();
+	public void onConnected();
+	public void onConnecting();
+	public void onDisonnected();
 	
 }

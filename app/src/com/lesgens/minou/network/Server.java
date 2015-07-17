@@ -29,6 +29,7 @@ import android.util.Log;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -44,6 +45,7 @@ import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.listeners.TrendingChannelsListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
 import com.lesgens.minou.models.Channel;
+import com.lesgens.minou.models.ChannelTrending;
 import com.lesgens.minou.models.City;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
@@ -56,7 +58,7 @@ public class Server {
 
 	private static List<UserAuthenticatedListener> userAuthenticatedListeners = new ArrayList<UserAuthenticatedListener>();
 	private static ArrayList<EventsListener> eventsListeners = new ArrayList<EventsListener>();
-	private static CrossbarConnectionListener crossbarConnectionListener = null;
+	private static ArrayList<CrossbarConnectionListener> connectionListeners = new ArrayList<CrossbarConnectionListener>();
 	private static String address = "https://minou-backend.herokuapp.com/";
 	private static String TAG = "Server";
 	private static boolean isConnected = false;
@@ -151,18 +153,21 @@ public class Server {
 							subscribeToPrivateChannel(context, user);
 						}
 
+						getTopicsCount();
+						
 						timer = new Timer();
 						timer.schedule(new PokeCrossbarServer(), 0, 35000);
 
-						if(crossbarConnectionListener != null){
-							crossbarConnectionListener.onConnection();
+						for(CrossbarConnectionListener listener : connectionListeners){
+							listener.onConnected();
 						}
 
 						isConnected = true;
-					}
-					else if (t1 instanceof WampClient.ClientDisconnected) {
+					} else if (t1 instanceof WampClient.ClientDisconnected) {
 						closeSubscriptions();
 						isConnected = false;
+					} else if (t1 instanceof WampClient.ClientConnecting) {
+						
 					}
 				}
 			}, new Action1<Throwable>() {
@@ -269,7 +274,7 @@ public class Server {
 
 	private static Channel createChannel(final Context context, final String channelName){
 		final String fullChannelName = Utils.getNormalizedString(channelName);
-		Log.i(TAG, "Subscribing to: " + fullChannelName);
+		Log.i(TAG, "Subscribing to: " + fullChannelName);		
 		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName);
 		final Channel channel = new Channel(fullChannelName, channelSubscription);
 		channelSubscription.forEach(new Action1<PubSubData>(){
@@ -318,6 +323,8 @@ public class Server {
 				public void call(Throwable arg0) {
 					Log.i(TAG, "Error on channel, error=" + arg0.getMessage());
 				}});
+		
+		
 
 		return channel;
 	}
@@ -449,26 +456,61 @@ public class Server {
 	public static void sendStayAliveMessage(){
 		client.publish("heartbeat", new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(""));
 	}
+	
+	public static void getTopicsCount(){
+		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
+		for(String ns : Controller.getInstance().getChannelsContainer().getAllChannelsNamespace()){
+			an.add(TextNode.valueOf(ns));
+		}
+		client.call("plugin.population.topics_count", an, new ObjectNode(JsonNodeFactory.instance))
+		.forEach(new Action1<Reply>(){
+
+			@Override
+			public void call(Reply reply) {
+				Log.i(TAG, "Received topics count");
+				JsonNode msg = null;
+				Iterator<JsonNode> iterator = reply.arguments().get(0).elements();
+				while(iterator.hasNext()){
+					msg = iterator.next();
+					Log.i(TAG, "Topic=" + msg);
+					final String namespace = msg.get("uri").asText();
+					final int count = msg.get("count").asInt();
+					Controller.getInstance().getChannelsContainer().getChannelByName(namespace).setCount(count);
+				}
+				
+			}}, new Action1<Throwable>(){
+
+				@Override
+				public void call(Throwable throwable) {
+					Log.i(TAG, "Get topics count" + throwable.getMessage());
+				}});
+	}
 
 	public static void getTrendingTopics(final Channel channel, final TrendingChannelsListener listener){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
-		an.add(TextNode.valueOf(channel.getNamespace()));
-		an.add(20);
+		an.add(TextNode.valueOf(channel.getNamespace() + ".*"));
+		an.add(IntNode.valueOf(25));
+		
 		client.call("plugin.population.top_topics", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 
 			@Override
 			public void call(Reply reply) {
 				Log.i(TAG, "Received trending topics for=" + channel.getNamespace());
+				ArrayList<ChannelTrending> trendings = new ArrayList<ChannelTrending>();
 				JsonNode msg = null;
 				Iterator<JsonNode> iterator = reply.arguments().get(0).elements();
 				while(iterator.hasNext()){
 					msg = iterator.next();
 					Log.i(TAG, "Topic=" + msg);
+					final String namespace = msg.get("uri").asText();
+					final int count = msg.get("count").asInt();
+					ChannelTrending channel = new ChannelTrending(namespace, count);
+					trendings.add(channel);
 				}
 
 				if(listener != null){
-					listener.onTrendingChannelsFetched(null);
+					listener.onTrendingChannelsFetched(trendings);
 				}
 			}}, new Action1<Throwable>(){
 
@@ -605,12 +647,12 @@ public class Server {
 		eventsListeners.remove(listener);
 	}
 
-	public static void setCrossbarConnectionListener(CrossbarConnectionListener listener) {
-		crossbarConnectionListener = listener;
+	public static void addCrossbarConnectionListener(CrossbarConnectionListener listener) {
+		connectionListeners.add(listener);
 	}
 
 	public static void removeCrossbarConnectionListener(CrossbarConnectionListener listener) {
-		crossbarConnectionListener = null;
+		connectionListeners.remove(listener);
 	}
 
 	public static boolean isConnected(){
