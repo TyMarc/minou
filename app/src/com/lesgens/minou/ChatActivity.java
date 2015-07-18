@@ -1,6 +1,5 @@
 package com.lesgens.minou;
 
-import java.io.File;
 import java.util.concurrent.Future;
 
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
@@ -14,9 +13,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.provider.MediaStore;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
@@ -32,6 +29,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.desmond.squarecamera.CameraActivity;
 import com.lesgens.minou.adapters.ChatAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
@@ -365,12 +363,8 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	}
 
 	public void takePhoto() {
-		Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
-		File photo = new File(Environment.getExternalStorageDirectory(),  "Pic.jpg");
-		intent.putExtra(MediaStore.EXTRA_OUTPUT,
-				Uri.fromFile(photo));
-		imageUri = Uri.fromFile(photo);
-		startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+		Intent startCustomCameraIntent = new Intent(this, CameraActivity.class);
+		startActivityForResult(startCustomCameraIntent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 	}
 
 	@Override
@@ -386,9 +380,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK) {
-			preparePicture();
-		} else if (requestCode == PICK_IMAGE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK && null != data) {
+		if ((requestCode == PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
 			imageUri = data.getData();
 			preparePicture();
 		}

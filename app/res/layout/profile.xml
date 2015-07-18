@@ -13,7 +13,7 @@
         android:layout_marginRight="30dp"
         android:layout_marginTop="5dp"
         android:background="@drawable/avatar_bg"
-        android:padding="3dp"
+        android:padding="2dp"
         android:scaleType="fitCenter" />
 
     <TextView
