@@ -52,7 +52,7 @@ import android.util.TypedValue;
 public class Utils {
 
 	public static final String MINOU_IMAGE_BASE = "MINOU_IMAGE_BASE:";
-	public static final int MAX_IMAGE_DIMEN = 800;
+	public static final int MAX_IMAGE_DIMEN = 1600;
 	private static final String TAG = "Utils";
 
 	public static int dpInPixels(Context context, int dp) {
