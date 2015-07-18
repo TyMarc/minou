@@ -28,6 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_below="@id/message"
+            android:drawablePadding="5dp"
             android:text="@string/hello_world"
             android:textColor="@color/darker_grey"
             android:textSize="11sp" />
@@ -47,8 +48,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:paddingBottom="5dp"
         android:layout_marginLeft="68dp"
+        android:drawablePadding="5dp"
+        android:paddingBottom="5dp"
         android:text="@string/hello_world"
         android:textColor="@color/white"
         android:textSize="11sp" />

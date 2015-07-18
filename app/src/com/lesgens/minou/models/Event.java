@@ -6,7 +6,7 @@ import java.util.UUID;
 public abstract class Event {
 	
 	
-	private UUID id;
+	protected UUID id;
 	private Timestamp timestamp;
 	private Channel channel;
 	private User sourceUser;

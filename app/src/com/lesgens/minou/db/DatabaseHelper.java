@@ -307,6 +307,19 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		return message;
 	}
 	
+	public byte[] getPictureFromMessageId(String messageId) {
+		SQLiteDatabase db = this.getReadableDatabase();
+		Log.i(TAG, "get Message for messageId=" + messageId);
+
+		Cursor c = db.rawQuery("SELECT data FROM minou_message WHERE message_id = ? ORDER BY timestamp DESC;", new String[]{messageId} );
+		if(c.moveToNext()){
+			byte[] data = c.getBlob(0);
+			return data;
+		}
+		
+		return null;
+	}
+	
 	public void removeAllMessages(final String channel){
 		SQLiteDatabase db = this.getWritableDatabase();
 		

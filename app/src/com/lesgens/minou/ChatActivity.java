@@ -26,6 +26,7 @@ import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -49,7 +50,7 @@ import com.lesgens.minou.utils.ExpandCollapseAnimation;
 import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
 
-public class ChatActivity extends MinouFragmentActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener, CrossbarConnectionListener {
+public class ChatActivity extends MinouFragmentActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener, CrossbarConnectionListener, OnItemClickListener, OnItemLongClickListener {
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 	private static final int PICK_IMAGE_ACTIVITY_REQUEST_CODE = 101;
 	private static final String TAG = "ChannelChatActivity";
@@ -106,7 +107,8 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 		listMessages = (StickyListHeadersListView) findViewById(R.id.list);
 		listMessages.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
-		listMessages.setOnItemLongClickListener(new OnItemLongClickListenerUser());
+		listMessages.setOnItemLongClickListener(this);
+		listMessages.setOnItemClickListener(this);
 
 		networkStateReceiver = new NetworkStateReceiver(this);
 
@@ -156,13 +158,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		if(v.getId() == R.id.send){
 			final String text = editText.getText().toString();
 			if(!text.isEmpty()){
-				Message message = new Message(Controller.getInstance().getMyself(), text, false, SendingStatus.PENDING, MessageType.TEXT);
-				chatAdapter.addMessage(message);
-				chatAdapter.notifyDataSetChanged();
-				Server.sendMessage(message, channelNamespace);
-				DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
-				editText.setText("");
-				scrollMyListViewToBottom();
+				sendMessage(text);
 			}
 		} else if(v.getId() == R.id.back_btn){
 			onBackPressed();
@@ -173,6 +169,16 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		} else if(v.getId() == R.id.public_btn){
 			togglePublicChooser();
 		}
+	}
+
+	private void sendMessage(final String text){
+		Message message = new Message(Controller.getInstance().getMyself(), text, false, SendingStatus.PENDING, MessageType.TEXT);
+		chatAdapter.addMessage(message);
+		chatAdapter.notifyDataSetChanged();
+		Server.sendMessage(message, channelNamespace);
+		DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
+		editText.setText("");
+		scrollMyListViewToBottom();
 	}
 
 	private void showMenuFT(){
@@ -242,7 +248,14 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	}
 
 	private void showLongClickBubblePrivateOrOwn(final Message message){
-		CharSequence fts[] = new CharSequence[] {getResources().getString(R.string.dialog_delete_message)};
+		CharSequence fts[] = null;
+		Log.i(TAG, "My status is=" + message.getStatus());
+
+		if(message.getStatus() != SendingStatus.FAILED){
+			fts = new CharSequence[] {getResources().getString(R.string.dialog_delete_message)};
+		} else {
+			fts = new CharSequence[] {getResources().getString(R.string.dialog_delete_message), getResources().getString(R.string.dialog_retry_message)};
+		}
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.options);
@@ -254,10 +267,23 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 				case 0:
 					deleteMessage(message);
 					break;
+				case 1:
+					retryMessage(message);
+					break;
 				}
 			}
 		});
 		builder.show();
+	}
+
+	private void retryMessage(final Message message){
+		deleteMessage(message);
+
+		if(message.getMsgType() == MessageType.IMAGE){
+			sendPicture(message.getData());
+		} else if(message.getMsgType() == MessageType.TEXT){
+			sendMessage(message.getContent());
+		}
 	}
 
 	private void deleteMessage(final Message message){
@@ -275,7 +301,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		ChatActivity.show(ChatActivity.this);
 		finish();
 	}
-	
+
 	private void togglePublicChooser() {
 		if(!animationOnGoing){
 			if(findViewById(R.id.public_chooser).getVisibility() == View.GONE){
@@ -361,14 +387,14 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK) {
-			addPicture();
+			preparePicture();
 		} else if (requestCode == PICK_IMAGE_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK && null != data) {
 			imageUri = data.getData();
-			addPicture();
+			preparePicture();
 		}
 	}
 
-	private void addPicture(){
+	private void preparePicture(){
 		getContentResolver().notifyChange(imageUri, null);
 
 		new Handler(getMainLooper()).post(new Runnable(){
@@ -381,19 +407,23 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 					final byte[] byteArray = Utils.prepareImageFT(ChatActivity.this, bitmap, imageUri);
 
-					String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
-					Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, false, SendingStatus.PENDING, MessageType.IMAGE);
-					chatAdapter.addMessage(message);
-					chatAdapter.notifyDataSetChanged();
-
-					Server.sendPicture(message, channelNamespace);
-
-					DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
-					scrollMyListViewToBottom();
+					sendPicture(byteArray);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}});
+	}
+
+	private void sendPicture(byte[] byteArray){
+		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
+		Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, false, SendingStatus.PENDING, MessageType.IMAGE);
+		chatAdapter.addMessage(message);
+		chatAdapter.notifyDataSetChanged();
+
+		Server.sendPicture(message, channelNamespace);
+
+		DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
+		scrollMyListViewToBottom();
 	}
 
 	@Override
@@ -415,22 +445,20 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 	}
 
-	private class OnItemLongClickListenerUser implements OnItemLongClickListener{
-
-		@Override
-		public boolean onItemLongClick(final AdapterView<?> arg0, final View arg1,
-				final int arg2, final long arg3) {
-			final Message message = chatAdapter.getItem(arg2);
-			if(message.getUser().getId().equals(Controller.getInstance().getId()) || isPrivate()){
-				showLongClickBubblePrivateOrOwn(message);
-			} else{
-				showLongClickBubble(message);
-			}
-
-			return true;
+	@Override
+	public boolean onItemLongClick(final AdapterView<?> arg0, final View arg1,
+			final int arg2, final long arg3) {
+		final Message message = chatAdapter.getItem(arg2);
+		if(message.getUser().getId().equals(Controller.getInstance().getId()) || isPrivate()){
+			showLongClickBubblePrivateOrOwn(message);
+		} else{
+			showLongClickBubble(message);
 		}
 
+		return true;
 	}
+
+
 
 
 	@Override
@@ -450,7 +478,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			View child=((ViewGroup) findViewById(R.id.bottomBar)).getChildAt(i);
 			child.setEnabled(false);
 		}
-		findViewById(R.id.bottomBar).setBackgroundColor(Color.YELLOW);
+		findViewById(R.id.bottomBar).setBackgroundColor(getResources().getColor(R.color.grey));
 	}
 
 	@Override
@@ -459,13 +487,30 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	}
 
 	@Override
-	public void onConnecting() {
-		// TODO Auto-generated method stub
-		
+	public void onConnecting() {		
 	}
 
 	@Override
 	public void onDisonnected() {
 		tvConnectionProblem.setVisibility(View.VISIBLE);
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> parent, View view, int position,
+			long id) {
+		Message message = chatAdapter.getItem(position);
+
+		if(message != null && message.getMsgType() == MessageType.IMAGE) {
+			ImageViewerActivity.show(this, message.getId().toString());
+		}
+	}
+
+	public void notifyAdapter() {
+		runOnUiThread(new Runnable(){
+
+			@Override
+			public void run() {
+				chatAdapter.notifyDataSetChanged();
+			}});
 	}
 }

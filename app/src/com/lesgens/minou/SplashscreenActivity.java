@@ -98,7 +98,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 		Typeface tf = Typeface.createFromAsset(getAssets(), "fonts/Raleway_Thin.otf");
 		tv.setTypeface(tf);
 
-		if(!isNetworkAvailable()){
+		if(!isNetworkAvailable() && !isFinishing()){
 			new AlertDialog.Builder(this).setPositiveButton(R.string.ok, new OnClickListener(){
 
 				@Override

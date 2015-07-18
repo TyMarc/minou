@@ -10,16 +10,13 @@ import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.lesgens.minou.ImageViewerActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.SendingStatus;
@@ -27,7 +24,7 @@ import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.Utils;
 
-public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHeadersAdapter, OnClickListener{
+public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHeadersAdapter{
 	private Context mContext;
 	private LayoutInflater mInflater = null;
 
@@ -117,7 +114,6 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			holder.picture.setVisibility(View.VISIBLE);
 			Bitmap bitmap = BitmapFactory.decodeByteArray(message.getData(), 0, message.getData().length);
 			holder.picture.setImageBitmap(bitmap);
-			holder.picture.setOnClickListener(this);
 			setImdn(message.getStatus(), holder.timePicture);
 		} else{
 			holder.message.setVisibility(View.VISIBLE);
@@ -151,20 +147,14 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 	
 	private void setImdn(final SendingStatus status, TextView time){
 		switch(status){
-		case SENT:
-			time.setCompoundDrawablesWithIntrinsicBounds(R.drawable.sent, 0, 0, 0);
+		case FAILED:
+			time.setCompoundDrawablesWithIntrinsicBounds(R.drawable.failed, 0, 0, 0);
 			break;
 		case PENDING:
 			time.setCompoundDrawablesWithIntrinsicBounds(R.drawable.pending, 0, 0, 0);
 			break;
-		case READ:
-			time.setCompoundDrawablesWithIntrinsicBounds(R.drawable.read, 0, 0, 0);
-			break;
-		case RECEIVED:
-			time.setCompoundDrawablesWithIntrinsicBounds(R.drawable.sent, 0, 0, 0);
-			break;
 		default:
-			time.setCompoundDrawablesWithIntrinsicBounds(R.drawable.failed, 0, 0, 0);
+			time.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
 			break;
 		}
 	}
@@ -226,14 +216,5 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			//handle the exception according to your own situation
 		}
 		return diff;
-	}
-
-	@Override
-	public void onClick(View v) {
-		if(v instanceof ImageView){
-			ImageView image = (ImageView) v;
-			Bitmap bitmap = ((BitmapDrawable)image.getDrawable()).getBitmap();
-			ImageViewerActivity.show(getContext(), bitmap);
-		}
 	}
 }

@@ -81,11 +81,13 @@
         android:layout_above="@+id/bottomBar"
         android:layout_below="@id/connection_problem"
         StickyListHeadersListView:hasStickyHeaders="false"
+        android:background="@color/white"
         android:cacheColorHint="@android:color/transparent"
         android:divider="@color/transparent"
         android:dividerHeight="10dp"
         android:listSelector="@android:color/transparent"
         android:overScrollMode="never"
+        android:paddingBottom="5dp"
         android:paddingLeft="10dp"
         android:stackFromBottom="true" />
 

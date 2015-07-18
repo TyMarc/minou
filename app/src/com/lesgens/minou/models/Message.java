@@ -1,9 +1,9 @@
 package com.lesgens.minou.models;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.UUID;
 
+import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.listeners.MinouProgressListener;
@@ -14,7 +14,6 @@ import com.lesgens.minou.network.FileManagerS3;
 public class Message extends Event{
 
 	private String content;
-	private ArrayList<UUID> idsMessage;
 	private boolean isIncoming;
 	private byte[] data;
 	private String userId;
@@ -39,8 +38,6 @@ public class Message extends Event{
 		userId = user.getId();
 		this.content = content;
 		this.isIncoming = isIncoming;
-		idsMessage = new ArrayList<UUID>();
-		idsMessage.add(id);
 		this.data = data;
 		this.status = status;
 		this.msgType = msgType;
@@ -67,15 +64,6 @@ public class Message extends Event{
 		return msgType;
 	}
 
-	public void addMessage(String newMessage, UUID id){
-		content = content + "\n" + newMessage;
-		idsMessage.add(id);
-	}
-
-	public ArrayList<UUID> getIdsMessage(){
-		return idsMessage;
-	}
-
 	public byte[] getData(){
 		return data;
 	}
@@ -86,27 +74,23 @@ public class Message extends Event{
 	
 	public void setStatus(SendingStatus status){
 		this.status = status;
+		DatabaseHelper.getInstance().updateMessageData(this);
 	}
 	
 	@Override
 	public boolean equals(Object o) {
 		if(o instanceof Message){
 			Message other = (Message) o;
-			for(UUID id : other.getIdsMessage()){
-				if(idsMessage.contains(id)){
-					return true;
-				}
+			if(other.getId().equals(id)) {
+				return true;
 			}
 		}
 
 		return false;
 	}
 
-	public void setIsIncoming(boolean b) {
-		isIncoming = b;
-	}
-
 	public void setData(byte[] data) {
 		this.data = data;
+		DatabaseHelper.getInstance().updateMessageData(this);
 	}
 }

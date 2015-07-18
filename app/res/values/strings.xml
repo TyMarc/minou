@@ -52,6 +52,7 @@
     <string name="dialog_add_contact">Add contact</string>
     <string name="dialog_add_contact_pm">Add contact and PM</string>
     <string name="dialog_delete_message">Delete message</string>
+    <string name="dialog_retry_message">Retry message</string>
     <string name="empty_privates">You currently don\'t have\nany conversations</string>
     <string name="empty_contacts">You currently don\'t have\nany contacts</string>
     <string name="empty_trending">There is no trending channels\nin this city.</string>

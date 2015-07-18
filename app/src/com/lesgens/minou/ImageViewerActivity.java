@@ -1,41 +1,22 @@
 package com.lesgens.minou;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.ImageView;
 
+import com.lesgens.minou.db.DatabaseHelper;
+
 public class ImageViewerActivity extends MinouActivity implements OnClickListener{
 
-	public static void show(Context context, Bitmap bitmap) {
+	public static void show(Context context, String messageId) {
 		Intent i = new Intent(context, ImageViewerActivity.class);
-		FileOutputStream out = null;
-		try {
-			File file = new File(Environment.getExternalStorageDirectory(),  "Pic.jpg");
-			out = new FileOutputStream(file);
-			bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-			i.putExtra("photoUri", Uri.fromFile(file));
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if (out != null) {
-					out.close();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		i.putExtra("messageId", messageId);
 		context.startActivity(i);
 	}
 
@@ -48,17 +29,15 @@ public class ImageViewerActivity extends MinouActivity implements OnClickListene
 
 		setContentView(R.layout.image_viewer);
 
-		Uri photoUri = getIntent().getParcelableExtra("photoUri");
+		String messageId = getIntent().getStringExtra("messageId");
 
 
-		if(photoUri == null){
+		if(messageId == null){
 			finish();
 		}
-
-		
+		byte[] picture = DatabaseHelper.getInstance().getPictureFromMessageId(messageId);
 		try{
-			Bitmap bitmap = android.provider.MediaStore.Images.Media
-					.getBitmap(getContentResolver(), photoUri);
+			Bitmap bitmap = BitmapFactory.decodeByteArray(picture, 0, picture.length);
 			ImageView imageView = (ImageView) findViewById(R.id.image);
 			imageView.setImageBitmap(bitmap);
 		} catch(Exception e){

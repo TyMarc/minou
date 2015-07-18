@@ -4,10 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
-import android.location.Address;
 import android.os.AsyncTask;
 import android.os.Environment;
 
@@ -18,13 +14,7 @@ import com.amazonaws.mobileconnectors.s3.transfermanager.Upload;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.lesgens.minou.R;
-import com.lesgens.minou.SplashscreenActivity;
-import com.lesgens.minou.application.MinouApplication;
-import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.listeners.MinouProgressListener;
-import com.lesgens.minou.models.Geolocation;
-import com.lesgens.minou.utils.Utils;
 
 public class FileManagerS3 {
 	private static String BUCKET_NAME = "minou";

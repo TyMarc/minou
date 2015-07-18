@@ -7,7 +7,8 @@ import android.util.Log;
 
 import com.amazonaws.event.ProgressEvent;
 import com.amazonaws.event.ProgressListener;
-import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.ChatActivity;
+import com.lesgens.minou.application.MinouApplication;
 import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.network.Server;
@@ -37,10 +38,16 @@ public class MinouProgressListener implements ProgressListener {
 					e.printStackTrace();
 				}
 			}
-			DatabaseHelper.getInstance().updateMessageData(message);
+			
+			if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
+				((ChatActivity) MinouApplication.getCurrentActivity()).notifyAdapter();
+			}
+			
 		} else if(event.getEventCode() == ProgressEvent.FAILED_EVENT_CODE) {
 			message.setStatus(SendingStatus.FAILED);
-			DatabaseHelper.getInstance().updateMessageData(message);
+			if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
+				((ChatActivity) MinouApplication.getCurrentActivity()).notifyAdapter();
+			}
 		}
 	}
 
