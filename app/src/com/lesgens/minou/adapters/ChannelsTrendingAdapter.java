@@ -3,7 +3,6 @@ package com.lesgens.minou.adapters;
 import java.util.ArrayList;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,9 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import com.lesgens.minou.R;
-import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.ChannelTrending;
-import com.lesgens.minou.models.City;
 import com.lesgens.minou.utils.Utils;
 
 public class ChannelsTrendingAdapter extends ArrayAdapter<ChannelTrending>{

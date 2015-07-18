@@ -1,5 +1,7 @@
 package com.lesgens.minou.models;
 
+import com.lesgens.minou.db.DatabaseHelper;
+
 import android.graphics.Bitmap;
 
 public class User extends Channel{
@@ -44,8 +46,9 @@ public class User extends Channel{
 		return false;
 	}
 
-	public void setAvatar(Bitmap avatar) {
+	public void setAvatar(Bitmap avatar, byte[] avatarByteArray, String avatarUrl) {
 		this.avatar = avatar;
+		DatabaseHelper.getInstance().updateAvatar(userId, avatarUrl, avatarByteArray);
 	}
 
 	public void setUsername(String username) {

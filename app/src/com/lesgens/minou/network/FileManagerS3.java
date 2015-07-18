@@ -14,7 +14,7 @@ import com.amazonaws.mobileconnectors.s3.transfermanager.Upload;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.lesgens.minou.listeners.MinouProgressListener;
+import com.lesgens.minou.listeners.MinouDownloadProgressListener;
 
 public class FileManagerS3 {
 	private static String BUCKET_NAME = "minou";
@@ -42,7 +42,7 @@ public class FileManagerS3 {
 		upload.addProgressListener(listener);
 	}
 	
-	public void downloadPicture(final String filename, final MinouProgressListener listener){
+	public void downloadPicture(final String filename, final MinouDownloadProgressListener listener){
 		AsyncTask<Void, Void, Integer> request = new AsyncTask<Void, Void, Integer>() {
 
 			@Override

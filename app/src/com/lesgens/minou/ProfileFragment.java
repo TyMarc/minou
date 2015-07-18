@@ -1,7 +1,5 @@
 package com.lesgens.minou;
 
-import java.io.File;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -10,10 +8,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.provider.MediaStore;
 import android.support.annotation.Nullable;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -21,13 +18,20 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.desmond.squarecamera.CameraActivity;
 import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.listeners.AvatarUploadListener;
+import com.lesgens.minou.listeners.MinouUploadAvatarProgressListener;
+import com.lesgens.minou.listeners.UsernameListener;
+import com.lesgens.minou.network.FileManagerS3;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.utils.AvatarGenerator;
 import com.lesgens.minou.utils.Utils;
 
-public class ProfileFragment extends MinouFragment implements OnClickListener {
+public class ProfileFragment extends MinouFragment implements OnClickListener, AvatarUploadListener, UsernameListener {
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 	private static final int PICK_IMAGE_ACTIVITY_REQUEST_CODE = 101;
 	private Uri imageUri;
@@ -56,38 +60,38 @@ public class ProfileFragment extends MinouFragment implements OnClickListener {
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-			changeAvatar();
-		} else if (requestCode == PICK_IMAGE_ACTIVITY_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
+		if ((requestCode == PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE)
+				&& resultCode == Activity.RESULT_OK) {
 			imageUri = data.getData();
-			changeAvatar();
+			changeAvatar(requestCode);
 		}
 	}
-	
+
 	private void showChangeUsername(){
 		final EditText editUsername = new EditText(getActivity());
 
 		editUsername.setText(Controller.getInstance().getMyself().getUsername());
+		editUsername.setInputType(InputType.TYPE_TEXT_FLAG_CAP_WORDS);
 
 		new AlertDialog.Builder(getActivity())
-		  .setTitle(R.string.change_username)
-		  .setMessage(R.string.enter_username)
-		  .setView(editUsername)
-		  .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-		    public void onClick(DialogInterface dialog, int whichButton) {
-		      String username = editUsername.getText().toString();
-		      if(!username.isEmpty() && !username.equals(Controller.getInstance().getMyself().getUsername())){
-		    	  Server.changeUsername(username);
-		    	  Controller.getInstance().getMyself().setUsername(username);
-		    	  ((TextView) getView().findViewById(R.id.username)).setText(username);
-		      }
-		    }
-		  })
-		  .setNegativeButton(R.string.cancel, null)
-		  .show(); 
+		.setTitle(R.string.change_username)
+		.setMessage(R.string.enter_username)
+		.setView(editUsername)
+		.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int whichButton) {
+				String username = editUsername.getText().toString();
+				if(!username.isEmpty() && !username.equals(Controller.getInstance().getMyself().getUsername())){
+					Server.changeUsername(username, ProfileFragment.this);
+					getView().findViewById(R.id.progress_upload_username).setVisibility(View.VISIBLE);
+					((TextView) getView().findViewById(R.id.username)).setText("");
+				}
+			}
+		})
+		.setNegativeButton(R.string.cancel, null)
+		.show(); 
 	}
 
-	private void changeAvatar(){
+	private void changeAvatar(final int requestCode){
 		getActivity().getContentResolver().notifyChange(imageUri, null);
 
 		new Handler(getActivity().getMainLooper()).post(new Runnable(){
@@ -98,12 +102,17 @@ public class ProfileFragment extends MinouFragment implements OnClickListener {
 					Bitmap bitmap = android.provider.MediaStore.Images.Media
 							.getBitmap(getActivity().getContentResolver(), imageUri);
 					
-					bitmap = Utils.cropToSquare(bitmap);
+					if(requestCode == PICK_IMAGE_ACTIVITY_REQUEST_CODE) {
+						bitmap = Utils.cropToSquare(bitmap);
+					}
 
 					final byte[] byteArray = Utils.prepareImageFT(getActivity(), bitmap, imageUri);
+					String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
 
-					Controller.getInstance().getMyself().setAvatar(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length));
-					((ImageView) getView().findViewById(R.id.avatar)).setImageBitmap(Utils.cropToCircle(Controller.getInstance().getMyself().getAvatar()));
+					MinouUploadAvatarProgressListener listener = new MinouUploadAvatarProgressListener(filename, byteArray, ProfileFragment.this);
+					FileManagerS3.getInstance().uploadPicture(filename, byteArray, listener);
+					getView().findViewById(R.id.progress_upload_picture).setVisibility(View.VISIBLE);
+					((ImageView) getView().findViewById(R.id.avatar)).setImageDrawable(getActivity().getResources().getDrawable(R.drawable.avatar_bg));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -140,25 +149,27 @@ public class ProfileFragment extends MinouFragment implements OnClickListener {
 	}
 
 	private void takePhoto() {
-		Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
-		File photo = new File(Environment.getExternalStorageDirectory(),  "Pic.jpg");
-		intent.putExtra(MediaStore.EXTRA_OUTPUT,
-				Uri.fromFile(photo));
-		imageUri = Uri.fromFile(photo);
-		startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+		Intent startCustomCameraIntent = new Intent(getActivity(), CameraActivity.class);
+		startActivityForResult(startCustomCameraIntent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 	}
-	
+
 	private void pickPicture() {
 		Intent i = new Intent(
 				Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 
 		startActivityForResult(i, PICK_IMAGE_ACTIVITY_REQUEST_CODE);
 	}
-	
+
 	private void generateNewAvatar(){
-		Controller.getInstance().getMyself().setAvatar(AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), 
-				Controller.getInstance().getDimensionAvatar()));
-		((ImageView) getView().findViewById(R.id.avatar)).setImageBitmap(Utils.cropToCircle(Controller.getInstance().getMyself().getAvatar()));
+		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
+		Bitmap bitmap = AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), 
+				Controller.getInstance().getDimensionAvatar());
+		final byte[] byteArray = Utils.prepareImageFT(getActivity(), bitmap, imageUri);
+
+		MinouUploadAvatarProgressListener listener = new MinouUploadAvatarProgressListener(filename, byteArray, this);
+		FileManagerS3.getInstance().uploadPicture(filename, byteArray, listener);
+		getView().findViewById(R.id.progress_upload_picture).setVisibility(View.VISIBLE);
+		((ImageView) getView().findViewById(R.id.avatar)).setImageDrawable(getActivity().getResources().getDrawable(R.drawable.avatar_bg));
 	}
 
 	@Override
@@ -168,6 +179,58 @@ public class ProfileFragment extends MinouFragment implements OnClickListener {
 		} else if(v.getId() == R.id.change_username) {
 			showChangeUsername();
 		}
+	}
+
+	@Override
+	public void onAvatarUploaded(final String avatarUrl, final byte[] bytesAvatar) {
+		getActivity().runOnUiThread(new Runnable(){
+
+			@Override
+			public void run() {
+				getView().findViewById(R.id.progress_upload_picture).setVisibility(View.GONE);
+				Bitmap bitmap = BitmapFactory.decodeByteArray(bytesAvatar, 0, bytesAvatar.length);
+				Controller.getInstance().getMyself().setAvatar(bitmap, bytesAvatar, avatarUrl);
+				((ImageView) getView().findViewById(R.id.avatar)).setImageBitmap(Utils.cropToCircle(Controller.getInstance().getMyself().getAvatar()));
+			}});
+
+	}
+
+	@Override
+	public void onAvatarUploadError() {
+		getActivity().runOnUiThread(new Runnable(){
+
+			@Override
+			public void run() {
+				getView().findViewById(R.id.progress_upload_picture).setVisibility(View.GONE);
+				Toast.makeText(getActivity(), R.string.error_upload_avatar, Toast.LENGTH_SHORT).show();
+				((ImageView) getView().findViewById(R.id.avatar)).setImageBitmap(Utils.cropToCircle(Controller.getInstance().getMyself().getAvatar()));
+			}});
+	}
+
+	@Override
+	public void onUsernameUploaded(final String username) {
+		getActivity().runOnUiThread(new Runnable(){
+
+			@Override
+			public void run() {
+				getView().findViewById(R.id.progress_upload_username).setVisibility(View.GONE);
+				Controller.getInstance().getMyself().setUsername(username);
+				DatabaseHelper.getInstance().updateUsername(Controller.getInstance().getId(), username);
+				((TextView) getView().findViewById(R.id.username)).setText(username);
+			}});
+	}
+
+	@Override
+	public void onUsernameUploadError() {
+		getActivity().runOnUiThread(new Runnable(){
+
+			@Override
+			public void run() {
+				getView().findViewById(R.id.progress_upload_username).setVisibility(View.GONE);
+				Toast.makeText(getActivity(), R.string.error_upload_username, Toast.LENGTH_SHORT).show();
+				((TextView) getView().findViewById(R.id.username)).setText(Controller.getInstance().getMyself().getUsername());
+			}});
+
 	}
 
 }

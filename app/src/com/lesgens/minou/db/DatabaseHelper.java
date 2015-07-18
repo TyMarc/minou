@@ -194,7 +194,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			Log.i(TAG, "found user in cache");
 			if(!user.getUsername().equals(username)){
 				user.setUsername(username);
-				setUsernameForUser(userId, username);
+				updateUsername(userId, username);
 			}
 			
 			return user;
@@ -212,7 +212,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			user = new User(username, Channel.BASE_CHANNEL + userId.replace(".", "_"), avatar, userId, isContact);
 			
 			if(!username.equals(usernameDB)){
-				setUsernameForUser(userId, username);
+				updateUsername(userId, username);
 			}
 			break;
 		}
@@ -227,7 +227,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		return user;
 	}
 	
-	private void addUser(User user){
+	public void addUser(User user){
 		SQLiteDatabase db = this.getWritableDatabase();
 		
 		Log.i(TAG, "adding user to database with userId=" + user.getId() + " and username=" + user.getUsername());
@@ -245,7 +245,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		db.insert("minou_users", null, cv);
 	}
 	
-	public void setUsernameForUser(String userId, String username){
+	public void updateUsername(String userId, String username){
 		SQLiteDatabase db = this.getWritableDatabase();
 		Log.i(TAG, "setting username for userId=" + userId + " for username=" + username);
 
@@ -406,6 +406,27 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 	public void eraseBD(){
 		this.onUpgrade(getWritableDatabase(), 0, 1);
+	}
+	
+	public boolean isAvatarNeededToChange(String userId, String avatarUrl) {
+		SQLiteDatabase db = this.getReadableDatabase();
+
+		Cursor c = db.rawQuery("SELECT COUNT(*) FROM minou_users WHERE userId = ? AND avatarURL = ?;", new String[]{userId, avatarUrl});
+		
+		while(c.moveToNext()){
+			return c.getInt(0) > 0;
+		}
+		
+		return true;		
+	}
+	
+	public void updateAvatar(String userId, String avatarUrl, byte[] avatar) {
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		ContentValues cv = new ContentValues();
+		cv.put("avatarURL", avatarUrl);
+		cv.put("avatar", avatar);
+		db.update("minou_users", cv, "userId = ?", new String[]{userId});
 	}
 
 	public boolean isContact(String userId) {

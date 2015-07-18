@@ -125,7 +125,7 @@ public class Controller {
 	}
 	
 	public void setDimensionAvatar(final Context context){
-		dimensionAvatar = Utils.dpInPixels(context, 50);
+		dimensionAvatar = Utils.dpInPixels(context, 100);
 	}
 
 	public int getDimensionAvatar() {

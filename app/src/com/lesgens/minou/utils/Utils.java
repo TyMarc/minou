@@ -37,6 +37,7 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff.Mode;
@@ -160,6 +161,8 @@ public class Utils {
 		}
 
 		image = rotateImageIfRequired(context, image, selectedImage);
+		
+		image = putWhiteBackground(image);
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		image.compress(CompressFormat.JPEG, 70, bos);
@@ -168,6 +171,16 @@ public class Utils {
 		Log.i(TAG, "Scaled down image size= " + bos.size()/1024 + "kb");
 
 		return bos.toByteArray();
+	}
+	
+	private static Bitmap putWhiteBackground(final Bitmap image) {
+		Bitmap newBitmap = Bitmap.createBitmap(image.getWidth(), image.getHeight(), image.getConfig());
+		Canvas canvas = new Canvas(newBitmap);
+		canvas.drawColor(Color.WHITE);
+		canvas.drawBitmap(image, 0, 0, null);
+		image.recycle();
+		
+		return newBitmap;
 	}
 
 	public static String getNormalizedString(final String str){

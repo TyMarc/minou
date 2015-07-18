@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <color name="main_color">#FF5722</color>
     <color name="dark_main_color">#D84315</color>
     <color name="light_main_color">#FF7043</color>
@@ -17,7 +18,7 @@
     <color name="dark_red">#CC5252</color>
     <color name="faded_white">#26FFFFFF</color>
     <color name="dark_grey">#666666</color>
-     <color name="bg_color_transparent">#AA000000</color>
+    <color name="bg_color_transparent">#AA000000</color>
     <color name="bg_overlay">#99000000</color>
     <color name="bg_chat">#F0F7FF</color>
     <color name="bg_main">@color/brown_light</color>
@@ -37,4 +38,8 @@
     <color name="blue_link">#FF3366BB</color>
 
     <!-- /Blue -->
+
+    <color name="pressed_red">#B3F0001D</color>
+    <color name="pressed_white">#99FFFFFF</color>
+
 </resources>

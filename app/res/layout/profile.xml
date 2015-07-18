@@ -2,78 +2,82 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/main_color" >
+    android:background="@color/white" >
 
-    <TextView
-        android:id="@+id/username_desc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <ImageView
+        android:id="@+id/avatar"
+        android:layout_width="400dp"
+        android:layout_height="400dp"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
-        android:text="@string/username"
-        android:textColor="@color/white"
-        android:textSize="18sp" />
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/avatar_bg"
+        android:padding="3dp"
+        android:scaleType="fitCenter" />
 
     <TextView
         android:id="@+id/username"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/username_desc"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="5dp"
-        android:text="@string/username"
-        android:textColor="@color/white"
-        android:textSize="16sp" />
-
-    <TextView
-        android:id="@+id/change_username"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/username"
-        android:layout_centerHorizontal="true"
-        android:elevation="1dp"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/fb_login_bg_sel"
-        android:gravity="center_vertical"
-        android:padding="10dp"
-        android:text="@string/change_username"
-        android:textColor="@color/white"
-        android:textSize="16sp" />
-
-    <TextView
-        android:id="@+id/avatar_desc"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/change_username"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
-        android:text="@string/avatar"
-        android:textColor="@color/white"
-        android:textSize="18sp" />
-
-    <ImageView
-        android:id="@+id/avatar"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_below="@id/avatar_desc"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="5dp"
-        android:background="@drawable/avatar_bg"
-        android:scaleType="fitCenter" />
-
-    <TextView
-        android:id="@+id/change_picture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_below="@id/avatar"
         android:layout_centerHorizontal="true"
-        android:elevation="1dp"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/fb_login_bg_sel"
-        android:gravity="center_vertical"
-        android:padding="10dp"
-        android:text="@string/change_picture"
-        android:textColor="@color/white"
-        android:textSize="16sp" />
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="-30dp"
+        android:gravity="center"
+        android:text="@string/username"
+        android:textColor="@color/dark_grey"
+        android:textSize="28sp" />
+
+    <ProgressBar
+        android:id="@+id/progress_upload_picture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/avatar"
+        android:layout_alignLeft="@+id/avatar"
+        android:layout_alignRight="@+id/avatar"
+        android:layout_alignTop="@+id/avatar"
+        android:layout_margin="20dp"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/progress_upload_username"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/username"
+        android:layout_alignLeft="@+id/username"
+        android:layout_alignRight="@+id/username"
+        android:layout_alignTop="@+id/username"
+        android:visibility="gone" />
+
+    <RelativeLayout
+        android:id="@+id/bottom_bar"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/light_main_color" >
+
+        <TextView
+            android:id="@+id/change_username"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/gen_sel"
+            android:gravity="center_vertical"
+            android:padding="8dp"
+            android:text="@string/change_username"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:id="@+id/change_picture"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/gen_sel"
+            android:gravity="center_vertical"
+            android:padding="8dp"
+            android:text="@string/change_picture"
+            android:textColor="@color/white" />
+    </RelativeLayout>
 
 </RelativeLayout>

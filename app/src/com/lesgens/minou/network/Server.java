@@ -42,11 +42,14 @@ import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.Roles;
 import com.lesgens.minou.enums.SendingStatus;
+import com.lesgens.minou.listeners.AvatarUploadListener;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
-import com.lesgens.minou.listeners.MinouProgressListener;
+import com.lesgens.minou.listeners.MinouDownloadAvatarProgressListener;
+import com.lesgens.minou.listeners.MinouUploadPictureProgressListener;
 import com.lesgens.minou.listeners.TrendingChannelsListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
+import com.lesgens.minou.listeners.UsernameListener;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.ChannelTrending;
 import com.lesgens.minou.models.City;
@@ -443,8 +446,7 @@ public class Server {
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName);
-		FileManagerS3.getInstance().uploadPicture(message.getContent(), message.getData(), new MinouProgressListener(message, channelNamespace));
-		
+		FileManagerS3.getInstance().uploadPicture(message.getContent(), message.getData(), new MinouUploadPictureProgressListener(message, channelNamespace));
 	}
 	
 	public static void publishPicture(final Message message, final String channelNamespace){
@@ -505,7 +507,12 @@ public class Server {
 					Log.i(TAG, "User=" + msg);
 					final String userId = msg.get("id").asText();
 					final String username = msg.get("user_name").asText();
-					DatabaseHelper.getInstance().setUsernameForUser(userId, username);
+					final String avatarUrl = msg.get("avatar").asText();
+					if(DatabaseHelper.getInstance().isAvatarNeededToChange(userId, avatarUrl)) {
+						MinouDownloadAvatarProgressListener listener = new MinouDownloadAvatarProgressListener(userId, avatarUrl);
+						FileManagerS3.getInstance().downloadPicture(avatarUrl, listener);
+					}
+					DatabaseHelper.getInstance().updateUsername(userId, username);
 				}
 
 			}}, new Action1<Throwable>(){
@@ -673,7 +680,7 @@ public class Server {
 		return isConnected;
 	}
 
-	public static void changeUsername(String newUsername) {
+	public static void changeUsername(final String newUsername, final UsernameListener listener) {
 		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
 
 			@Override
@@ -692,11 +699,56 @@ public class Server {
 			protected void onPostExecute(String result) {
 				super.onPostExecute(result);
 				Log.i(TAG, "Auth response's json: "+ result);
+				
+				if(result == null || result.contains("error")) {
+					if(listener != null) {
+						listener.onUsernameUploadError();
+					}
+				} else {
+					if(listener != null) {
+						listener.onUsernameUploaded(newUsername);
+					}
+				}
 			}
 
 		};
 		request.execute(newUsername, Controller.getInstance().getToken());
-	}  
+	}
+	
+	public static void changeAvatar(final String avatarUrl, final byte[] avatar, final AvatarUploadListener listener) {
+		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
+
+			@Override
+			protected String doInBackground(String... arg0) {
+				String finalAddress = address + "me";
+				List<NameValuePair> data = new ArrayList<NameValuePair>();
+				data.add(new BasicNameValuePair("avatar", arg0[0]));
+				Log.i(TAG, "New avatar url: " + arg0[0]);
+				List<NameValuePair> headers = new ArrayList<NameValuePair>();
+				headers.add(new BasicNameValuePair("X-User-Token", arg0[1]));
+				HTTPRequest request = new HTTPRequest(finalAddress, RequestType.PUT, data, headers);
+				return request.getOutput();
+			}
+
+			@Override
+			protected void onPostExecute(String result) {
+				super.onPostExecute(result);
+				Log.i(TAG, "Auth response's json: "+ result);
+				
+				if(result == null || result.contains("error")){
+					if(listener != null){
+						listener.onAvatarUploadError();
+					}
+				} else {
+					if(listener != null){
+						listener.onAvatarUploaded(avatarUrl, avatar);
+					}
+				}
+			}
+
+		};
+		request.execute(avatarUrl, Controller.getInstance().getToken());
+	}
 
 	public static void getMyself() {
 		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
@@ -740,6 +792,15 @@ public class Server {
 		}
 		reader.endObject();
 		reader.close();
-		Controller.getInstance().setMyOwnUser(new User(userName, Channel.BASE_CHANNEL + Controller.getInstance().getId(), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), Controller.getInstance().getId(), false));
+		User user = DatabaseHelper.getInstance().getUser(Controller.getInstance().getId());
+		
+		if(!user.getUsername().equals(Controller.getInstance().getId())){
+			Log.i(TAG, "Setting user from cache");
+			Controller.getInstance().setMyOwnUser(user);
+		} else{
+			user = new User(userName, Channel.BASE_CHANNEL + Controller.getInstance().getId(), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), Controller.getInstance().getId(), false);
+			Controller.getInstance().setMyOwnUser(user);
+			DatabaseHelper.getInstance().addUser(user);
+		}
 	}
 }
