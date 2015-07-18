@@ -1,7 +1,5 @@
 package com.lesgens.minou;
 
-import java.io.File;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -10,9 +8,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.provider.MediaStore;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +18,7 @@ import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.desmond.squarecamera.CameraActivity;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.MessageType;
@@ -152,11 +149,7 @@ public class ContactDialogFragment extends DialogFragment implements OnClickList
 	}
 
 	public void takePhoto() {
-		Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
-		File photo = new File(Environment.getExternalStorageDirectory(),  "Pic.jpg");
-		intent.putExtra(MediaStore.EXTRA_OUTPUT,
-				Uri.fromFile(photo));
-		imageUri = Uri.fromFile(photo);
+		Intent intent = new Intent(getActivity(), CameraActivity.class);
 		startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 	}
 
