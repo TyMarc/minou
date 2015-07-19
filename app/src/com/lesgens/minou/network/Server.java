@@ -54,6 +54,7 @@ import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.ChannelTrending;
 import com.lesgens.minou.models.City;
 import com.lesgens.minou.models.Message;
+import com.lesgens.minou.models.Topic;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.HTTPRequest.RequestType;
 import com.lesgens.minou.utils.AvatarGenerator;
@@ -260,7 +261,7 @@ public class Server {
 			return;
 		}
 
-		final Channel channel = createChannel(context, channelName);
+		final Channel channel = createChannelTopic(context, channelName);
 
 		Controller.getInstance().getChannelsContainer().addSubscription(channel);
 
@@ -279,11 +280,13 @@ public class Server {
 		getLastPrivateMessages(userToAdd);
 	}
 
-	private static Channel createChannel(final Context context, final String channelName){
+	private static Topic createChannelTopic(final Context context, final String channelName){
 		final String fullChannelName = Utils.getNormalizedString(channelName);
 		Log.i(TAG, "Subscribing to: " + fullChannelName);		
 		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName);
-		final Channel channel = new Channel(fullChannelName, channelSubscription);
+		final Topic topic = new Topic(fullChannelName, channelSubscription);
+		String parentNamespace = fullChannelName.substring(0, fullChannelName.lastIndexOf("."));
+		topic.setParentName(parentNamespace.substring(parentNamespace.lastIndexOf(".") + 1));
 		channelSubscription.forEach(new Action1<PubSubData>(){
 
 			@Override
@@ -297,12 +300,12 @@ public class Server {
 
 				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getId());
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-				Message m = new Message(user, content, user.getName(), channel, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+				Message m = new Message(user, content, user.getName(), topic, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
 
 				
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
-					if(channel.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
+					if(topic.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
 						isGoodChannel = true;
 					}
 				}
@@ -315,7 +318,7 @@ public class Server {
 								|| m.getContent().toLowerCase().contains(Controller.getInstance().getMyself().getUsername().toLowerCase()))
 								&& isIncoming){
 					Log.i(TAG, "Application not visible, should send notification");
-					NotificationHelper.notify(context, channel, user, content);
+					NotificationHelper.notify(context, topic, user, content);
 				}
 			}}, new Action1<Throwable>() {
 
@@ -326,7 +329,7 @@ public class Server {
 
 
 
-		return channel;
+		return topic;
 	}
 
 	private static City createChannelCity(final Context context, final String channelName){

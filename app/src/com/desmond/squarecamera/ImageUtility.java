@@ -103,7 +103,8 @@ public class ImageUtility {
         return fileContentUri;
     }
 
-    public static Bitmap decodeSampledBitmapFromPath(String path, int reqWidth, int reqHeight) {
+    @SuppressWarnings("deprecation")
+	public static Bitmap decodeSampledBitmapFromPath(String path, int reqWidth, int reqHeight) {
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         options.inMutable = true;
@@ -120,7 +121,8 @@ public class ImageUtility {
     /**
      * Decode and sample down a bitmap from a byte stream
      */
-    public static Bitmap decodeSampledBitmapFromByte(Context context, byte[] bitmapBytes) {
+    @SuppressWarnings("deprecation")
+	public static Bitmap decodeSampledBitmapFromByte(Context context, byte[] bitmapBytes) {
         Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 
         int reqWidth, reqHeight;

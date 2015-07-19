@@ -15,26 +15,23 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
-import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.GridView;
 
-import com.lesgens.minou.adapters.ChannelsAdapter;
+import com.lesgens.minou.adapters.TopicsAdapter;
 import com.lesgens.minou.controllers.Controller;
-import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.City;
-import com.lesgens.minou.models.User;
-import com.lesgens.minou.utils.Utils;
+import com.lesgens.minou.models.Topic;
 
-public class PublicChannelChooserFragment extends MinouFragment implements OnClickListener, OnItemClickListener, OnItemLongClickListener {
+public class TopicsFragment extends MinouFragment implements OnClickListener, OnItemClickListener, OnItemLongClickListener {
 	private static final int REQUEST_ADD_CHANNEL = 101;
 	private static final int REQUEST_ADD_LOCATION= 102;
-	private ListView listView;
-	private ChannelsAdapter adapter;
-	
-	public static PublicChannelChooserFragment createFragmentWithoutBottomBar(){
-		PublicChannelChooserFragment fragment = new PublicChannelChooserFragment();
+	private GridView gridView;
+	private TopicsAdapter adapter;
+
+	public static TopicsFragment createFragmentWithoutBottomBar(){
+		TopicsFragment fragment = new TopicsFragment();
 		Bundle b = new Bundle();
 		b.putBoolean("hideBottomBar", true);
 		fragment.setArguments(b);
@@ -46,18 +43,17 @@ public class PublicChannelChooserFragment extends MinouFragment implements OnCli
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.public_channels, container, false);
 
-		listView = (ListView) v.findViewById(R.id.list);
-		listView.setOnItemLongClickListener(this);
-		listView.setOnItemClickListener(this);
-		
+		gridView = (GridView) v.findViewById(R.id.list);
+		gridView.setOnItemLongClickListener(this);
+		gridView.setOnItemClickListener(this);
+
 		if(getArguments() != null && getArguments().getBoolean("hideBottomBar", false)){
 			v.findViewById(R.id.bottom_bar).setVisibility(View.GONE);
 			v.findViewById(R.id.list).getLayoutParams().width = LayoutParams.WRAP_CONTENT;
 		}
-		
+
 		v.findViewById(R.id.add_channel).setOnClickListener(this);
 		v.findViewById(R.id.add_location).setOnClickListener(this);
-		v.findViewById(R.id.current_city).setOnClickListener(this);
 
 		return v;
 	}
@@ -78,16 +74,8 @@ public class PublicChannelChooserFragment extends MinouFragment implements OnCli
 	}
 
 	public void refreshList(){
-		if(Controller.getInstance().getCurrentChannel() == null || Controller.getInstance().getCurrentChannel() instanceof User){
-			Controller.getInstance().setCurrentChannel(PreferencesController.getDefaultChannel(getActivity()));
-		} else if(!(Controller.getInstance().getCurrentChannel() instanceof City)){
-			Controller.getInstance().setCurrentChannel(Controller.getInstance().getCurrentChannel().getParent());
-		}
-		
-		((TextView) getView().findViewById(R.id.current_city)).setText(Utils.capitalizeFirstLetters(Controller.getInstance().getCurrentChannel().getName()));
-
-		adapter = new ChannelsAdapter(getActivity(), Controller.getInstance().getCurrentChannel().getChannels());
-		listView.setAdapter(adapter);
+		adapter = new TopicsAdapter(getActivity(), Controller.getInstance().getChannelsContainer().getTopics());
+		gridView.setAdapter(adapter);
 	}
 
 	@Override
@@ -103,7 +91,7 @@ public class PublicChannelChooserFragment extends MinouFragment implements OnCli
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
-				final Channel channel = adapter.getItem(arg2);
+				final Topic channel = adapter.getItem(arg2);
 				DatabaseHelper.getInstance().removePublicChannel(channel.getNamespace());
 				DatabaseHelper.getInstance().removeAllMessages(channel.getNamespace());
 				adapter.remove(channel);
@@ -123,11 +111,6 @@ public class PublicChannelChooserFragment extends MinouFragment implements OnCli
 			AddAChannelActivity.show(getActivity(), Controller.getInstance().getCurrentChannel().getNamespace(), REQUEST_ADD_CHANNEL);
 		} else if(v.getId() == R.id.add_location){
 			AddAChannelActivity.show(getActivity(), Controller.getInstance().getCurrentChannel().getNamespace(), REQUEST_ADD_LOCATION);
-		} else if(v.getId() == R.id.current_city) {
-			if(Controller.getInstance().getCurrentChannel().getParent() != null){
-				Controller.getInstance().setCurrentChannel(Controller.getInstance().getCurrentChannel().getParent());
-				refreshList();
-			}
 		}
 	}
 
@@ -135,15 +118,11 @@ public class PublicChannelChooserFragment extends MinouFragment implements OnCli
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		Channel channel = adapter.getItem(position);
 		Log.i("PublicChannelChooserFragment", "Is it a city=" + (channel instanceof City));
-		
-		if(channel instanceof City) {
-			Controller.getInstance().setCurrentChannel(channel);
-			refreshList();
-		} else{
-			Controller.getInstance().setCurrentChannel(channel);
-			ChatActivity.show(getActivity());
-			getActivity().finish();
-		}
+
+		Controller.getInstance().setCurrentChannel(channel);
+		ChatActivity.show(getActivity());
+		getActivity().finish();
+
 	}
 
 }

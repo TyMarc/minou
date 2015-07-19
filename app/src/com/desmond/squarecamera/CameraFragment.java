@@ -12,7 +12,6 @@ import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Size;
 import android.hardware.SensorManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -391,7 +390,6 @@ public class CameraFragment extends Fragment implements SurfaceHolder.Callback, 
 
         switch (requestCode) {
             case 1:
-                Uri imageUri = data.getData();
                 break;
 
             default:

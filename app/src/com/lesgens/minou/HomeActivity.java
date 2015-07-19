@@ -28,8 +28,8 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 	private ViewPager mViewPager;
 	private ArrayList<MinouFragment> fragments;
 	private int selectedPosition;
-	private PrivateChannelChooserFragment privateChannelChooserFragment;
-	private PublicChannelChooserFragment publicChannelChooserFragment;
+	private ConversationsFragment privateChannelChooserFragment;
+	private TopicsFragment publicChannelChooserFragment;
 	private ProfileFragment profileFragment;
 	private ContactsFragment contactsFragment;
 	private SlidingTabLayout tabs;
@@ -51,11 +51,11 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 		setContentView(R.layout.home);
 
 		fragments = new ArrayList<MinouFragment>();
-		privateChannelChooserFragment = new PrivateChannelChooserFragment();
+		privateChannelChooserFragment = new ConversationsFragment();
 		fragments.add(privateChannelChooserFragment);
 		contactsFragment = new ContactsFragment();
 		fragments.add(contactsFragment);
-		publicChannelChooserFragment = new PublicChannelChooserFragment();
+		publicChannelChooserFragment = new TopicsFragment();
 		fragments.add(publicChannelChooserFragment);
 		profileFragment = new ProfileFragment();
 		fragments.add(profileFragment);

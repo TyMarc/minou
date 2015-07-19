@@ -7,29 +7,48 @@
         android:id="@+id/top_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/dark_main_color"
         android:orientation="vertical" >
 
-        <TextView
-            android:id="@+id/current_city"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="fill_parent"
             android:layout_height="40dp"
-            android:background="@drawable/gen_sel"
-            android:drawableLeft="@drawable/up_arrow"
-            android:drawablePadding="5dp"
-            android:gravity="center_vertical"
-            android:padding="10dp"
-            android:text="@string/hello_world"
-            android:textColor="@color/white" />
+            android:layout_margin="8dp"
+            android:background="@drawable/rounded_edittext"
+            android:orientation="horizontal" >
+
+            <EditText
+                android:id="@+id/editText"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:inputType="textCapSentences"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:windowSoftInputMode="stateHidden" />
+
+            <ImageView
+                android:id="@+id/search_btn"
+                android:layout_width="60dp"
+                android:layout_height="fill_parent"
+                android:layout_toRightOf="@id/editText"
+                android:layout_weight="1"
+                android:background="@drawable/gen_sel"
+                android:src="@drawable/search" />
+        </LinearLayout>
     </LinearLayout>
 
-    <ListView
+    <GridView
         android:id="@+id/list"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_above="@+id/bottom_bar"
         android:layout_below="@id/top_bar"
-        android:dividerHeight="1px" />
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:horizontalSpacing="10dp"
+        android:numColumns="2"
+        android:verticalSpacing="10dp" />
 
     <RelativeLayout
         android:id="@+id/bottom_bar"

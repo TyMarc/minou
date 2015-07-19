@@ -12,7 +12,7 @@ import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.Utils;
 
 public class Controller {
-	private static final String TAG = "Controller";
+	//private static final String TAG = "Controller";
 	private Session session;
 	private User myselfUser;
 	private String secret;

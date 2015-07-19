@@ -15,10 +15,10 @@ import android.view.SurfaceView;
 /**
  *
  */
+@SuppressWarnings("deprecation")
 public class SquareCameraPreview extends SurfaceView {
 
     public static final String TAG = SquareCameraPreview.class.getSimpleName();
-    private static final int INVALID_POINTER_ID = -1;
 
     private static final int ZOOM_OUT = 0;
     private static final int ZOOM_IN = 1;
@@ -29,7 +29,7 @@ public class SquareCameraPreview extends SurfaceView {
     private static final int FOCUS_MIN_BOUND = -FOCUS_MAX_BOUND;
 
     private static final double ASPECT_RATIO = 3.0 / 4.0;
-    private Camera mCamera;
+	private Camera mCamera;
 
     private float mLastTouchX;
     private float mLastTouchY;
@@ -37,7 +37,6 @@ public class SquareCameraPreview extends SurfaceView {
     // For scaling
     private int mMaxZoom;
     private boolean mIsZoomSupported;
-    private int mActivePointerId = INVALID_POINTER_ID;
     private int mScaleFactor = 1;
     private ScaleGestureDetector mScaleDetector;
 
@@ -118,15 +117,12 @@ public class SquareCameraPreview extends SurfaceView {
 
                 mLastTouchX = event.getX();
                 mLastTouchY = event.getY();
-
-                mActivePointerId = event.getPointerId(0);
                 break;
             }
             case MotionEvent.ACTION_UP: {
                 if (mIsFocus) {
                     handleFocus(mCamera.getParameters());
                 }
-                mActivePointerId = INVALID_POINTER_ID;
                 break;
             }
             case MotionEvent.ACTION_POINTER_DOWN: {
@@ -135,7 +131,6 @@ public class SquareCameraPreview extends SurfaceView {
                 break;
             }
             case MotionEvent.ACTION_CANCEL: {
-                mActivePointerId = INVALID_POINTER_ID;
                 break;
             }
         }

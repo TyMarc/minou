@@ -17,7 +17,6 @@ public class ChannelsTrendingAdapter extends ArrayAdapter<ChannelTrending>{
 	private Context mContext;
 	private LayoutInflater mInflater = null;
 	private int normalColor;
-	private int lightColor;
 	private int addedPadding;
 	private int baseLeftPadding;
 	private int baseRightPadding;
@@ -29,7 +28,6 @@ public class ChannelsTrendingAdapter extends ArrayAdapter<ChannelTrending>{
 		mContext = context;     
 		channels = chatValue;
 		normalColor = context.getResources().getColor(R.color.main_color);
-		lightColor = context.getResources().getColor(R.color.light_main_color);
 		addedPadding = Utils.dpInPixels(context, 20);
 		baseLeftPadding = Utils.dpInPixels(context, 30);
 		baseRightPadding = Utils.dpInPixels(context, 20);

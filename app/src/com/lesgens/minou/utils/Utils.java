@@ -90,6 +90,7 @@ public class Utils {
 		paint.setColor(color);
 		canvas.drawCircle(bitmap.getWidth() / 2,
 				bitmap.getHeight() / 2, bitmap.getWidth() / 2, paint);
+		
 		paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
 		canvas.drawBitmap(bitmap, rect, rect, paint);
 		return output;
@@ -246,7 +247,7 @@ public class Utils {
 	private static final String HASH_ALGORITHM = "HmacSHA256";
 
 	public static String getNameFromNamespace(String namespace) {
-		return namespace.substring(namespace.lastIndexOf(".") + 1);
+		return namespace.substring(namespace.lastIndexOf(".") + 1).replace("_", " ");
 	}
 
 	public static Address getFromLocation(double lat, double lng) {

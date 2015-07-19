@@ -40,6 +40,20 @@ public class Channel {
 	public String getNamespace(){
 		return namespace;
 	}
+	
+	public ArrayList<Topic> getTopics(){
+		ArrayList<Topic> topics = new ArrayList<Topic>();
+		
+		for(Channel c : channels) {
+			if(c instanceof Topic) {
+				topics.add((Topic) c);
+			}
+			
+			topics.addAll(c.getTopics());
+		}
+		
+		return topics;
+	}
 
 	public ArrayList<Channel> getChannels(){
 		return channels;

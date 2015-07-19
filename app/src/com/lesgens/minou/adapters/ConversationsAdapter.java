@@ -20,7 +20,7 @@ import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.Utils;
 
-public class PrivateChannelsAdapter extends ArrayAdapter<String>{
+public class ConversationsAdapter extends ArrayAdapter<String>{
 	private Context mContext;
 	private LayoutInflater mInflater = null;
 	private SimpleDateFormat sdfMessage = new SimpleDateFormat("HH:mm");
@@ -32,7 +32,7 @@ public class PrivateChannelsAdapter extends ArrayAdapter<String>{
 
 	private ArrayList<String> usersId;
 
-	public PrivateChannelsAdapter(Context context, ArrayList<String> usersId) {  
+	public ConversationsAdapter(Context context, ArrayList<String> usersId) {  
 		super(context,R.layout.private_channel_item, usersId);
 		mContext = context;     
 		sameYear = Calendar.getInstance();

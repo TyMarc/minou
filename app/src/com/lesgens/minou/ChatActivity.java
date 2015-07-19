@@ -61,7 +61,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	private NetworkStateReceiver networkStateReceiver;
 	private Uri imageUri;
 	private String channelNamespace;
-	private PublicChannelChooserFragment publicChooserFragment;
+	private TopicsFragment publicChooserFragment;
 	private boolean animationOnGoing;
 
 	public static void show(final Context context){
@@ -78,7 +78,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 		setContentView(R.layout.chat);
 
-		publicChooserFragment = PublicChannelChooserFragment.createFragmentWithoutBottomBar();
+		publicChooserFragment = TopicsFragment.createFragmentWithoutBottomBar();
 
 		channelTextView = (TextView) findViewById(R.id.channel_name);
 

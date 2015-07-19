@@ -14,14 +14,14 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 
-import com.lesgens.minou.adapters.PrivateChannelsAdapter;
+import com.lesgens.minou.adapters.ConversationsAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.User;
 
-public class PrivateChannelChooserFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener, android.view.View.OnClickListener {
+public class ConversationsFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener, android.view.View.OnClickListener {
 	private ListView listView;
-	private PrivateChannelsAdapter adapter;
+	private ConversationsAdapter adapter;
 	private ContactPickerFragment contactPickerFragment;
 
 	@Override
@@ -84,7 +84,7 @@ public class PrivateChannelChooserFragment extends MinouFragment implements OnIt
 	}
 
 	public void refreshList() {
-		adapter = new PrivateChannelsAdapter(getActivity(), DatabaseHelper.getInstance().getPrivateChannels());
+		adapter = new ConversationsAdapter(getActivity(), DatabaseHelper.getInstance().getPrivateChannels());
 		listView.setAdapter(adapter);
 	}
 
