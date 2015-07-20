@@ -1,4 +1,4 @@
-package com.lesgens.minou;
+package com.lesgens.minou.fragments;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.desmond.squarecamera.CameraActivity;
+import com.lesgens.minou.R;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.listeners.AvatarUploadListener;
@@ -110,7 +111,7 @@ public class ProfileFragment extends MinouFragment implements OnClickListener, A
 					String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
 
 					MinouUploadAvatarProgressListener listener = new MinouUploadAvatarProgressListener(filename, byteArray, ProfileFragment.this);
-					FileManagerS3.getInstance().uploadPicture(filename, byteArray, listener);
+					FileManagerS3.getInstance().uploadFile(filename, byteArray, listener);
 					getView().findViewById(R.id.progress_upload_picture).setVisibility(View.VISIBLE);
 					((ImageView) getView().findViewById(R.id.avatar)).setImageDrawable(getActivity().getResources().getDrawable(R.drawable.avatar_bg));
 				} catch (Exception e) {
@@ -167,7 +168,7 @@ public class ProfileFragment extends MinouFragment implements OnClickListener, A
 		final byte[] byteArray = Utils.prepareImageFT(getActivity(), bitmap, imageUri);
 
 		MinouUploadAvatarProgressListener listener = new MinouUploadAvatarProgressListener(filename, byteArray, this);
-		FileManagerS3.getInstance().uploadPicture(filename, byteArray, listener);
+		FileManagerS3.getInstance().uploadFile(filename, byteArray, listener);
 		getView().findViewById(R.id.progress_upload_picture).setVisibility(View.VISIBLE);
 		((ImageView) getView().findViewById(R.id.avatar)).setImageDrawable(getActivity().getResources().getDrawable(R.drawable.avatar_bg));
 	}

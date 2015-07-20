@@ -1,5 +1,7 @@
 package com.lesgens.minou;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.Future;
 
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
@@ -36,6 +38,7 @@ import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
+import com.lesgens.minou.fragments.TopicsFragment;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.models.Event;
@@ -51,6 +54,8 @@ import com.lesgens.minou.utils.Utils;
 public class ChatActivity extends MinouFragmentActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener, CrossbarConnectionListener, OnItemClickListener, OnItemLongClickListener {
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 	private static final int PICK_IMAGE_ACTIVITY_REQUEST_CODE = 101;
+	private static final int CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE = 102;
+	private static final int PICK_VIDEO_ACTIVITY_REQUEST_CODE = 103;
 	private static final String TAG = "ChannelChatActivity";
 	private ChatAdapter chatAdapter;
 	private StickyListHeadersListView listMessages;
@@ -73,7 +78,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		//Remove title bar
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		setContentView(R.layout.chat);
@@ -180,7 +184,9 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	}
 
 	private void showMenuFT(){
-		CharSequence fts[] = new CharSequence[] {getResources().getString(R.string.take_picture), getResources().getString(R.string.pick_picture)};
+		CharSequence fts[] = new CharSequence[] {getResources().getString(R.string.take_picture), 
+				getResources().getString(R.string.pick_picture), getResources().getString(R.string.take_video), 
+				getResources().getString(R.string.pick_video)};
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.file_transfer);
@@ -193,6 +199,12 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 					break;
 				case 1:
 					pickPicture();
+					break;
+				case 2:
+					takeVideo();
+					break;
+				case 3:
+					pickVideo();
 					break;
 				}
 			}
@@ -362,9 +374,22 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		startActivityForResult(i, PICK_IMAGE_ACTIVITY_REQUEST_CODE);
 	}
 
+	public void pickVideo() {
+		Intent i = new Intent(
+				Intent.ACTION_PICK, android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+
+		startActivityForResult(i, PICK_VIDEO_ACTIVITY_REQUEST_CODE);
+	}
+
 	public void takePhoto() {
 		Intent startCustomCameraIntent = new Intent(this, CameraActivity.class);
 		startActivityForResult(startCustomCameraIntent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+	}
+
+	public void takeVideo() {
+		Intent i = new Intent(android.provider.MediaStore.ACTION_VIDEO_CAPTURE);
+
+		startActivityForResult(i, CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE);
 	}
 
 	@Override
@@ -383,7 +408,28 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		if ((requestCode == PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
 			imageUri = data.getData();
 			preparePicture();
+		} else if ((requestCode == PICK_VIDEO_ACTIVITY_REQUEST_CODE || requestCode == CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
+			imageUri = data.getData();
+			prepareVideo();
 		}
+	}
+
+	private void prepareVideo(){
+		getContentResolver().notifyChange(imageUri, null);
+
+		new Handler(getMainLooper()).post(new Runnable(){
+
+			@Override
+			public void run() {
+				try {
+					String videoPath = Utils.getRealPathFromURI(ChatActivity.this, imageUri);
+					
+					sendVideo(Utils.read(new File(videoPath)));
+				} catch (IOException io_e) {
+					// TODO: handle error
+				}
+
+			}});
 	}
 
 	private void preparePicture(){
@@ -409,6 +455,18 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	private void sendPicture(byte[] byteArray){
 		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
 		Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, false, SendingStatus.PENDING, MessageType.IMAGE);
+		chatAdapter.addMessage(message);
+		chatAdapter.notifyDataSetChanged();
+
+		Server.sendPicture(message, channelNamespace);
+
+		DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
+		scrollMyListViewToBottom();
+	}
+	
+	private void sendVideo(byte[] byteArray){
+		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
+		Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, false, SendingStatus.PENDING, MessageType.VIDEO);
 		chatAdapter.addMessage(message);
 		chatAdapter.notifyDataSetChanged();
 

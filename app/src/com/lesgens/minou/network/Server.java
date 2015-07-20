@@ -46,7 +46,7 @@ import com.lesgens.minou.listeners.AvatarUploadListener;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.listeners.MinouDownloadAvatarProgressListener;
-import com.lesgens.minou.listeners.MinouUploadPictureProgressListener;
+import com.lesgens.minou.listeners.MinouUploadFileProgressListener;
 import com.lesgens.minou.listeners.TrendingChannelsListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
 import com.lesgens.minou.listeners.UsernameListener;
@@ -286,7 +286,8 @@ public class Server {
 		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName);
 		final Topic topic = new Topic(fullChannelName, channelSubscription);
 		String parentNamespace = fullChannelName.substring(0, fullChannelName.lastIndexOf("."));
-		topic.setParentName(parentNamespace.substring(parentNamespace.lastIndexOf(".") + 1));
+		String parentParentNamespace = parentNamespace.substring(0, parentNamespace.lastIndexOf("."));
+		topic.setParentName(parentNamespace.substring(parentNamespace.lastIndexOf(".") + 1) + ", " + parentParentNamespace.substring(parentParentNamespace.lastIndexOf(".") + 1));
 		channelSubscription.forEach(new Action1<PubSubData>(){
 
 			@Override
@@ -449,7 +450,15 @@ public class Server {
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName);
-		FileManagerS3.getInstance().uploadPicture(message.getContent(), message.getData(), new MinouUploadPictureProgressListener(message, channelNamespace));
+		FileManagerS3.getInstance().uploadFile(message.getContent(), message.getData(), new MinouUploadFileProgressListener(message, channelNamespace));
+	}
+	
+	public static void sendVideo(final Message message, final String channelNamespace){
+		String fullChannelName = channelNamespace.toLowerCase().replace("-", "_");
+		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
+		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
+		Log.i(TAG, "sendMessage message=video" + " fullChannelName=" + fullChannelName);
+		FileManagerS3.getInstance().uploadFile(message.getContent(), message.getData(), new MinouUploadFileProgressListener(message, channelNamespace));
 	}
 	
 	public static void publishPicture(final Message message, final String channelNamespace){
@@ -513,7 +522,7 @@ public class Server {
 					final String avatarUrl = msg.get("avatar").asText();
 					if(DatabaseHelper.getInstance().isAvatarNeededToChange(userId, avatarUrl)) {
 						MinouDownloadAvatarProgressListener listener = new MinouDownloadAvatarProgressListener(userId, avatarUrl);
-						FileManagerS3.getInstance().downloadPicture(avatarUrl, listener);
+						FileManagerS3.getInstance().downloadFile(avatarUrl, listener);
 					}
 					DatabaseHelper.getInstance().updateUsername(userId, username);
 				}

@@ -1,11 +1,13 @@
-package com.lesgens.minou;
+package com.lesgens.minou.fragments;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,11 +19,13 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.GridView;
 
+import com.lesgens.minou.AddAChannelActivity;
+import com.lesgens.minou.ChatActivity;
+import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.TopicsAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.Channel;
-import com.lesgens.minou.models.City;
 import com.lesgens.minou.models.Topic;
 
 public class TopicsFragment extends MinouFragment implements OnClickListener, OnItemClickListener, OnItemLongClickListener {
@@ -29,6 +33,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 	private static final int REQUEST_ADD_LOCATION= 102;
 	private GridView gridView;
 	private TopicsAdapter adapter;
+	private TopicDetailsFragment topicDetailsFragment;
 
 	public static TopicsFragment createFragmentWithoutBottomBar(){
 		TopicsFragment fragment = new TopicsFragment();
@@ -38,14 +43,41 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 		return fragment;
 	}
 
+
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+
+		if(gridView != null) {
+			if(getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+				gridView.setNumColumns(3);
+			} else if(getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+				gridView.setNumColumns(2);
+			}
+		}
+		
+		if(topicDetailsFragment != null && topicDetailsFragment.isVisible()) {
+			topicDetailsFragment.setWidth(adapter.getView(0, null, null).getWidth());
+		}
+	}
+
+
+
 	@Override
 	public View onCreateView(LayoutInflater inflater,
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		View v = inflater.inflate(R.layout.public_channels, container, false);
+		View v = inflater.inflate(R.layout.topics, container, false);
 
-		gridView = (GridView) v.findViewById(R.id.list);
+		gridView = (GridView) v.findViewById(R.id.grid_view);
 		gridView.setOnItemLongClickListener(this);
 		gridView.setOnItemClickListener(this);
+
+		if(getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+			gridView.setNumColumns(3);
+		} else {
+			gridView.setNumColumns(2);
+		}
 
 		if(getArguments() != null && getArguments().getBoolean("hideBottomBar", false)){
 			v.findViewById(R.id.bottom_bar).setVisibility(View.GONE);
@@ -62,6 +94,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 	public void onResume(){
 		super.onResume();
 		refreshList();
+		gridView.requestFocus();
 	}
 
 	@Override
@@ -113,16 +146,26 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 			AddAChannelActivity.show(getActivity(), Controller.getInstance().getCurrentChannel().getNamespace(), REQUEST_ADD_LOCATION);
 		}
 	}
+	
+	public boolean isDetailsOpen(){
+		return (topicDetailsFragment != null && topicDetailsFragment.isVisible());
+	}
+	
+	public void closeDetails(){
+		if(topicDetailsFragment != null && topicDetailsFragment.isVisible()){
+			topicDetailsFragment.slideOut();
+		}
+	}
 
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		Channel channel = adapter.getItem(position);
-		Log.i("PublicChannelChooserFragment", "Is it a city=" + (channel instanceof City));
 
-		Controller.getInstance().setCurrentChannel(channel);
-		ChatActivity.show(getActivity());
-		getActivity().finish();
-
+		int[] location = new int[2];
+		view.getLocationOnScreen(location);
+		topicDetailsFragment = TopicDetailsFragment.newInstance(view.getWidth(), location[0], location[1], channel.getNamespace());
+		FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
+		ft.add(android.R.id.content, topicDetailsFragment).commit();
 	}
 
 }

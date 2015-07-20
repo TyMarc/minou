@@ -21,7 +21,7 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 	private ArrayList<Topic> channels;
 
 	public TopicsAdapter(Context context, ArrayList<Topic> chatValue) {  
-		super(context,R.layout.public_channel_item, chatValue);
+		super(context,R.layout.topics_item, chatValue);
 		mContext = context;     
 		channels = chatValue;
 	}
@@ -32,7 +32,6 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 	    public TextView usersConnected;
 	    public TextView cityName;
 	    public ImageView image;
-	    public ImageView imageCity;
 	  }
 
 	private LayoutInflater getInflater(){
@@ -49,7 +48,7 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 		Topic topic = channels.get(position);
 
 		if(convertView == null){
-			rowView = getInflater().inflate(R.layout.public_channel_item, parent, false);
+			rowView = getInflater().inflate(R.layout.topics_item, parent, false);
 			
 			ViewHolder holder = new ViewHolder();
 			holder.name = (TextView) rowView.findViewById(R.id.name);
@@ -57,7 +56,6 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 			holder.cityName = (TextView) rowView.findViewById(R.id.city);
 			holder.desc = (TextView) rowView.findViewById(R.id.description);
 			holder.image = (ImageView) rowView.findViewById(R.id.image);
-			holder.imageCity = (ImageView) rowView.findViewById(R.id.image_city);
 			rowView.setTag(holder);
 		} else{
 			rowView = convertView;

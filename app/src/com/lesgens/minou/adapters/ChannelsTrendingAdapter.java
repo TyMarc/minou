@@ -24,7 +24,7 @@ public class ChannelsTrendingAdapter extends ArrayAdapter<ChannelTrending>{
 	private ArrayList<ChannelTrending> channels;
 
 	public ChannelsTrendingAdapter(Context context, ArrayList<ChannelTrending> chatValue) {  
-		super(context,R.layout.public_channel_item, chatValue);
+		super(context,R.layout.topics_item, chatValue);
 		mContext = context;     
 		channels = chatValue;
 		normalColor = context.getResources().getColor(R.color.main_color);
@@ -51,7 +51,7 @@ public class ChannelsTrendingAdapter extends ArrayAdapter<ChannelTrending>{
 		ChannelTrending channel = channels.get(position);
 
 		if(convertView == null){
-			rowView = getInflater().inflate(R.layout.public_channel_item, parent, false);
+			rowView = getInflater().inflate(R.layout.topics_item, parent, false);
 
 			ViewHolder holder = new ViewHolder();
 			holder.name = (TextView) rowView.findViewById(R.id.name);

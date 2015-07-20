@@ -14,6 +14,11 @@ import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.view.View;
 
 import com.lesgens.minou.adapters.MinouPagerAdapter;
+import com.lesgens.minou.fragments.ContactsFragment;
+import com.lesgens.minou.fragments.ConversationsFragment;
+import com.lesgens.minou.fragments.MinouFragment;
+import com.lesgens.minou.fragments.ProfileFragment;
+import com.lesgens.minou.fragments.TopicsFragment;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.models.Event;
@@ -28,8 +33,8 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 	private ViewPager mViewPager;
 	private ArrayList<MinouFragment> fragments;
 	private int selectedPosition;
-	private ConversationsFragment privateChannelChooserFragment;
-	private TopicsFragment publicChannelChooserFragment;
+	private ConversationsFragment conversationsFragment;
+	private TopicsFragment topicsFragment;
 	private ProfileFragment profileFragment;
 	private ContactsFragment contactsFragment;
 	private SlidingTabLayout tabs;
@@ -51,12 +56,12 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 		setContentView(R.layout.home);
 
 		fragments = new ArrayList<MinouFragment>();
-		privateChannelChooserFragment = new ConversationsFragment();
-		fragments.add(privateChannelChooserFragment);
+		conversationsFragment = new ConversationsFragment();
+		fragments.add(conversationsFragment);
 		contactsFragment = new ContactsFragment();
 		fragments.add(contactsFragment);
-		publicChannelChooserFragment = new TopicsFragment();
-		fragments.add(publicChannelChooserFragment);
+		topicsFragment = new TopicsFragment();
+		fragments.add(topicsFragment);
 		profileFragment = new ProfileFragment();
 		fragments.add(profileFragment);
 
@@ -136,10 +141,12 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 
 	@Override
 	public void onBackPressed(){
-		if(selectedPosition != 0){
+		if (conversationsFragment.isPickerOpen()) {
+			conversationsFragment.closePicker();
+		} else if (topicsFragment.isDetailsOpen()) {
+			topicsFragment.closeDetails();
+		} else if(selectedPosition != 0){
 			mViewPager.setCurrentItem(0);
-		} else if (privateChannelChooserFragment.isPickerOpen()) {
-			privateChannelChooserFragment.closePicker();
 		} else{
 			super.onBackPressed();
 		}
@@ -165,7 +172,7 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 
 				@Override
 				public void run() {
-					privateChannelChooserFragment.refreshList();
+					conversationsFragment.refreshList();
 				}});
 		}
 	}

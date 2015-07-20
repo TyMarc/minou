@@ -1,4 +1,4 @@
-package com.lesgens.minou;
+package com.lesgens.minou.fragments;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -19,6 +19,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.desmond.squarecamera.CameraActivity;
+import com.lesgens.minou.ChatActivity;
+import com.lesgens.minou.R;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.MessageType;
@@ -28,18 +30,18 @@ import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.utils.Utils;
 
-public class ContactDialogFragment extends DialogFragment implements OnClickListener {
+public class ContactDetailsFragment extends DialogFragment implements OnClickListener {
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 	private static final int PICK_IMAGE_ACTIVITY_REQUEST_CODE = 101;
 	private String userId;
 	private User user;
 	private Uri imageUri;
 	
-	public static ContactDialogFragment newInstance(final String userId) {
-		return new ContactDialogFragment(userId);
+	public static ContactDetailsFragment newInstance(final String userId) {
+		return new ContactDetailsFragment(userId);
 	}
 	
-	public ContactDialogFragment(final String userId){
+	public ContactDetailsFragment(final String userId){
 		this.userId = userId;
 	}
 	

@@ -54,6 +54,20 @@ public class Channel {
 		
 		return topics;
 	}
+	
+	public ArrayList<City> getCities(){
+		ArrayList<City> cities = new ArrayList<City>();
+		
+		for(Channel c : channels) {
+			if(c instanceof City) {
+				cities.add((City) c);
+			}
+			
+			cities.addAll(c.getCities());
+		}
+		
+		return cities;
+	}
 
 	public ArrayList<Channel> getChannels(){
 		return channels;

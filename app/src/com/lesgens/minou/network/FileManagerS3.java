@@ -33,7 +33,7 @@ public class FileManagerS3 {
 		return instance;
 	}
 	
-	public void uploadPicture(final String filename, final byte[] bytes, final ProgressListener listener){
+	public void uploadFile(final String filename, final byte[] bytes, final ProgressListener listener){
 		InputStream inputStream = new ByteArrayInputStream(bytes); 
 		ObjectMetadata meta = new ObjectMetadata();
 		meta.setContentLength(bytes.length);
@@ -42,7 +42,7 @@ public class FileManagerS3 {
 		upload.addProgressListener(listener);
 	}
 	
-	public void downloadPicture(final String filename, final MinouDownloadProgressListener listener){
+	public void downloadFile(final String filename, final MinouDownloadProgressListener listener){
 		AsyncTask<Void, Void, Integer> request = new AsyncTask<Void, Void, Integer>() {
 
 			@Override

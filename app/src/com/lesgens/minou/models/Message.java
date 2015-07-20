@@ -6,7 +6,7 @@ import java.util.UUID;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
-import com.lesgens.minou.listeners.MinouDownloadPictureProgressListener;
+import com.lesgens.minou.listeners.MinouDownloadFileProgressListener;
 import com.lesgens.minou.network.FileManagerS3;
 
 
@@ -44,7 +44,7 @@ public class Message extends Event{
 		
 		if((msgType == MessageType.IMAGE || msgType == MessageType.VIDEO) && data == null){
 			status = SendingStatus.PENDING;
-			FileManagerS3.getInstance().downloadPicture(content, new MinouDownloadPictureProgressListener(this));
+			FileManagerS3.getInstance().downloadFile(content, new MinouDownloadFileProgressListener(this));
 		}
 	}
 	

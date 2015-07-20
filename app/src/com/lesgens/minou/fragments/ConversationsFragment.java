@@ -1,4 +1,4 @@
-package com.lesgens.minou;
+package com.lesgens.minou.fragments;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -14,6 +14,8 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 
+import com.lesgens.minou.ChatActivity;
+import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.ConversationsAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;

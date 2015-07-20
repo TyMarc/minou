@@ -30,6 +30,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -49,6 +50,7 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Window;
 
 public class Utils {
 
@@ -90,7 +92,7 @@ public class Utils {
 		paint.setColor(color);
 		canvas.drawCircle(bitmap.getWidth() / 2,
 				bitmap.getHeight() / 2, bitmap.getWidth() / 2, paint);
-		
+
 		paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
 		canvas.drawBitmap(bitmap, rect, rect, paint);
 		return output;
@@ -162,7 +164,7 @@ public class Utils {
 		}
 
 		image = rotateImageIfRequired(context, image, selectedImage);
-		
+
 		image = putWhiteBackground(image);
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -173,14 +175,14 @@ public class Utils {
 
 		return bos.toByteArray();
 	}
-	
+
 	private static Bitmap putWhiteBackground(final Bitmap image) {
 		Bitmap newBitmap = Bitmap.createBitmap(image.getWidth(), image.getHeight(), image.getConfig());
 		Canvas canvas = new Canvas(newBitmap);
 		canvas.drawColor(Color.WHITE);
 		canvas.drawBitmap(image, 0, 0, null);
 		image.recycle();
-		
+
 		return newBitmap;
 	}
 
@@ -310,32 +312,49 @@ public class Utils {
 
 		return null;
 	}
-	
-	public static byte[] read(File file) throws IOException {
-	    ByteArrayOutputStream ous = null;
-	    InputStream ios = null;
-	    try {
-	        byte[] buffer = new byte[4096];
-	        ous = new ByteArrayOutputStream();
-	        ios = new FileInputStream(file);
-	        int read = 0;
-	        while ( (read = ios.read(buffer)) != -1 ) {
-	            ous.write(buffer, 0, read);
-	        }
-	    } finally { 
-	        try {
-	             if ( ous != null ) 
-	                 ous.close();
-	        } catch ( IOException e) {
-	        }
 
-	        try {
-	             if ( ios != null ) 
-	                  ios.close();
-	        } catch ( IOException e) {
-	        }
-	    }
-	    return ous.toByteArray();
+	public static byte[] read(File file) throws IOException {
+		ByteArrayOutputStream ous = null;
+		InputStream ios = null;
+		try {
+			byte[] buffer = new byte[4096];
+			ous = new ByteArrayOutputStream();
+			ios = new FileInputStream(file);
+			int read = 0;
+			while ( (read = ios.read(buffer)) != -1 ) {
+				ous.write(buffer, 0, read);
+			}
+		} finally { 
+			try {
+				if ( ous != null ) 
+					ous.close();
+			} catch ( IOException e) {
+			}
+
+			try {
+				if ( ios != null ) 
+					ios.close();
+			} catch ( IOException e) {
+			}
+		}
+		return ous.toByteArray();
+	}
+
+	public static int getStatusBarHeight(final Context context){
+		int result = 0;
+	      int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
+	      if (resourceId > 0) {
+	          result = context.getResources().getDimensionPixelSize(resourceId);
+	      } 
+	      return result;
+	}
+	
+	public static String getRealPathFromURI(Activity activity, Uri contentUri) {
+	    String[] proj = { MediaStore.Images.Media.DATA };
+	    Cursor cursor = activity.managedQuery(contentUri, proj, null, null, null);
+	    int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+	    cursor.moveToFirst();
+	    return cursor.getString(column_index);
 	}
 
 }

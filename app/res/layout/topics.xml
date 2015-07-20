@@ -39,7 +39,7 @@
     </LinearLayout>
 
     <GridView
-        android:id="@+id/list"
+        android:id="@+id/grid_view"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_above="@+id/bottom_bar"
