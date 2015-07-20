@@ -1,8 +1,6 @@
 package com.lesgens.minou;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.Future;
 
@@ -13,21 +11,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.animation.Animation;
-import android.view.animation.Animation.AnimationListener;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
@@ -36,14 +29,12 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.desmond.squarecamera.CameraActivity;
-import com.desmond.squarecamera.ImageUtility;
 import com.lesgens.minou.adapters.ChatAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
-import com.lesgens.minou.fragments.TopicsFragment;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.models.Event;
@@ -52,15 +43,11 @@ import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.receivers.NetworkStateReceiver;
 import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverListener;
-import com.lesgens.minou.utils.ExpandCollapseAnimation;
+import com.lesgens.minou.utils.FileManager;
 import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
 
-public class ChatActivity extends MinouFragmentActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener, CrossbarConnectionListener, OnItemClickListener, OnItemLongClickListener {
-	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
-	private static final int PICK_IMAGE_ACTIVITY_REQUEST_CODE = 101;
-	private static final int CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE = 102;
-	private static final int PICK_VIDEO_ACTIVITY_REQUEST_CODE = 103;
+public class ChatActivity extends MinouFragmentActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener, CrossbarConnectionListener, OnItemClickListener, OnItemLongClickListener, OnScrollListener {
 	private static final String TAG = "ChannelChatActivity";
 	private ChatAdapter chatAdapter;
 	private StickyListHeadersListView listMessages;
@@ -71,8 +58,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	private NetworkStateReceiver networkStateReceiver;
 	private Uri imageUri;
 	private String channelNamespace;
-	private TopicsFragment publicChooserFragment;
-	private boolean animationOnGoing;
 
 	public static void show(final Context context){
 		Intent i = new Intent(context, ChatActivity.class);
@@ -86,8 +71,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		setContentView(R.layout.chat);
-
-		publicChooserFragment = TopicsFragment.createFragmentWithoutBottomBar();
 
 		channelTextView = (TextView) findViewById(R.id.channel_name);
 
@@ -110,12 +93,12 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 		findViewById(R.id.back_btn).setOnClickListener(this);
 		findViewById(R.id.settings_btn).setOnClickListener(this);
-		findViewById(R.id.public_btn).setOnClickListener(this);
 
 		listMessages = (StickyListHeadersListView) findViewById(R.id.list);
 		listMessages.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
 		listMessages.setOnItemLongClickListener(this);
 		listMessages.setOnItemClickListener(this);
+		listMessages.setOnScrollListener(this);
 
 		networkStateReceiver = new NetworkStateReceiver(this);
 
@@ -173,8 +156,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			showMenuFT();
 		} else if(v.getId() == R.id.settings_btn){
 			ChannelSettingsActivity.show(this);
-		} else if(v.getId() == R.id.public_btn){
-			togglePublicChooser();
 		}
 	}
 
@@ -200,16 +181,16 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			public void onClick(DialogInterface dialog, int which) {
 				switch(which){
 				case 0:
-					takePhoto();
+					FileManager.takePhoto(ChatActivity.this);
 					break;
 				case 1:
-					pickPicture();
+					FileManager.pickPicture(ChatActivity.this);
 					break;
 				case 2:
-					takeVideo();
+					FileManager.takeVideo(ChatActivity.this);
 					break;
 				case 3:
-					pickVideo();
+					FileManager.pickVideo(ChatActivity.this);
 					break;
 				}
 			}
@@ -295,7 +276,11 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		deleteMessage(message);
 
 		if(message.getMsgType() == MessageType.IMAGE){
-			sendPicture(message.getData());
+			try {
+				FileManager.sendPicture(this, Utils.read(new File(message.getDataPath())), channelNamespace);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		} else if(message.getMsgType() == MessageType.TEXT){
 			sendMessage(message.getContent());
 		}
@@ -317,51 +302,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		finish();
 	}
 
-	private void togglePublicChooser() {
-		if(!animationOnGoing){
-			if(findViewById(R.id.public_chooser).getVisibility() == View.GONE){
-				animationOnGoing = true;
-				FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-				ft.add(R.id.public_chooser, publicChooserFragment).commit();
-				Animation dropDown = new ExpandCollapseAnimation(findViewById(R.id.public_chooser), 200, 0);
-				dropDown.setAnimationListener(new AnimationListener(){
-
-					@Override
-					public void onAnimationStart(Animation animation) {
-						findViewById(R.id.public_chooser_sep).setVisibility(View.VISIBLE);
-					}
-
-					@Override
-					public void onAnimationEnd(Animation animation) {
-						animationOnGoing = false;
-					}
-
-					@Override
-					public void onAnimationRepeat(Animation animation) {}});
-				findViewById(R.id.public_chooser).startAnimation(dropDown);
-			} else{
-				animationOnGoing = true;
-				Animation dropDown = new ExpandCollapseAnimation(findViewById(R.id.public_chooser), 200, 1);
-				dropDown.setAnimationListener(new AnimationListener(){
-
-					@Override
-					public void onAnimationStart(Animation animation) {}
-
-					@Override
-					public void onAnimationEnd(Animation animation) {
-						findViewById(R.id.public_chooser_sep).setVisibility(View.GONE);
-						FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-						ft.remove(publicChooserFragment).commit();
-						animationOnGoing = false;
-					}
-
-					@Override
-					public void onAnimationRepeat(Animation animation) {}});
-				findViewById(R.id.public_chooser).startAnimation(dropDown);
-			}
-		}
-	}
-
 	private void scrollMyListViewToBottom() {
 		listMessages.post(new Runnable() {
 			@Override
@@ -370,31 +310,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 				listMessages.setSelection(chatAdapter.getCount() - 1);
 			}
 		});
-	}
-
-	public void pickPicture() {
-		Intent i = new Intent(
-				Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-
-		startActivityForResult(i, PICK_IMAGE_ACTIVITY_REQUEST_CODE);
-	}
-
-	public void pickVideo() {
-		Intent i = new Intent(
-				Intent.ACTION_PICK, android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
-		i.putExtra(android.provider.MediaStore.EXTRA_VIDEO_QUALITY, 0);
-		startActivityForResult(i, PICK_VIDEO_ACTIVITY_REQUEST_CODE);
-	}
-
-	public void takePhoto() {
-		Intent startCustomCameraIntent = new Intent(this, CameraActivity.class);
-		startActivityForResult(startCustomCameraIntent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-	}
-
-	public void takeVideo() {
-		Intent i = new Intent(android.provider.MediaStore.ACTION_VIDEO_CAPTURE);
-
-		startActivityForResult(i, CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE);
 	}
 
 	@Override
@@ -410,89 +325,18 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if ((requestCode == PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
+		if ((requestCode == FileManager.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileManager.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
 			imageUri = data.getData();
-			preparePicture();
-		} else if ((requestCode == PICK_VIDEO_ACTIVITY_REQUEST_CODE || requestCode == CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
-			imageUri = data.getData();
-			prepareVideo();
-		}
-	}
-
-	private void prepareVideo(){
-		getContentResolver().notifyChange(imageUri, null);
-
-		new Handler(getMainLooper()).post(new Runnable(){
-
-			@Override
-			public void run() {
-				try {
-					String videoPath = Utils.getRealPathFromURI(ChatActivity.this, imageUri);
-					
-					sendVideo(Utils.read(new File(videoPath)));
-				} catch (IOException io_e) {
-					// TODO: handle error
-				}
-
-			}});
-	}
-
-	private void preparePicture(){
-		getContentResolver().notifyChange(imageUri, null);
-
-		new Handler(getMainLooper()).post(new Runnable(){
-
-			@Override
-			public void run() {
-				try {
-					Bitmap bitmap = android.provider.MediaStore.Images.Media
-							.getBitmap(getContentResolver(), imageUri);
-
-					final byte[] byteArray = Utils.prepareImageFT(ChatActivity.this, bitmap, imageUri);
-
-					sendPicture(byteArray);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}});
-	}
-
-	private void sendPicture(byte[] byteArray){
-		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
-		
-		Uri filenameSaved = ImageUtility.savePicture(this, BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length));
-		Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, filenameSaved.getPath(), false, SendingStatus.PENDING, MessageType.IMAGE);
-		chatAdapter.addMessage(message);
-		chatAdapter.notifyDataSetChanged();
-
-		Server.sendPicture(message, channelNamespace);
-		
-		DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
-		scrollMyListViewToBottom();		
-	}
-	
-	private void sendVideo(byte[] byteArray){
-		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".mp4";
-		
-		File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + getResources().getString(R.string.app_name) + "/" + filename);
-		String absolutePath = file.getAbsolutePath();
-		try {
-			FileOutputStream fos = new FileOutputStream(file);
-			fos.write(byteArray);
-			fos.close();
-			Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, absolutePath, false, SendingStatus.PENDING, MessageType.VIDEO);
+			Message message = FileManager.preparePicture(this, imageUri, channelNamespace);
 			chatAdapter.addMessage(message);
 			chatAdapter.notifyDataSetChanged();
-
-			Server.sendPicture(message, channelNamespace);
-			
-			DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
+		} else if ((requestCode == FileManager.PICK_VIDEO_ACTIVITY_REQUEST_CODE || requestCode == FileManager.CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
+			imageUri = data.getData();
+			Message message = FileManager.prepareVideo(this, imageUri, channelNamespace);
+			chatAdapter.addMessage(message);
+			chatAdapter.notifyDataSetChanged();
 			scrollMyListViewToBottom();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}		
+		}
 	}
 
 	@Override
@@ -569,8 +413,12 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			long id) {
 		Message message = chatAdapter.getItem(position);
 
-		if(message != null && message.getMsgType() == MessageType.IMAGE) {
-			ImageViewerActivity.show(this, message.getId().toString());
+		if(message != null){ 
+			if(message.getMsgType() == MessageType.IMAGE) {
+				ImageViewerActivity.show(this, message.getId().toString());
+			} else if(message.getMsgType() == MessageType.VIDEO) {
+				PlayVideoActivity.show(this, message.getDataPath());
+			}
 		}
 	}
 
@@ -581,5 +429,20 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			public void run() {
 				chatAdapter.notifyDataSetChanged();
 			}});
+	}
+
+	public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) 
+	{
+
+	}
+
+	public void onScrollStateChanged(AbsListView view, int scrollState) 
+	{
+		if(scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
+			chatAdapter.setLoadImages(true);
+			chatAdapter.notifyDataSetChanged();
+		} else{
+			chatAdapter.setLoadImages(false);
+		}
 	}
 }

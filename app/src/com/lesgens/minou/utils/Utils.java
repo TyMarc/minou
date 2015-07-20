@@ -50,7 +50,6 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.Window;
 
 public class Utils {
 
@@ -311,6 +310,10 @@ public class Utils {
 		}
 
 		return null;
+	}
+	
+	public static byte[] read(String absolutePath) throws IOException {
+		return read(new File(absolutePath));
 	}
 
 	public static byte[] read(File file) throws IOException {

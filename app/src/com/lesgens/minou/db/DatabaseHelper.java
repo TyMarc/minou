@@ -51,7 +51,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 	public void onCreate(SQLiteDatabase db)
 	{
-		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userId TEXT, content TEXT, dataPath String DEFAULT null, timestamp LONG, isIncoming INTEGER DEFAULT 0, status INTEGER DEFAULT 0, msgType TEXT);");
+		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userId TEXT, content TEXT, dataPath String DEFAULT null, timestamp LONG, isIncoming INTEGER DEFAULT 0, status INTEGER DEFAULT 0, msgType TEXT, thumbnail BLOB);");
 		db.execSQL("CREATE TABLE minou_last_message (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT, timestamp LONG);");
 		db.execSQL("CREATE TABLE minou_public (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT);");
 		db.execSQL("CREATE TABLE minou_users (id INTEGER PRIMARY KEY AUTOINCREMENT, userId TEXT, username TEXT, avatarURL TEXT, avatar BLOB, isContact INTEGER DEFAULT 0);");
@@ -84,6 +84,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		cv.put("channel", channel.toLowerCase().replace("-", "_"));
 		cv.put("msgType", m.getMsgType().toString());
 		cv.put("status", m.getStatus().getIntValue());
+		cv.put("thumbnail", m.getThumbnail());
 		db.insert("minou_message", null, cv);
 		
 		cv = new ContentValues();

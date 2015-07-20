@@ -5,13 +5,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaMetadataRetriever;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,6 +39,8 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 	private Date sameWeek;
 	private Calendar sameYear;
 	private boolean isPrivate;
+	private boolean isLoadImages;
+	private HashMap<String, Bitmap> thumbnailsCache;
 
 	public ChatAdapter(Context context, ArrayList<Message> chatValue, boolean isPrivate) {  
 		super(context,-1, chatValue);
@@ -51,6 +52,8 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 		sameYear.add(Calendar.DAY_OF_MONTH, +7);
 		sameYear.set(Calendar.DAY_OF_YEAR, 0);
 		this.isPrivate = isPrivate;
+		thumbnailsCache = new HashMap<String, Bitmap>();
+		isLoadImages = true;
 	}
 
 	static class ViewHolder {
@@ -60,6 +63,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 		public TextView time;
 		public TextView timePicture;
 		public ImageView picture;
+		public ImageView videoPlay;
 	}
 
 	static class HeaderViewHolder {
@@ -90,6 +94,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			viewHolder.time = (TextView) rowView.findViewById(R.id.time);
 			viewHolder.timePicture = (TextView) rowView.findViewById(R.id.time_picture);
 			viewHolder.picture = (ImageView) rowView.findViewById(R.id.picture);
+			viewHolder.videoPlay = (ImageView) rowView.findViewById(R.id.video_play);
 			rowView.setTag(viewHolder);
 		} else{
 			rowView = getInflater().inflate(R.layout.chat_even, parent, false);
@@ -101,34 +106,48 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			viewHolder.time = (TextView) rowView.findViewById(R.id.time);
 			viewHolder.timePicture = (TextView) rowView.findViewById(R.id.time_picture);
 			viewHolder.picture = (ImageView) rowView.findViewById(R.id.picture);
+			viewHolder.videoPlay = (ImageView) rowView.findViewById(R.id.video_play);
 
 			rowView.setTag(viewHolder);
 
 		}
 
-		// fill data
 		ViewHolder holder = (ViewHolder) rowView.getTag();
 
-		if(message.getData() != null){
+		if(message.getThumbnail() != null){
 			holder.message.setVisibility(View.GONE);
 			holder.time.setVisibility(View.GONE);
 			holder.timePicture.setVisibility(View.VISIBLE);
 			holder.timePicture.setText(sdfMessage.format(message.getTimestamp()));
 			holder.picture.setVisibility(View.VISIBLE);
 			Bitmap bitmap = null;
-			if(message.getMsgType() == MessageType.VIDEO) {
-				MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-				mmr.setDataSource(message.getDataPath());
-				bitmap = mmr.getFrameAtTime(0);
-			} else if(message.getMsgType() == MessageType.IMAGE) {
-				bitmap = BitmapFactory.decodeByteArray(message.getData(), 0, message.getData().length);
+			if(isLoadImages) {
+				if(thumbnailsCache.containsKey(message.getId().toString())){
+					bitmap = thumbnailsCache.get(message.getId().toString());
+				} else{
+					bitmap = BitmapFactory.decodeByteArray(message.getThumbnail(), 0, message.getThumbnail().length);
+					thumbnailsCache.put(message.getId().toString(), bitmap);
+				}
+				if(message.getMsgType() == MessageType.VIDEO) {
+					holder.videoPlay.setVisibility(View.VISIBLE);
+				} else{
+					holder.videoPlay.setVisibility(View.GONE);
+				}
+				holder.picture.setImageBitmap(bitmap);
+			} else{
+				if(message.getMsgType() == MessageType.IMAGE){
+					holder.picture.setImageDrawable(mContext.getResources().getDrawable(R.drawable.image_thumb));
+				} else if(message.getMsgType() == MessageType.VIDEO) {
+					holder.picture.setImageDrawable(mContext.getResources().getDrawable(R.drawable.video_thumb));
+				}
+				holder.videoPlay.setVisibility(View.GONE);
 			}
-			holder.picture.setImageBitmap(bitmap);
 			setImdn(message.getStatus(), holder.timePicture);
 		} else{
 			holder.message.setVisibility(View.VISIBLE);
 			holder.time.setVisibility(View.VISIBLE);
 			holder.timePicture.setVisibility(View.GONE);
+			holder.videoPlay.setVisibility(View.GONE);
 			holder.message.setText(message.getContent());
 			holder.time.setText(sdfMessage.format(message.getTimestamp()));
 			setImdn(message.getStatus(), holder.time);
@@ -226,5 +245,9 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			//handle the exception according to your own situation
 		}
 		return diff;
+	}
+
+	public void setLoadImages(boolean b) {
+		isLoadImages = b;
 	}
 }

@@ -1,10 +1,14 @@
 package com.lesgens.minou.models;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.UUID;
 
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.media.MediaMetadataRetriever;
 import android.util.Log;
 
 import com.lesgens.minou.db.DatabaseHelper;
@@ -17,52 +21,43 @@ import com.lesgens.minou.utils.Utils;
 
 
 public class Message extends Event{
-
 	private String content;
 	private boolean isIncoming;
-	private byte[] data;
+	private byte[] thumbnail;
 	private String dataPath;
 	private String userId;
 	private SendingStatus status;
 	private MessageType msgType;
-	
+
 
 	public Message(User user, String content, boolean isIncoming, SendingStatus status, MessageType msgType){
 		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, content,  isIncoming, null, status, msgType);
 	}
-	
-	public Message(User user, String content, byte[] data, String dataPath, boolean isIncoming, SendingStatus status, MessageType msgType){
+
+	public Message(User user, String content, String dataPath, boolean isIncoming, SendingStatus status, MessageType msgType){
 		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, content,  isIncoming, dataPath, status, msgType);
-		this.data = data;
 	}
-	
+
 	public Message(User user, String content, String userName, Channel iDestination, boolean isIncoming, String dataPath, SendingStatus status, MessageType msgType){
 		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), iDestination, user, content,  isIncoming, dataPath, status, msgType);
 	}
-	
+
 	public Message(UUID id, Timestamp timestamp, Channel channel, User user, String content, boolean isIncoming, String dataPath, SendingStatus status, MessageType msgType) {
 		super(id, timestamp, channel, user);
 		userId = user.getId();
 		this.content = content;
 		this.isIncoming = isIncoming;
-		this.dataPath = dataPath;
-		if(dataPath != null) {
-			try {
-				this.data = Utils.read(new File(dataPath));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 		this.status = status;
 		this.msgType = msgType;
-		
-		if((msgType == MessageType.IMAGE || msgType == MessageType.VIDEO) && data == null){
+
+		setDataPath(dataPath);
+		if((msgType == MessageType.IMAGE || msgType == MessageType.VIDEO) && thumbnail == null){
 			Log.i("Message", "downloading file");
 			status = SendingStatus.PENDING;
 			FileManagerS3.getInstance().downloadFile(content, new MinouDownloadFileProgressListener(this));
 		}
 	}
-	
+
 	public String getUserId(){
 		return userId;
 	}
@@ -74,24 +69,24 @@ public class Message extends Event{
 	public String getContent(){
 		return content;
 	}
-	
+
 	public MessageType getMsgType(){
 		return msgType;
 	}
 
-	public byte[] getData(){
-		return data;
+	public byte[] getThumbnail(){
+		return thumbnail;
 	}
-	
+
 	public SendingStatus getStatus(){
 		return status;
 	}
-	
+
 	public void setStatus(SendingStatus status){
 		this.status = status;
 		DatabaseHelper.getInstance().updateMessageData(this);
 	}
-	
+
 	@Override
 	public boolean equals(Object o) {
 		if(o instanceof Message){
@@ -104,16 +99,29 @@ public class Message extends Event{
 		return false;
 	}
 
-	public void setData(byte[] data) {
-		this.data = data;
+	public void setThumbnail(byte[] thumbnail) {
+		this.thumbnail = thumbnail;
 	}
 
 	public void setDataPath(String absolutePath) {
 		this.dataPath = absolutePath;
-		try {
-			this.data = Utils.read(new File(absolutePath));
-		} catch (IOException e) {
-			e.printStackTrace();
+		if(absolutePath != null) {
+			try {
+				if(msgType == MessageType.IMAGE) {
+					byte[] data = Utils.read(new File(absolutePath));
+					thumbnail = data;
+				} else if(msgType == MessageType.VIDEO) {
+					MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+					mmr.setDataSource(absolutePath);
+					Bitmap image = mmr.getFrameAtTime(0);
+					ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					image.compress(CompressFormat.JPEG, 70, bos);
+					image.recycle();
+					thumbnail = bos.toByteArray();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		DatabaseHelper.getInstance().updateMessageData(this);
 	}

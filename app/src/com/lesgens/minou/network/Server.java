@@ -445,20 +445,12 @@ public class Server {
 			}});
 	}
 
-	public static void sendPicture(final Message message, final String channelNamespace){
+	public static void sendFile(final Message message, final String channelNamespace) throws IOException{
 		String fullChannelName = channelNamespace.toLowerCase().replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName);
-		FileManagerS3.getInstance().uploadFile(message.getContent(), message.getData(), new MinouUploadFileProgressListener(message, channelNamespace));
-	}
-	
-	public static void sendVideo(final Message message, final String channelNamespace){
-		String fullChannelName = channelNamespace.toLowerCase().replace("-", "_");
-		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
-		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
-		Log.i(TAG, "sendMessage message=video" + " fullChannelName=" + fullChannelName);
-		FileManagerS3.getInstance().uploadFile(message.getContent(), message.getData(), new MinouUploadFileProgressListener(message, channelNamespace));
+		FileManagerS3.getInstance().uploadFile(message.getContent(), Utils.read(message.getDataPath()), new MinouUploadFileProgressListener(message, channelNamespace));
 	}
 	
 	public static void publishPicture(final Message message, final String channelNamespace){

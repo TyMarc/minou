@@ -80,7 +80,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 
 		if(getArguments() != null && getArguments().getBoolean("hideBottomBar", false)){
 			v.findViewById(R.id.bottom_bar).setVisibility(View.GONE);
-			v.findViewById(R.id.list).getLayoutParams().width = LayoutParams.WRAP_CONTENT;
+			v.findViewById(R.id.grid_view).getLayoutParams().width = LayoutParams.WRAP_CONTENT;
 		}
 
 		v.findViewById(R.id.add_channel).setOnClickListener(this);

@@ -1,7 +1,6 @@
 package com.lesgens.minou.listeners;
 
 import java.io.File;
-import java.io.IOException;
 
 import android.util.Log;
 
