@@ -48,7 +48,7 @@ public class FileManagerS3 {
 			@Override
 			protected Integer doInBackground(Void... arg0) {
 				GetObjectRequest gor = new GetObjectRequest(BUCKET_NAME, filename);
-				File file = new File(Environment.getExternalStorageDirectory() + "/" + filename);
+				File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), filename);
 				listener.setFileDownload(file);
 				Download download = transferManager.download(gor, file);
 				download.addProgressListener(listener);

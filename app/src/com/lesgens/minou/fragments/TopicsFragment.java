@@ -8,7 +8,6 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -86,6 +85,8 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 
 		v.findViewById(R.id.add_channel).setOnClickListener(this);
 		v.findViewById(R.id.add_location).setOnClickListener(this);
+		
+		refreshList();
 
 		return v;
 	}
@@ -93,7 +94,6 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 	@Override
 	public void onResume(){
 		super.onResume();
-		refreshList();
 		gridView.requestFocus();
 	}
 

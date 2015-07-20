@@ -10,7 +10,6 @@ import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.application.MinouApplication;
 import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.models.Message;
-import com.lesgens.minou.utils.Utils;
 
 public class MinouDownloadFileProgressListener extends MinouDownloadProgressListener {
 	private Message message;
@@ -25,12 +24,7 @@ public class MinouDownloadFileProgressListener extends MinouDownloadProgressList
 		if(event.getEventCode() == ProgressEvent.COMPLETED_EVENT_CODE){
 			message.setStatus(message.isIncoming() ? SendingStatus.RECEIVED : SendingStatus.SENT);
 			if(fileDownload != null){
-				try {
-					message.setData(Utils.read(fileDownload));
-					fileDownload.delete();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				message.setDataPath(fileDownload.getAbsolutePath());
 			}
 			
 			if(MinouApplication.getCurrentActivity() instanceof ChatActivity){

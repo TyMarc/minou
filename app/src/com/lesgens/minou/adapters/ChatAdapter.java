@@ -10,6 +10,8 @@ import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaMetadataRetriever;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +21,7 @@ import android.widget.TextView;
 
 import com.lesgens.minou.R;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
@@ -58,7 +61,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 		public TextView timePicture;
 		public ImageView picture;
 	}
-	
+
 	static class HeaderViewHolder {
 		public TextView day;
 	}
@@ -76,7 +79,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 		View rowView;
 		Message message = messages.get(position);
 
-		android.util.Log.i("ChannelChatAdapter", "isIncoming="+message.isIncoming() + " message=" + message.getContent());
+		android.util.Log.i("ChannelChatAdapter", "isIncoming="+message.isIncoming() + " message=" + message.getContent() + " data path=" + message.getDataPath());
 		if(!message.isIncoming()){
 			rowView = getInflater().inflate(R.layout.chat_odd, parent, false);
 
@@ -112,7 +115,14 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			holder.timePicture.setVisibility(View.VISIBLE);
 			holder.timePicture.setText(sdfMessage.format(message.getTimestamp()));
 			holder.picture.setVisibility(View.VISIBLE);
-			Bitmap bitmap = BitmapFactory.decodeByteArray(message.getData(), 0, message.getData().length);
+			Bitmap bitmap = null;
+			if(message.getMsgType() == MessageType.VIDEO) {
+				MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+				mmr.setDataSource(message.getDataPath());
+				bitmap = mmr.getFrameAtTime(0);
+			} else if(message.getMsgType() == MessageType.IMAGE) {
+				bitmap = BitmapFactory.decodeByteArray(message.getData(), 0, message.getData().length);
+			}
 			holder.picture.setImageBitmap(bitmap);
 			setImdn(message.getStatus(), holder.timePicture);
 		} else{
@@ -123,7 +133,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			holder.time.setText(sdfMessage.format(message.getTimestamp()));
 			setImdn(message.getStatus(), holder.time);
 		}
-		
+
 		User user = DatabaseHelper.getInstance().getUser(message.getUserId());
 
 		if(holder.name != null){
@@ -144,7 +154,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 
 		return rowView;
 	}
-	
+
 	private void setImdn(final SendingStatus status, TextView time){
 		switch(status){
 		case FAILED:

@@ -1,5 +1,10 @@
 package com.lesgens.minou.fragments;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -8,6 +13,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -96,14 +102,28 @@ public class ContactDetailsFragment extends DialogFragment implements OnClickLis
 							.getBitmap(getActivity().getContentResolver(), imageUri);
 
 					final byte[] byteArray = Utils.prepareImageFT(getActivity(), bitmap, imageUri);
-
+					
 					String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
-					Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, false, SendingStatus.PENDING, MessageType.IMAGE);
+					
+					File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), filename);
+					String absolutePath = file.getAbsolutePath();
+					file.mkdirs();
+					try {
+						FileOutputStream fos = new FileOutputStream(file);
+						fos.write(byteArray);
+						fos.close();
+						Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, absolutePath, false, SendingStatus.PENDING, MessageType.IMAGE);
 
-					final String channelNamespace = Controller.getInstance().getCurrentChannel().getNamespace();
-					Server.sendPicture(message, channelNamespace);
+						final String channelNamespace = Controller.getInstance().getCurrentChannel().getNamespace();
+						Server.sendPicture(message, channelNamespace);
+						
+						DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}		
 
-					DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

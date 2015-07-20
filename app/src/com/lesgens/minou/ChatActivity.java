@@ -1,6 +1,8 @@
 package com.lesgens.minou;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.Future;
 
@@ -12,9 +14,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
@@ -32,6 +36,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.desmond.squarecamera.CameraActivity;
+import com.desmond.squarecamera.ImageUtility;
 import com.lesgens.minou.adapters.ChatAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
@@ -377,7 +382,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	public void pickVideo() {
 		Intent i = new Intent(
 				Intent.ACTION_PICK, android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
-
+		i.putExtra(android.provider.MediaStore.EXTRA_VIDEO_QUALITY, 0);
 		startActivityForResult(i, PICK_VIDEO_ACTIVITY_REQUEST_CODE);
 	}
 
@@ -454,26 +459,40 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 	private void sendPicture(byte[] byteArray){
 		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
-		Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, false, SendingStatus.PENDING, MessageType.IMAGE);
+		
+		Uri filenameSaved = ImageUtility.savePicture(this, BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length));
+		Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, filenameSaved.getPath(), false, SendingStatus.PENDING, MessageType.IMAGE);
 		chatAdapter.addMessage(message);
 		chatAdapter.notifyDataSetChanged();
 
 		Server.sendPicture(message, channelNamespace);
-
+		
 		DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
-		scrollMyListViewToBottom();
+		scrollMyListViewToBottom();		
 	}
 	
 	private void sendVideo(byte[] byteArray){
-		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
-		Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, false, SendingStatus.PENDING, MessageType.VIDEO);
-		chatAdapter.addMessage(message);
-		chatAdapter.notifyDataSetChanged();
+		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".mp4";
+		
+		File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + getResources().getString(R.string.app_name) + "/" + filename);
+		String absolutePath = file.getAbsolutePath();
+		try {
+			FileOutputStream fos = new FileOutputStream(file);
+			fos.write(byteArray);
+			fos.close();
+			Message message = new Message(Controller.getInstance().getMyself(), filename, byteArray, absolutePath, false, SendingStatus.PENDING, MessageType.VIDEO);
+			chatAdapter.addMessage(message);
+			chatAdapter.notifyDataSetChanged();
 
-		Server.sendPicture(message, channelNamespace);
-
-		DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
-		scrollMyListViewToBottom();
+			Server.sendPicture(message, channelNamespace);
+			
+			DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
+			scrollMyListViewToBottom();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}		
 	}
 
 	@Override

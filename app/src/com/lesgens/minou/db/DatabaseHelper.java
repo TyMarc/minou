@@ -51,7 +51,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 	public void onCreate(SQLiteDatabase db)
 	{
-		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userId TEXT, content TEXT, data BLOB, timestamp LONG, isIncoming INTEGER DEFAULT 0, status INTEGER DEFAULT 0, msgType TEXT);");
+		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userId TEXT, content TEXT, dataPath String DEFAULT null, timestamp LONG, isIncoming INTEGER DEFAULT 0, status INTEGER DEFAULT 0, msgType TEXT);");
 		db.execSQL("CREATE TABLE minou_last_message (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT, timestamp LONG);");
 		db.execSQL("CREATE TABLE minou_public (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT);");
 		db.execSQL("CREATE TABLE minou_users (id INTEGER PRIMARY KEY AUTOINCREMENT, userId TEXT, username TEXT, avatarURL TEXT, avatar BLOB, isContact INTEGER DEFAULT 0);");
@@ -77,7 +77,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		ContentValues cv = new ContentValues();
 		cv.put("message_id",m.getId().toString());
 		cv.put("content", m.getContent());
-		cv.put("data", m.getData());
+		cv.put("dataPath", m.getDataPath());
 		cv.put("isIncoming", m.isIncoming() ? 1 : 0);
 		cv.put("timestamp", timestamp);
 		cv.put("userId", userId);
@@ -104,7 +104,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		ContentValues cv = new ContentValues();
 		cv.put("msgType", m.getMsgType().toString());
 		cv.put("status", m.getStatus().getIntValue());
-		cv.put("data", m.getData());
+		cv.put("dataPath", m.getDataPath());
 		db.update("minou_message", cv, "message_id = ?", new String[]{m.getId().toString()});
 	}
 	
@@ -264,20 +264,20 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		SQLiteDatabase db = this.getReadableDatabase();
 		Log.i(TAG, "get Messages for channel=" + channel.getNamespace().toLowerCase().replace("-", "_"));
 
-		Cursor c = db.rawQuery("SELECT message_id, timestamp, content, isIncoming, data, userId, status, msgType FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, content, isIncoming, dataPath, userId, status, msgType FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
 		Message message;
 		while(c.moveToNext()){
 			UUID id = UUID.fromString(c.getString(0));
 			Timestamp timestamp = new Timestamp(c.getLong(1));
 			String text = c.getString(2);
 			boolean isIncoming = c.getInt(3) == 1;
-			byte[] data = c.getBlob(4);
+			String dataPath = c.getString(4);
 			String userId = c.getString(5);
 			User user = getUser(userId);
 			int status = c.getInt(6);
 			String msgType = c.getString(7);
 			message = new Message(id, timestamp, channel, 
-					user, text, isIncoming, data, SendingStatus.fromInt(status), MessageType.fromString(msgType));
+					user, text, isIncoming, dataPath, SendingStatus.fromInt(status), MessageType.fromString(msgType));
 			messages.add(message);
 		}
 		
@@ -288,33 +288,33 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		SQLiteDatabase db = this.getReadableDatabase();
 		Log.i(TAG, "get last Message for channel=" + channel.getNamespace().toLowerCase().replace("-", "_"));
 
-		Cursor c = db.rawQuery("SELECT message_id, timestamp, content, isIncoming, data, userId, status, msgType FROM minou_message WHERE channel = ? ORDER BY timestamp DESC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, content, isIncoming, dataPath, userId, status, msgType FROM minou_message WHERE channel = ? ORDER BY timestamp DESC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
 		Message message = null;
 		if(c.moveToNext()){
 			UUID id = UUID.fromString(c.getString(0));
 			Timestamp timestamp = new Timestamp(c.getLong(1));
 			String text = c.getString(2);
 			boolean isIncoming = c.getInt(3) == 1;
-			byte[] data = c.getBlob(4);
+			String dataPath = c.getString(4);
 			String userId = c.getString(5);
 			User user = getUser(userId);
 			int status = c.getInt(6);
 			String msgType = c.getString(7);
 			message = new Message(id, timestamp, channel, 
-					user, text, isIncoming, data, SendingStatus.fromInt(status), MessageType.fromString(msgType));
+					user, text, isIncoming, dataPath, SendingStatus.fromInt(status), MessageType.fromString(msgType));
 		}
 		
 		return message;
 	}
 	
-	public byte[] getPictureFromMessageId(String messageId) {
+	public String getPicturePathFromMessageId(String messageId) {
 		SQLiteDatabase db = this.getReadableDatabase();
 		Log.i(TAG, "get Message for messageId=" + messageId);
 
-		Cursor c = db.rawQuery("SELECT data FROM minou_message WHERE message_id = ? ORDER BY timestamp DESC;", new String[]{messageId} );
+		Cursor c = db.rawQuery("SELECT dataPath FROM minou_message WHERE message_id = ? ORDER BY timestamp DESC;", new String[]{messageId} );
 		if(c.moveToNext()){
-			byte[] data = c.getBlob(0);
-			return data;
+			String dataPath = c.getString(0);
+			return dataPath;
 		}
 		
 		return null;

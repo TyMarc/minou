@@ -1,5 +1,7 @@
 package com.lesgens.minou;
 
+import java.io.File;
+
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -11,6 +13,7 @@ import android.view.Window;
 import android.widget.ImageView;
 
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.utils.Utils;
 
 public class ImageViewerActivity extends MinouActivity implements OnClickListener{
 
@@ -35,8 +38,9 @@ public class ImageViewerActivity extends MinouActivity implements OnClickListene
 		if(messageId == null){
 			finish();
 		}
-		byte[] picture = DatabaseHelper.getInstance().getPictureFromMessageId(messageId);
+		
 		try{
+			byte[] picture = Utils.read(new File(DatabaseHelper.getInstance().getPicturePathFromMessageId(messageId)));
 			Bitmap bitmap = BitmapFactory.decodeByteArray(picture, 0, picture.length);
 			ImageView imageView = (ImageView) findViewById(R.id.image);
 			imageView.setImageBitmap(bitmap);
