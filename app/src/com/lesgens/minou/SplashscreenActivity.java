@@ -1,6 +1,5 @@
 package com.lesgens.minou;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
@@ -221,7 +220,6 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 		mLastLocation = location;
 		if (mLastLocation != null) {
 			Geocoder geoCoder = new Geocoder(this, Locale.CANADA);
-			executeGeocoderFallback(mLastLocation.getLatitude(), mLastLocation.getLongitude());
 			try {
 				List<Address> address = geoCoder.getFromLocation(mLastLocation.getLatitude(), mLastLocation.getLongitude(), 1);
 				final String city = address.get(0).getLocality();
@@ -233,12 +231,9 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 				if(authenticated){
 					Server.connectToCrossbar(this);
 				}
-			} catch (IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
-				
-			}
-			catch (NullPointerException e) {
-				e.printStackTrace();
+				executeGeocoderFallback(mLastLocation.getLatitude(), mLastLocation.getLongitude());
 			}
 		}
 	}

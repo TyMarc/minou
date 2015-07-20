@@ -252,7 +252,7 @@ public class Utils {
 
 	public static Address getFromLocation(double lat, double lng) {
 
-		String address = String.format(Locale.ENGLISH, "http://maps.googleapis.com/maps/api/geocode/json?latlng=%1$f,%2$f&sensor=false&language=" + Locale.getDefault().getCountry(), lat, lng);
+		String address = String.format(Locale.ENGLISH, "http://maps.googleapis.com/maps/api/geocode/json?latlng=%1$f,%2$f&sensor=false&language=en_CA", lat, lng);
 		HttpGet httpGet = new HttpGet(address);
 		HttpClient client = new DefaultHttpClient();
 		client.getParams().setParameter(AllClientPNames.USER_AGENT, "Mozilla/5.0 (Java) Gecko/20081007 java-geocoder");
