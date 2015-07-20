@@ -139,8 +139,7 @@ public class ContactPickerFragment extends MinouFragment implements OnItemClickL
 			if(mode == MODE_SINGLE && checkedUsers.size() > 0){
 				final String userId = adapter.getItem(checkedUsers.keyAt(0)).getUserId();
 				final User user = DatabaseHelper.getInstance().getUser(userId);
-				Controller.getInstance().setCurrentChannel(user);
-				ChatActivity.show(getActivity());
+				ChatActivity.show(getActivity(), user.getNamespace());
 				getActivity().finish();
 			} else if(mode == MODE_GROUP && checkedUsers.size() >= 2) {
 			} else{

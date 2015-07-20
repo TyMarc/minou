@@ -167,4 +167,8 @@ public class Channel {
 	public void setCount(int count) {
 		this.count = count;
 	}
+
+	public void remove(Channel channel) {
+		channels.remove(channel);
+	}
 }

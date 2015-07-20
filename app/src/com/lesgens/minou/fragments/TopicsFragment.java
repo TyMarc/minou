@@ -57,7 +57,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 		}
 		
 		if(topicDetailsFragment != null && topicDetailsFragment.isVisible()) {
-			topicDetailsFragment.setWidth(adapter.getView(0, null, null).getWidth());
+			topicDetailsFragment.slideOut();
 		}
 	}
 
@@ -101,7 +101,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if(requestCode == REQUEST_ADD_CHANNEL && resultCode == Activity.RESULT_OK){
-			ChatActivity.show(getActivity());
+			ChatActivity.show(getActivity(), data.getStringExtra("namespace"));
 			getActivity().finish();
 		}
 	}
@@ -127,6 +127,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 				final Topic channel = adapter.getItem(arg2);
 				DatabaseHelper.getInstance().removePublicChannel(channel.getNamespace());
 				DatabaseHelper.getInstance().removeAllMessages(channel.getNamespace());
+				channel.getParent().remove(channel);
 				adapter.remove(channel);
 				refreshList();
 			}})
@@ -141,9 +142,9 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 	@Override
 	public void onClick(View v) {
 		if(v.getId() == R.id.add_channel){
-			AddAChannelActivity.show(getActivity(), Controller.getInstance().getCurrentChannel().getNamespace(), REQUEST_ADD_CHANNEL);
+			AddAChannelActivity.show(getActivity(), REQUEST_ADD_CHANNEL);
 		} else if(v.getId() == R.id.add_location){
-			AddAChannelActivity.show(getActivity(), Controller.getInstance().getCurrentChannel().getNamespace(), REQUEST_ADD_LOCATION);
+			AddAChannelActivity.show(getActivity(), REQUEST_ADD_LOCATION);
 		}
 	}
 	

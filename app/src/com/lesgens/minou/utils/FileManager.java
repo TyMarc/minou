@@ -10,12 +10,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Environment;
+import android.provider.MediaStore;
 
-import com.desmond.squarecamera.CameraActivity;
 import com.desmond.squarecamera.ImageUtility;
 import com.lesgens.minou.R;
 import com.lesgens.minou.controllers.Controller;
@@ -122,8 +120,13 @@ public class FileManager {
 	}
 
 	public static void takePhoto(final Activity context) {
-		Intent startCustomCameraIntent = new Intent(context, CameraActivity.class);
-		context.startActivityForResult(startCustomCameraIntent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+		Intent i = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+		
+		File photo = new File(context.getCacheDir(),  "sending.jpg");
+		i.putExtra(MediaStore.EXTRA_OUTPUT,
+				Uri.fromFile(photo));
+		
+		context.startActivityForResult(i, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 	}
 
 	public static void takeVideo(final Activity context) {

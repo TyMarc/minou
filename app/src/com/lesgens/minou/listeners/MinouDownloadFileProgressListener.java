@@ -7,6 +7,7 @@ import android.util.Log;
 import com.amazonaws.event.ProgressEvent;
 import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.application.MinouApplication;
+import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.models.Message;
 
@@ -24,6 +25,7 @@ public class MinouDownloadFileProgressListener extends MinouDownloadProgressList
 			message.setStatus(message.isIncoming() ? SendingStatus.RECEIVED : SendingStatus.SENT);
 			if(fileDownload != null){
 				message.setDataPath(fileDownload.getAbsolutePath());
+				DatabaseHelper.getInstance().updateMessageData(message);
 			}
 			
 			if(MinouApplication.getCurrentActivity() instanceof ChatActivity){

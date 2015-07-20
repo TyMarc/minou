@@ -28,7 +28,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.desmond.squarecamera.CameraActivity;
 import com.lesgens.minou.adapters.ChatAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.controllers.PreferencesController;
@@ -37,6 +36,7 @@ import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
+import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
@@ -58,9 +58,11 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	private NetworkStateReceiver networkStateReceiver;
 	private Uri imageUri;
 	private String channelNamespace;
+	private Channel channel;
 
-	public static void show(final Context context){
+	public static void show(final Context context, final String namespace){
 		Intent i = new Intent(context, ChatActivity.class);
+		i.putExtra("namespace", namespace);
 		context.startActivity(i);
 	}
 
@@ -74,10 +76,9 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 		channelTextView = (TextView) findViewById(R.id.channel_name);
 
-		final String channelName = getIntent().getStringExtra("channelName");
-		if(channelName != null){
-			Controller.getInstance().setCurrentChannel(channelName);
-		}
+		channelNamespace = getIntent().getStringExtra("namespace");
+		channel = Controller.getInstance().getChannelsContainer().getChannelByName(channelNamespace);
+		
 		tvConnectionProblem = (TextView) findViewById(R.id.connection_problem);
 
 		editText = (EditText) findViewById(R.id.editText);
@@ -106,17 +107,15 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	}
 
 	public void refreshChannel(){
-		channelNamespace = Controller.getInstance().getCurrentChannel().getNamespace();
-
-		if(Controller.getInstance().getCurrentChannel() instanceof User){
-			channelTextView.setText(Utils.capitalizeFirstLetters(((User) Controller.getInstance().getCurrentChannel()).getUsername()));
+		if(channel instanceof User){
+			channelTextView.setText(Utils.capitalizeFirstLetters(((User) channel).getUsername()));
 		} else{
-			channelTextView.setText(Utils.capitalizeFirstLetters(Controller.getInstance().getCurrentChannel().getName()));	
+			channelTextView.setText(Utils.capitalizeFirstLetters(channel.getName()));	
 		}
 
 		NotificationHelper.cancelAll(this);
 
-		chatAdapter = new ChatAdapter(this, DatabaseHelper.getInstance().getMessages(Controller.getInstance().getCurrentChannel()), Controller.getInstance().getCurrentChannel() instanceof User);
+		chatAdapter = new ChatAdapter(this, DatabaseHelper.getInstance().getMessages(channel), channel instanceof User);
 		listMessages.setAdapter(chatAdapter);
 	}
 
@@ -155,7 +154,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		} else if(v.getId() == R.id.send_ft){
 			showMenuFT();
 		} else if(v.getId() == R.id.settings_btn){
-			ChannelSettingsActivity.show(this);
+			ChannelSettingsActivity.show(this, channelNamespace);
 		}
 	}
 
@@ -297,8 +296,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	}
 
 	private void pmUser(final User user){
-		Controller.getInstance().setCurrentChannel(user);
-		ChatActivity.show(ChatActivity.this);
+		ChatActivity.show(ChatActivity.this, user.getNamespace());
 		finish();
 	}
 
@@ -319,7 +317,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	}
 
 	private boolean isPrivate(){
-		return Controller.getInstance().getCurrentChannel() instanceof User;
+		return channel instanceof User;
 	}
 
 	@Override
@@ -327,6 +325,10 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		super.onActivityResult(requestCode, resultCode, data);
 		if ((requestCode == FileManager.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileManager.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
 			imageUri = data.getData();
+			if(imageUri == null) {
+				File photo = new File(getCacheDir(),  "sending.jpg");
+				imageUri = Uri.fromFile(photo);
+			}
 			Message message = FileManager.preparePicture(this, imageUri, channelNamespace);
 			chatAdapter.addMessage(message);
 			chatAdapter.notifyDataSetChanged();
@@ -444,5 +446,9 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		} else{
 			chatAdapter.setLoadImages(false);
 		}
+	}
+
+	public String getNamespace() {
+		return channelNamespace;
 	}
 }

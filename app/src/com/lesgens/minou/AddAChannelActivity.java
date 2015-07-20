@@ -28,11 +28,9 @@ import com.lesgens.minou.utils.Utils;
 
 public class AddAChannelActivity extends MinouActivity implements OnClickListener, TextWatcher, TrendingChannelsListener{
 	private ChannelsTrendingAdapter adapter;
-	private String currentNamespace;
 
-	public static void show(final Activity activity, final String currentNamespace, final int requestCode) {
+	public static void show(final Activity activity, final int requestCode) {
 		Intent i = new Intent(activity, AddAChannelActivity.class);
-		i.putExtra("currentNamespace", currentNamespace);
 		activity.startActivityForResult(i, requestCode);
 	}
 
@@ -45,10 +43,7 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 
 		setContentView(R.layout.add_a_channel);
 
-		currentNamespace = getIntent().getStringExtra("currentNamespace");
-		if(currentNamespace == null) currentNamespace = Channel.BASE_CHANNEL;
-
-		((TextView) findViewById(R.id.channel_name)).setText(Utils.capitalizeFirstLetters(Utils.getNameFromNamespace(currentNamespace)));
+		((TextView) findViewById(R.id.channel_name)).setText(Utils.capitalizeFirstLetters(Utils.getNameFromNamespace("")));
 
 		((EditText) findViewById(R.id.editText)).addTextChangedListener(this);
 		InputFilter filter = new InputFilter() { 
@@ -71,7 +66,7 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 		findViewById(R.id.search_bar).requestFocus();
 
 
-		Server.getTrendingTopics(Controller.getInstance().getCurrentChannel(), this);
+		Server.getTrendingTopics(null, this);
 	}
 
 
@@ -80,11 +75,10 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 		if(v.getId() == R.id.currently_written){
 			final String text = ((TextView) v).getText().toString().trim();
 			if(!text.isEmpty()){
-				final String channelName = Utils.getNormalizedString(currentNamespace + "." + text);
-				if(!Controller.getInstance().getCurrentChannel().isContainSubscription(channelName)){
+				final String channelName = Utils.getNormalizedString("" + "." + text);
+				if(!Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
 					DatabaseHelper.getInstance().addPublicChannel(channelName);
 					Server.subscribeToChannel(this, channelName);
-					Controller.getInstance().setCurrentChannel(channelName);
 					setResult(RESULT_OK);
 					finish();
 				}

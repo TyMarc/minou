@@ -17,7 +17,6 @@ import android.widget.ListView;
 import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.ConversationsAdapter;
-import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.User;
 
@@ -80,8 +79,7 @@ public class ConversationsFragment extends MinouFragment implements OnItemClickL
 	public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
 		final String userId = adapter.getItem(position);
 		final User user = DatabaseHelper.getInstance().getUser(userId);
-		Controller.getInstance().setCurrentChannel(user);
-		ChatActivity.show(getActivity());
+		ChatActivity.show(getActivity(), user.getNamespace());
 		getActivity().finish();
 	}
 

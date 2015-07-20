@@ -1,7 +1,5 @@
 package com.lesgens.minou.controllers;
 
-import java.text.Normalizer;
-
 import android.content.Context;
 
 import com.facebook.Session;
@@ -17,7 +15,6 @@ public class Controller {
 	private User myselfUser;
 	private String secret;
 	private Channel channelsContainer;
-	private Channel currentChannel;
 	private Geolocation geolocation;
 	private String id;
 	private Roles role;
@@ -69,27 +66,6 @@ public class Controller {
 	
 	public String getSecret(){
 		return secret;
-	}
-
-	public Channel getCurrentChannel() {
-		return currentChannel;
-	}
-	
-	public void setCurrentChannel(final Channel channel) {
-		currentChannel = channel;
-	}
-
-	public boolean setCurrentChannel(String channel) {
-		String fullChannelName = channel.toLowerCase().replace("-", "_");
-		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
-		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
-		Channel c = channelsContainer.getChannelByName(fullChannelName);
-		if(c != null){
-			setCurrentChannel(c);
-			return true;
-		}
-		
-		return false;
 	}
 	
 	public Geolocation getGeolocation(){

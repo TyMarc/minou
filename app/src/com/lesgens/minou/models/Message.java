@@ -49,9 +49,9 @@ public class Message extends Event{
 		this.isIncoming = isIncoming;
 		this.status = status;
 		this.msgType = msgType;
-
-		setDataPath(dataPath);
-		if((msgType == MessageType.IMAGE || msgType == MessageType.VIDEO) && thumbnail == null){
+		this.dataPath = dataPath;
+		
+		if((msgType == MessageType.IMAGE || msgType == MessageType.VIDEO) && dataPath == null){
 			Log.i("Message", "downloading file");
 			status = SendingStatus.PENDING;
 			FileManagerS3.getInstance().downloadFile(content, new MinouDownloadFileProgressListener(this));
@@ -75,6 +75,27 @@ public class Message extends Event{
 	}
 
 	public byte[] getThumbnail(){
+		if(thumbnail == null) {
+			if(dataPath != null) {
+				try {
+					if(msgType == MessageType.IMAGE) {
+						byte[] data = Utils.read(new File(dataPath));
+						thumbnail = data;
+					} else if(msgType == MessageType.VIDEO) {
+						MediaMetadataRetriever mmr = new MediaMetadataRetriever();
+						mmr.setDataSource(dataPath);
+						Bitmap image = mmr.getFrameAtTime(0);
+						ByteArrayOutputStream bos = new ByteArrayOutputStream();
+						image.compress(CompressFormat.JPEG, 70, bos);
+						image.recycle();
+						thumbnail = bos.toByteArray();
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
 		return thumbnail;
 	}
 
@@ -99,31 +120,8 @@ public class Message extends Event{
 		return false;
 	}
 
-	public void setThumbnail(byte[] thumbnail) {
-		this.thumbnail = thumbnail;
-	}
-
 	public void setDataPath(String absolutePath) {
 		this.dataPath = absolutePath;
-		if(absolutePath != null) {
-			try {
-				if(msgType == MessageType.IMAGE) {
-					byte[] data = Utils.read(new File(absolutePath));
-					thumbnail = data;
-				} else if(msgType == MessageType.VIDEO) {
-					MediaMetadataRetriever mmr = new MediaMetadataRetriever();
-					mmr.setDataSource(absolutePath);
-					Bitmap image = mmr.getFrameAtTime(0);
-					ByteArrayOutputStream bos = new ByteArrayOutputStream();
-					image.compress(CompressFormat.JPEG, 70, bos);
-					image.recycle();
-					thumbnail = bos.toByteArray();
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		DatabaseHelper.getInstance().updateMessageData(this);
 	}
 
 	public String getDataPath() {

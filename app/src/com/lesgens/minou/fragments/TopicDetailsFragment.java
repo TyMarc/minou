@@ -129,8 +129,7 @@ public class TopicDetailsFragment extends MinouFragment implements OnClickListen
 		if(v.getId() == R.id.container) {
 			slideOut();
 		} else if(v.getId() == R.id.topic_detail) {
-			Controller.getInstance().setCurrentChannel(topic);
-			ChatActivity.show(getActivity());
+			ChatActivity.show(getActivity(), topic.getNamespace());
 			getActivity().finish();
 		}
 	}

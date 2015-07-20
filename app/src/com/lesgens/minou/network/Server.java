@@ -306,7 +306,7 @@ public class Server {
 				
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
-					if(topic.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
+					if(topic.getNamespace().equals(((ChatActivity) MinouApplication.getCurrentActivity()).getNamespace())){
 						isGoodChannel = true;
 					}
 				}
@@ -355,7 +355,7 @@ public class Server {
 				
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
-					if(city.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
+					if(city.getNamespace().equals(((ChatActivity) MinouApplication.getCurrentActivity()).getNamespace())){
 						isGoodChannel = true;
 					}
 				}
@@ -400,7 +400,7 @@ public class Server {
 				
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
-					if(user.getNamespace().equals(Controller.getInstance().getCurrentChannel().getNamespace())){
+					if(user.getNamespace().equals(((ChatActivity) MinouApplication.getCurrentActivity()).getNamespace())){
 						isGoodChannel = true;
 					}
 				}

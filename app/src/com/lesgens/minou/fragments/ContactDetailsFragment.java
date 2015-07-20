@@ -1,10 +1,13 @@
 package com.lesgens.minou.fragments;
 
+import java.io.File;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -63,8 +66,13 @@ public class ContactDetailsFragment extends DialogFragment implements OnClickLis
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if ((requestCode == FileManager.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileManager.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == Activity.RESULT_OK) {
-			FileManager.preparePicture(getActivity(), data.getData(), user.getNamespace());
-			ChatActivity.show(getActivity());
+			Uri uri = data.getData();
+			if(uri == null) {
+				File photo = new File(getActivity().getCacheDir(),  "sending.jpg");
+				uri = Uri.fromFile(photo);
+			}
+			FileManager.preparePicture(getActivity(), uri, user.getNamespace());
+			ChatActivity.show(getActivity(), user.getNamespace());
 			getActivity().finish();
 		}
 	}
@@ -72,11 +80,9 @@ public class ContactDetailsFragment extends DialogFragment implements OnClickLis
 	@Override
 	public void onClick(View v) {
 		if(v.getId() == R.id.send_message_btn) {
-			Controller.getInstance().setCurrentChannel(user);
-			ChatActivity.show(getActivity());
+			ChatActivity.show(getActivity(), user.getNamespace());
 			getActivity().finish();
 		} else if(v.getId() == R.id.share_btn) {
-			Controller.getInstance().setCurrentChannel(user);
 			showMenuFT();
 		}
 	}
