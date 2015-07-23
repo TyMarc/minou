@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
@@ -67,6 +68,8 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 	public View onCreateView(LayoutInflater inflater,
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.topics, container, false);
+		
+		getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
 		gridView = (GridView) v.findViewById(R.id.grid_view);
 		gridView.setOnItemLongClickListener(this);
@@ -85,8 +88,6 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 
 		v.findViewById(R.id.add_channel).setOnClickListener(this);
 		v.findViewById(R.id.add_location).setOnClickListener(this);
-		
-		refreshList();
 
 		return v;
 	}
@@ -94,7 +95,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 	@Override
 	public void onResume(){
 		super.onResume();
-		gridView.requestFocus();
+		refreshList();
 	}
 
 	@Override

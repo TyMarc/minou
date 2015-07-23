@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.lesgens.minou.R;
+import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.Topic;
 import com.lesgens.minou.utils.Utils;
 
@@ -65,7 +66,7 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 	
 		String channelName = Utils.capitalizeFirstLetters(topic.getName());
 		
-		holder.name.setText(channelName);
+		holder.name.setText(channelName + " (" + DatabaseHelper.getInstance().getUnreadCountForTopic(topic.getNamespace()) + ")");
 		holder.usersConnected.setText(getContext().getResources().getQuantityString(R.plurals.users_connected, topic.getCount(), topic.getCount()));
 		holder.desc.setText(topic.getDescription());
 		holder.cityName.setText(Utils.capitalizeFirstLetters(topic.getParentName()));

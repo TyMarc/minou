@@ -1,7 +1,5 @@
 package com.lesgens.minou.fragments;
 
-import java.io.File;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -20,7 +18,6 @@ import android.widget.TextView;
 
 import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.R;
-import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.FileManager;
@@ -67,10 +64,6 @@ public class ContactDetailsFragment extends DialogFragment implements OnClickLis
 		super.onActivityResult(requestCode, resultCode, data);
 		if ((requestCode == FileManager.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileManager.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == Activity.RESULT_OK) {
 			Uri uri = data.getData();
-			if(uri == null) {
-				File photo = new File(getActivity().getCacheDir(),  "sending.jpg");
-				uri = Uri.fromFile(photo);
-			}
 			FileManager.preparePicture(getActivity(), uri, user.getNamespace());
 			ChatActivity.show(getActivity(), user.getNamespace());
 			getActivity().finish();

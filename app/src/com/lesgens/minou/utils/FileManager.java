@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 
+import com.desmond.squarecamera.CameraActivity;
 import com.desmond.squarecamera.ImageUtility;
 import com.lesgens.minou.R;
 import com.lesgens.minou.controllers.Controller;
@@ -62,7 +63,7 @@ public class FileManager {
 			e.printStackTrace();
 		}
 
-		DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
+		DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace, true);
 		return message;
 	}
 
@@ -93,7 +94,7 @@ public class FileManager {
 
 			Server.sendFile(message, channelNamespace);
 
-			DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
+			DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace, true);
 
 			return message;
 		} catch (FileNotFoundException e) {
@@ -120,12 +121,7 @@ public class FileManager {
 	}
 
 	public static void takePhoto(final Activity context) {
-		Intent i = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-		
-		File photo = new File(context.getCacheDir(),  "sending.jpg");
-		i.putExtra(MediaStore.EXTRA_OUTPUT,
-				Uri.fromFile(photo));
-		
+		Intent i = new Intent(context, CameraActivity.class);
 		context.startActivityForResult(i, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 	}
 

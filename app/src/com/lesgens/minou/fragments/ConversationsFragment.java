@@ -28,7 +28,7 @@ public class ConversationsFragment extends MinouFragment implements OnItemClickL
 	@Override
 	public View onCreateView(LayoutInflater inflater,
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-		View v = inflater.inflate(R.layout.private_channels, container, false);
+		View v = inflater.inflate(R.layout.conversations, container, false);
 
 		listView = (ListView) v.findViewById(R.id.list);
 		listView.setOnItemClickListener(this);

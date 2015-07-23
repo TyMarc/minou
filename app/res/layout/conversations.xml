@@ -34,7 +34,8 @@
             android:gravity="center_vertical"
             android:padding="8dp"
             android:src="@drawable/create_group_chat"
-            android:tint="@color/white" />
+            android:tint="@color/white"
+            android:visibility="gone" />
 
         <ImageView
             android:id="@+id/create_single"

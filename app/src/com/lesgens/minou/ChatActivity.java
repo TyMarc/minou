@@ -14,6 +14,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -163,7 +164,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		chatAdapter.addMessage(message);
 		chatAdapter.notifyDataSetChanged();
 		Server.sendMessage(message, channelNamespace);
-		DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace);
+		DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace, true);
 		editText.setText("");
 		scrollMyListViewToBottom();
 	}
@@ -312,7 +313,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 	@Override
 	public void onBackPressed(){
-		HomeActivity.show(this, isPrivate() ? 0 : 2);
+		HomeActivity.show(this, isPrivate() ? 1 : 0);
 		finish();
 	}
 
@@ -325,10 +326,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		super.onActivityResult(requestCode, resultCode, data);
 		if ((requestCode == FileManager.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileManager.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
 			imageUri = data.getData();
-			if(imageUri == null) {
-				File photo = new File(getCacheDir(),  "sending.jpg");
-				imageUri = Uri.fromFile(photo);
-			}
 			Message message = FileManager.preparePicture(this, imageUri, channelNamespace);
 			chatAdapter.addMessage(message);
 			chatAdapter.notifyDataSetChanged();

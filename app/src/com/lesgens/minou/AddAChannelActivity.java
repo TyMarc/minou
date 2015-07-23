@@ -28,6 +28,7 @@ import com.lesgens.minou.utils.Utils;
 
 public class AddAChannelActivity extends MinouActivity implements OnClickListener, TextWatcher, TrendingChannelsListener{
 	private ChannelsTrendingAdapter adapter;
+	private Channel currentCity;
 
 	public static void show(final Activity activity, final int requestCode) {
 		Intent i = new Intent(activity, AddAChannelActivity.class);
@@ -40,10 +41,12 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 
 		//Remove title bar
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		
+		currentCity = Controller.getInstance().getChannelsContainer().getChannelByName(Controller.getInstance().getGeolocation().getStateNameSpace());
 
 		setContentView(R.layout.add_a_channel);
 
-		((TextView) findViewById(R.id.channel_name)).setText(Utils.capitalizeFirstLetters(Utils.getNameFromNamespace("")));
+		((TextView) findViewById(R.id.channel_name)).setText(Utils.capitalizeFirstLetters(Utils.capitalizeFirstLetters(currentCity.getName())));
 
 		((EditText) findViewById(R.id.editText)).addTextChangedListener(this);
 		InputFilter filter = new InputFilter() { 
@@ -66,7 +69,7 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 		findViewById(R.id.search_bar).requestFocus();
 
 
-		Server.getTrendingTopics(null, this);
+		Server.getTrendingTopics(currentCity, this);
 	}
 
 
@@ -75,7 +78,7 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 		if(v.getId() == R.id.currently_written){
 			final String text = ((TextView) v).getText().toString().trim();
 			if(!text.isEmpty()){
-				final String channelName = Utils.getNormalizedString("" + "." + text);
+				final String channelName = Utils.getNormalizedString(currentCity.getNamespace() + "." + text);
 				if(!Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
 					DatabaseHelper.getInstance().addPublicChannel(channelName);
 					Server.subscribeToChannel(this, channelName);

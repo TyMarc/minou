@@ -56,12 +56,12 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 		setContentView(R.layout.home);
 
 		fragments = new ArrayList<MinouFragment>();
+		topicsFragment = new TopicsFragment();
+		fragments.add(topicsFragment);
 		conversationsFragment = new ConversationsFragment();
 		fragments.add(conversationsFragment);
 		contactsFragment = new ContactsFragment();
 		fragments.add(contactsFragment);
-		topicsFragment = new TopicsFragment();
-		fragments.add(topicsFragment);
 		profileFragment = new ProfileFragment();
 		fragments.add(profileFragment);
 

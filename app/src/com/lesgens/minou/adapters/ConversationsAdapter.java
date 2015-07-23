@@ -33,7 +33,7 @@ public class ConversationsAdapter extends ArrayAdapter<String>{
 	private ArrayList<String> usersId;
 
 	public ConversationsAdapter(Context context, ArrayList<String> usersId) {  
-		super(context,R.layout.private_channel_item, usersId);
+		super(context,R.layout.conversations_item, usersId);
 		mContext = context;     
 		sameYear = Calendar.getInstance();
 		sameYear.add(Calendar.DAY_OF_MONTH, -7);
@@ -63,7 +63,7 @@ public class ConversationsAdapter extends ArrayAdapter<String>{
 		View rowView;
 
 		if(convertView == null){ // Only inflating if necessary is great for performance
-			rowView = getInflater().inflate(R.layout.private_channel_item, parent, false);
+			rowView = getInflater().inflate(R.layout.conversations_item, parent, false);
 			
 			ViewHolder holder = new ViewHolder();
 			holder.name = (TextView) rowView.findViewById(R.id.name);

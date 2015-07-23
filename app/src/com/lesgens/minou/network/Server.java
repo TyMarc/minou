@@ -145,9 +145,7 @@ public class Server {
 
 						subscribeToPrivateChannel(context, Controller.getInstance().getMyself());
 
-						subscribeToCity(context, Controller.getInstance().getGeolocation().getCountryNameSpace());
 						subscribeToCity(context, Controller.getInstance().getGeolocation().getStateNameSpace());
-						subscribeToCity(context, Controller.getInstance().getGeolocation().getCityNameSpace());
 
 						addGeolocationChannels();
 
@@ -201,30 +199,30 @@ public class Server {
 	}
 
 	private static void addGeolocationChannels(){
-		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace())) {
-			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace());
-		}
+//		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace())) {
+//			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace());
+//		}
 
 		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getStateNameSpace())) {
 			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getStateNameSpace());
 		}
 
 
-		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace())) {
-			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace());
-		}
+//		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace())) {
+//			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace());
+//		}
 
-		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general")) {
-			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general");
-		}
+//		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general")) {
+//			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general");
+//		}
 
 		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getStateNameSpace() + ".general")) {
 			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getStateNameSpace() + ".general");
 		}
 
-		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace() + ".general")) {
-			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace() + ".general");
-		}
+//		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace() + ".general")) {
+//			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace() + ".general");
+//		}
 	}
 
 	private static void closeSubscriptions() {
@@ -253,7 +251,7 @@ public class Server {
 
 		final City city = createChannelCity(context, channelName);
 
-		Controller.getInstance().getChannelsContainer().addSubscription(city);
+		Controller.getInstance().getChannelsContainer().addByForceSubscription(city);
 	}
 
 	public static void subscribeToChannel(final Context context, final String channelName){
@@ -261,7 +259,7 @@ public class Server {
 			return;
 		}
 
-		final Channel channel = createChannelTopic(context, channelName);
+		final Topic channel = createChannelTopic(context, channelName);
 
 		Controller.getInstance().getChannelsContainer().addSubscription(channel);
 
@@ -591,7 +589,7 @@ public class Server {
 						el.onNewEvent(m);
 					}
 
-					DatabaseHelper.getInstance().addMessage(m, user.getId(), channel.getNamespace(), sentAt);
+					DatabaseHelper.getInstance().addMessage(m, user.getId(), channel.getNamespace(), sentAt, false);
 				}
 			}}, new Action1<Throwable>() {
 
@@ -628,7 +626,7 @@ public class Server {
 					for(EventsListener el : eventsListeners) {
 						el.onNewEvent(m);
 					}
-					DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace(), sentAt);
+					DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace(), sentAt, false);
 				}
 			}}, new Action1<Throwable>() {
 

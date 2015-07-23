@@ -51,7 +51,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 	public void onCreate(SQLiteDatabase db)
 	{
-		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userId TEXT, content TEXT, dataPath String DEFAULT null, timestamp LONG, isIncoming INTEGER DEFAULT 0, status INTEGER DEFAULT 0, msgType TEXT, thumbnail BLOB);");
+		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userId TEXT, content TEXT, dataPath String DEFAULT null, timestamp LONG, isIncoming INTEGER DEFAULT 0, status INTEGER DEFAULT 0, msgType TEXT, thumbnail BLOB, read INTEGER DEFAULT 0);");
 		db.execSQL("CREATE TABLE minou_last_message (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT, timestamp LONG);");
 		db.execSQL("CREATE TABLE minou_public (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT);");
 		db.execSQL("CREATE TABLE minou_users (id INTEGER PRIMARY KEY AUTOINCREMENT, userId TEXT, username TEXT, avatarURL TEXT, avatar BLOB, isContact INTEGER DEFAULT 0);");
@@ -65,12 +65,17 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		db.execSQL("DROP TABLE if exists minou_users");
 		onCreate(db);
 	}
+	
+	public void addMessage(Message m, String userId, String channel,
+			boolean isRead) {
+		addMessage(m, userId, channel, m.getTimestamp().getTime(), isRead);
+	}
 
 	public void addMessage(Message m, String userId, String channel){
-		addMessage(m, userId, channel, m.getTimestamp().getTime());		
+		addMessage(m, userId, channel, m.getTimestamp().getTime(), false);		
 	}
 	
-	public void addMessage(Message m, String userId, String channel, long timestamp){
+	public void addMessage(Message m, String userId, String channel, long timestamp, boolean isRead){
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		Log.i(TAG, " adding message to database to channel=" + channel.toLowerCase().replace("-", "_") + " timestamp=" + timestamp);
@@ -85,6 +90,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		cv.put("msgType", m.getMsgType().toString());
 		cv.put("status", m.getStatus().getIntValue());
 		cv.put("thumbnail", m.getThumbnail());
+		cv.put("read", isRead ? 1 : 0);
 		db.insert("minou_message", null, cv);
 		
 		cv = new ContentValues();
@@ -280,6 +286,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			message = new Message(id, timestamp, channel, 
 					user, text, isIncoming, dataPath, SendingStatus.fromInt(status), MessageType.fromString(msgType));
 			messages.add(message);
+			updateMessageAsRead(id.toString());
 		}
 		
 		return messages;
@@ -319,6 +326,18 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		}
 		
 		return null;
+	}
+	
+	public int getUnreadCountForTopic(final String namespace) {
+		SQLiteDatabase db = this.getReadableDatabase();
+		Log.i(TAG, "get unread count for namespace=" + namespace);
+		Cursor c = db.rawQuery("SELECT COUNT(*) FROM minou_message WHERE read = 0 AND channel = ? ORDER BY timestamp ASC;", new String[]{namespace.toLowerCase().replace("-", "_")} );
+		
+		if(c.moveToNext()){
+			return c.getInt(0);
+		}
+		
+		return 0;
 	}
 	
 	public void removeAllMessages(final String channel){
@@ -429,6 +448,14 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		cv.put("avatar", avatar);
 		db.update("minou_users", cv, "userId = ?", new String[]{userId});
 	}
+	
+	public void updateMessageAsRead(final String messageId) {
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		ContentValues cv = new ContentValues();
+		cv.put("read", 1);
+		db.update("minou_message", cv, "message_id = ?", new String[]{messageId});
+	}
 
 	public boolean isContact(String userId) {
 		SQLiteDatabase db = this.getReadableDatabase();
@@ -481,5 +508,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public ArrayList<String> getUsersId() {
 		return new ArrayList<String>(userCache.keySet());
 	}
+
+	
 
 }
