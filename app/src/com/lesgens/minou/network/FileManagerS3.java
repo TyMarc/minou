@@ -17,12 +17,15 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.lesgens.minou.listeners.MinouDownloadProgressListener;
 
 public class FileManagerS3 {
-	private static String BUCKET_NAME = "minou";
+	private static String BUCKET_NAME = "df8f77d8886fd8e4e4bgv445df4ss";
+	private static String ACCESS_KEY = "AKIAIQW6PNRNDD6ZW2BQ";
+	private static String SECRET = "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";
 	private static FileManagerS3 instance;
 	private static TransferManager transferManager;
 	
 	private FileManagerS3(){
-		transferManager = new TransferManager(new com.amazonaws.auth.AnonymousAWSCredentials());
+		
+		transferManager = new TransferManager(new com.amazonaws.auth.BasicAWSCredentials(ACCESS_KEY, SECRET));
 	}
 	
 	public static FileManagerS3 getInstance(){
