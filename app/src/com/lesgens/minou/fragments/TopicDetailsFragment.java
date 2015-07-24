@@ -11,6 +11,7 @@ import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
@@ -71,6 +72,7 @@ public class TopicDetailsFragment extends MinouFragment implements OnClickListen
 		((TextView) v.findViewById(R.id.description)).setText(Utils.capitalizeFirstLetters(topic.getDescription()));
 		((TextView) v.findViewById(R.id.city)).setText(Utils.capitalizeFirstLetters(topic.getParentName()));
 		((TextView) v.findViewById(R.id.users_connected)).setText(Utils.capitalizeFirstLetters(getActivity().getResources().getQuantityString(R.plurals.users_connected, topic.getCount(), topic.getCount())));
+		((ImageView) v.findViewById(R.id.image)).setImageBitmap(topic.getImage());
 
 		int unreadCount = DatabaseHelper.getInstance().getUnreadCountForTopic(topic.getNamespace());
 

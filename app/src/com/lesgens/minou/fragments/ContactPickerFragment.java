@@ -21,7 +21,6 @@ import android.widget.TextView;
 import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.ContactPickerAdapter;
-import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.ContactPicker;
 import com.lesgens.minou.models.User;

@@ -352,6 +352,7 @@ public class Utils {
 	      return result;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public static String getRealPathFromURI(Activity activity, Uri contentUri) {
 	    String[] proj = { MediaStore.Images.Media.DATA };
 	    Cursor cursor = activity.managedQuery(contentUri, proj, null, null, null);

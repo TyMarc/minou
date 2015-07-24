@@ -9,7 +9,8 @@
         android:layout_margin="10dp"
         android:background="@drawable/bg_topic_detail_sel"
         android:elevation="3dp"
-        android:orientation="vertical" >
+        android:orientation="vertical"
+        android:translationZ="2dp" >
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -22,7 +23,7 @@
                 android:layout_height="match_parent"
                 android:gravity="center_vertical"
                 android:scaleType="centerCrop"
-                android:src="@drawable/golf" />
+                android:src="@drawable/default_topic" />
 
             <TextView
                 android:id="@+id/unread_count"

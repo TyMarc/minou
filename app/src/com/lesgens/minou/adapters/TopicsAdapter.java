@@ -75,6 +75,7 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 		}
 		String channelName = Utils.capitalizeFirstLetters(topic.getName());
 		
+		holder.image.setImageBitmap(topic.getImage());
 		holder.name.setText(channelName);
 
 		return rowView;

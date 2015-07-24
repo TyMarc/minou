@@ -16,10 +16,6 @@ import com.lesgens.minou.utils.Utils;
 public class ChannelsTrendingAdapter extends ArrayAdapter<ChannelTrending>{
 	private Context mContext;
 	private LayoutInflater mInflater = null;
-	private int normalColor;
-	private int addedPadding;
-	private int baseLeftPadding;
-	private int baseRightPadding;
 
 	private ArrayList<ChannelTrending> channels;
 
@@ -27,14 +23,11 @@ public class ChannelsTrendingAdapter extends ArrayAdapter<ChannelTrending>{
 		super(context,R.layout.topics_item, chatValue);
 		mContext = context;     
 		channels = chatValue;
-		normalColor = context.getResources().getColor(R.color.main_color);
-		addedPadding = Utils.dpInPixels(context, 20);
-		baseLeftPadding = Utils.dpInPixels(context, 30);
-		baseRightPadding = Utils.dpInPixels(context, 20);
 	}
 
 	static class ViewHolder {
 		public TextView name;
+		public TextView count;
 	}
 
 	private LayoutInflater getInflater(){
@@ -48,27 +41,25 @@ public class ChannelsTrendingAdapter extends ArrayAdapter<ChannelTrending>{
 	public View getView(int position, View convertView, ViewGroup parent) {
 		View rowView;
 
-		ChannelTrending channel = channels.get(position);
+		ChannelTrending trending = channels.get(position);
 
 		if(convertView == null){
-			rowView = getInflater().inflate(R.layout.topics_item, parent, false);
+			rowView = getInflater().inflate(R.layout.trending_item, parent, false);
 
 			ViewHolder holder = new ViewHolder();
 			holder.name = (TextView) rowView.findViewById(R.id.name);
+			holder.count = (TextView) rowView.findViewById(R.id.count);
 			rowView.setTag(holder);
 		} else{
 			rowView = convertView;
 		}
 
 		ViewHolder holder = (ViewHolder) rowView.getTag();
+		
+		String channelName = Utils.capitalizeFirstLetters(Utils.getNameFromNamespace(trending.getNamespace()));
 
-		String channelName = Utils.capitalizeFirstLetters(channel.getNamespace().replace("_", " "));
-
-
-		holder.name.setTextColor(normalColor);
-		holder.name.setText(channelName + " (" + channel.getCount() + ")");
-		holder.name.setPadding(baseLeftPadding + addedPadding, 0, baseRightPadding, 0);
-		holder.name.setCompoundDrawablesWithIntrinsicBounds(R.drawable.down_orange, 0, 0, 0);
+		holder.name.setText(channelName);
+		holder.count.setText(trending.getCount());
 
 		return rowView;
 	}

@@ -2,7 +2,7 @@ package com.lesgens.minou;
 
 import java.util.ArrayList;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -26,20 +26,19 @@ import com.lesgens.minou.models.ChannelTrending;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.utils.Utils;
 
-public class AddAChannelActivity extends MinouActivity implements OnClickListener, TextWatcher, TrendingChannelsListener{
+public class AddTopicActivity extends MinouActivity implements OnClickListener, TextWatcher, TrendingChannelsListener{
 	private ChannelsTrendingAdapter adapter;
 	private Channel currentCity;
 
-	public static void show(final Activity activity, final int requestCode) {
-		Intent i = new Intent(activity, AddAChannelActivity.class);
-		activity.startActivityForResult(i, requestCode);
+	public static void show(final Context context) {
+		Intent i = new Intent(context, AddTopicActivity.class);
+		context.startActivity(i);
 	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		//Remove title bar
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		
 		currentCity = Controller.getInstance().getChannelsContainer().getChannelByName(Controller.getInstance().getGeolocation().getStateNameSpace());
@@ -82,7 +81,6 @@ public class AddAChannelActivity extends MinouActivity implements OnClickListene
 				if(!Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
 					DatabaseHelper.getInstance().addPublicChannel(channelName);
 					Server.subscribeToChannel(this, channelName);
-					setResult(RESULT_OK);
 					finish();
 				}
 			}

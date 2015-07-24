@@ -52,7 +52,7 @@
             android:label="@string/title_activity_image_viewer" >
         </activity>
         <activity
-            android:name="com.lesgens.minou.AddAChannelActivity"
+            android:name="com.lesgens.minou.AddTopicActivity"
             android:configChanges="orientation|keyboard|screenSize" >
         </activity>
         <activity

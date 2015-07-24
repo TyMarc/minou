@@ -2,10 +2,8 @@ package com.lesgens.minou.fragments;
 
 import java.util.ArrayList;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,18 +29,14 @@ import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
 import android.widget.GridView;
 
-import com.lesgens.minou.AddAChannelActivity;
-import com.lesgens.minou.ChatActivity;
+import com.lesgens.minou.AddTopicActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.TopicsAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
-import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.Topic;
 
 public class TopicsFragment extends MinouFragment implements OnClickListener, OnItemClickListener, OnItemLongClickListener, TextWatcher, OnScrollListener {
-	private static final int REQUEST_ADD_CHANNEL = 101;
-	private static final int REQUEST_ADD_LOCATION= 102;
 	private GridView gridView;
 	private TopicsAdapter adapter;
 	private TopicDetailsFragment topicDetailsFragment;
@@ -118,15 +112,6 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 		refreshList(Controller.getInstance().getChannelsContainer().getTopics());
 	}
 
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		if(requestCode == REQUEST_ADD_CHANNEL && resultCode == Activity.RESULT_OK){
-			ChatActivity.show(getActivity(), data.getStringExtra("namespace"));
-			getActivity().finish();
-		}
-	}
-
 	public void refreshList(final ArrayList<Topic> topics){
 		if(!firstLaunch && !topics.equals(adapter.getItems())){
 			final Animation animFadeOut = AnimationUtils.loadAnimation(getActivity(), R.anim.alpha_out);
@@ -197,9 +182,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 	@Override
 	public void onClick(View v) {
 		if(v.getId() == R.id.add_channel){
-			AddAChannelActivity.show(getActivity(), REQUEST_ADD_CHANNEL);
-		} else if(v.getId() == R.id.add_location){
-			AddAChannelActivity.show(getActivity(), REQUEST_ADD_LOCATION);
+			AddTopicActivity.show(getActivity());
 		}
 	}
 
@@ -284,8 +267,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 	@Override
 	public void onScroll(AbsListView view, int firstVisibleItem,
 			int visibleItemCount, int totalItemCount) {
-		// TODO Auto-generated method stub
-
+		
 	}
 
 
