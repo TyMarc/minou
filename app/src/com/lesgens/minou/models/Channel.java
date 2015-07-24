@@ -40,33 +40,48 @@ public class Channel {
 	public String getNamespace(){
 		return namespace;
 	}
-	
+
 	public ArrayList<Topic> getTopics(){
 		ArrayList<Topic> topics = new ArrayList<Topic>();
-		
+
 		for(Channel c : channels) {
 			Log.i("Channel", "c.getNamespace=" + c.getNamespace() + " isTopic=" + (c instanceof Topic));
 			if(c instanceof Topic) {
 				topics.add((Topic) c);
 			}
-			
+
 			topics.addAll(c.getTopics());
 		}
-		
+
 		return topics;
 	}
-	
+
+	public ArrayList<Topic> getTopicsThatContains(String search) {
+		ArrayList<Topic> topics = new ArrayList<Topic>();
+
+		for(Channel c : channels) {
+			Log.i("Channel", "c.getNamespace=" + c.getNamespace() + " isTopic=" + (c instanceof Topic));
+			if(c instanceof Topic && c.getNamespace().contains(search)) {
+				topics.add((Topic) c);
+			}
+
+			topics.addAll(c.getTopicsThatContains(search));
+		}
+
+		return topics;
+	}
+
 	public ArrayList<City> getCities(){
 		ArrayList<City> cities = new ArrayList<City>();
-		
+
 		for(Channel c : channels) {
 			if(c instanceof City) {
 				cities.add((City) c);
 			}
-			
+
 			cities.addAll(c.getCities());
 		}
-		
+
 		return cities;
 	}
 
@@ -115,14 +130,14 @@ public class Channel {
 			subscription.unsubscribeOn(Schedulers.immediate());
 		}
 	}
-	
+
 	public ArrayList<String> getAllChannelsNamespace(){
 		ArrayList<String> namespaces = new ArrayList<String>();
 		namespaces.add(namespace);
 		for(Channel c : channels){
 			namespaces.addAll(c.getAllChannelsNamespace());
 		}
-		
+
 		return namespaces;
 	}
 
@@ -160,7 +175,7 @@ public class Channel {
 
 		return null;
 	}
-	
+
 	public int getCount(){
 		return count;
 	}
@@ -172,4 +187,6 @@ public class Channel {
 	public void remove(Channel channel) {
 		channels.remove(channel);
 	}
+
+
 }

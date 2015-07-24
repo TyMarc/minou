@@ -44,11 +44,7 @@
         android:layout_height="fill_parent"
         android:layout_above="@+id/bottom_bar"
         android:layout_below="@id/top_bar"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:horizontalSpacing="10dp"
-        android:numColumns="2"
-        android:verticalSpacing="10dp" />
+        android:numColumns="2" />
 
     <RelativeLayout
         android:id="@+id/bottom_bar"
@@ -81,5 +77,12 @@
             android:text="@string/add_topic"
             android:textColor="@color/white" />
     </RelativeLayout>
+
+    <ProgressBar
+        android:id="@+id/progress_search"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
 
 </RelativeLayout>

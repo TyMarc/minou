@@ -25,7 +25,7 @@
     <color name="bg_profile">@color/brown_light</color>
 
     <!-- Black -->
-    <color name="black_transparent">#44000000</color>
+    <color name="black_transparent">#66000000</color>
 
     <!-- Browns -->
     <color name="brown_light">#FBEDDE</color>

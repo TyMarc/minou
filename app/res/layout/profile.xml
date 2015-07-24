@@ -4,52 +4,62 @@
     android:layout_height="match_parent"
     android:background="@color/white" >
 
-    <ImageView
-        android:id="@+id/avatar"
-        android:layout_width="400dp"
-        android:layout_height="400dp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:layout_marginTop="5dp"
-        android:background="@drawable/avatar_bg"
-        android:padding="2dp"
-        android:scaleType="fitCenter" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottom_bar" >
 
-    <TextView
-        android:id="@+id/username"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/avatar"
-        android:layout_centerHorizontal="true"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:layout_marginTop="-30dp"
-        android:gravity="center"
-        android:text="@string/username"
-        android:textColor="@color/dark_grey"
-        android:textSize="28sp" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
 
-    <ProgressBar
-        android:id="@+id/progress_upload_picture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/avatar"
-        android:layout_alignLeft="@+id/avatar"
-        android:layout_alignRight="@+id/avatar"
-        android:layout_alignTop="@+id/avatar"
-        android:layout_margin="20dp"
-        android:visibility="gone" />
+            <ImageView
+                android:id="@+id/avatar"
+                android:layout_width="300dp"
+                android:layout_height="300dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/avatar_bg"
+                android:padding="2dp"
+                android:scaleType="fitCenter" />
 
-    <ProgressBar
-        android:id="@+id/progress_upload_username"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/username"
-        android:layout_alignLeft="@+id/username"
-        android:layout_alignRight="@+id/username"
-        android:layout_alignTop="@+id/username"
-        android:visibility="gone" />
+            <TextView
+                android:id="@+id/username"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/avatar"
+                android:layout_centerHorizontal="true"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
+                android:gravity="center"
+                android:text="@string/username"
+                android:textColor="@color/dark_grey"
+                android:textSize="28sp" />
+
+            <ProgressBar
+                android:id="@+id/progress_upload_picture"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/avatar"
+                android:layout_alignLeft="@+id/avatar"
+                android:layout_alignRight="@+id/avatar"
+                android:layout_alignTop="@+id/avatar"
+                android:layout_margin="20dp"
+                android:visibility="gone" />
+
+            <ProgressBar
+                android:id="@+id/progress_upload_username"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/username"
+                android:layout_alignLeft="@+id/username"
+                android:layout_alignRight="@+id/username"
+                android:layout_alignTop="@+id/username"
+                android:visibility="gone" />
+        </RelativeLayout>
+    </ScrollView>
 
     <RelativeLayout
         android:id="@+id/bottom_bar"

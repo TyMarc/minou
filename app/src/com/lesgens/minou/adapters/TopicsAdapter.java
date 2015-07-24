@@ -19,12 +19,12 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 	private Context mContext;
 	private LayoutInflater mInflater = null;
 
-	private ArrayList<Topic> channels;
+	private ArrayList<Topic> topics;
 
 	public TopicsAdapter(Context context, ArrayList<Topic> chatValue) {  
 		super(context,R.layout.topics_item, chatValue);
 		mContext = context;     
-		channels = chatValue;
+		topics = chatValue;
 	}
 	
 	static class ViewHolder {
@@ -32,6 +32,7 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 	    public TextView desc;
 	    public TextView usersConnected;
 	    public TextView cityName;
+	    public TextView unreadCounter;
 	    public ImageView image;
 	  }
 
@@ -46,7 +47,7 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 	public View getView(int position, View convertView, ViewGroup parent) {
 		View rowView;
 		
-		Topic topic = channels.get(position);
+		Topic topic = topics.get(position);
 
 		if(convertView == null){
 			rowView = getInflater().inflate(R.layout.topics_item, parent, false);
@@ -57,20 +58,29 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 			holder.cityName = (TextView) rowView.findViewById(R.id.city);
 			holder.desc = (TextView) rowView.findViewById(R.id.description);
 			holder.image = (ImageView) rowView.findViewById(R.id.image);
+			holder.unreadCounter = (TextView) rowView.findViewById(R.id.unread_count); 
 			rowView.setTag(holder);
 		} else{
 			rowView = convertView;
 		}
 		
 		ViewHolder holder = (ViewHolder) rowView.getTag();
-	
+		int unreadCount = DatabaseHelper.getInstance().getUnreadCountForTopic(topic.getNamespace());
+		
+		if(unreadCount == 0) {
+			holder.unreadCounter.setVisibility(View.GONE);
+		} else {
+			holder.unreadCounter.setVisibility(View.VISIBLE);
+			holder.unreadCounter.setText(unreadCount);
+		}
 		String channelName = Utils.capitalizeFirstLetters(topic.getName());
 		
-		holder.name.setText(channelName + " (" + DatabaseHelper.getInstance().getUnreadCountForTopic(topic.getNamespace()) + ")");
-		holder.usersConnected.setText(getContext().getResources().getQuantityString(R.plurals.users_connected, topic.getCount(), topic.getCount()));
-		holder.desc.setText(topic.getDescription());
-		holder.cityName.setText(Utils.capitalizeFirstLetters(topic.getParentName()));
+		holder.name.setText(channelName);
 
 		return rowView;
+	}
+
+	public ArrayList<Topic> getItems() {
+		return topics;
 	}
 }

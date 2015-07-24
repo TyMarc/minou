@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -17,6 +19,8 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +40,7 @@ public class ProfileFragment extends MinouFragment implements OnClickListener, A
 	private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
 	private static final int PICK_IMAGE_ACTIVITY_REQUEST_CODE = 101;
 	private Uri imageUri;
+	private ImageView avatar;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater,
@@ -44,12 +49,30 @@ public class ProfileFragment extends MinouFragment implements OnClickListener, A
 
 		((TextView) v.findViewById(R.id.username)).setText(Controller.getInstance().getMyself().getUsername());
 
-		((ImageView) v.findViewById(R.id.avatar)).setImageBitmap(Utils.cropToCircle(Controller.getInstance().getMyself().getAvatar()));
+		avatar = ((ImageView) v.findViewById(R.id.avatar));
+		avatar.setImageBitmap(Utils.cropToCircle(Controller.getInstance().getMyself().getAvatar()));
 
 		v.findViewById(R.id.change_picture).setOnClickListener(this);
 		v.findViewById(R.id.change_username).setOnClickListener(this);
 
 		return v;
+	}
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+
+		RelativeLayout.LayoutParams params = (LayoutParams) avatar.getLayoutParams();
+		if(getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+			params.height = Utils.dpInPixels(getActivity(), 200);
+			params.width = Utils.dpInPixels(getActivity(), 200);
+		} else if(getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+			params.height = Utils.dpInPixels(getActivity(), 300);
+			params.width = Utils.dpInPixels(getActivity(), 300);
+		}
+		
+		avatar.setLayoutParams(params);
+
 	}
 
 	@Override
@@ -102,7 +125,7 @@ public class ProfileFragment extends MinouFragment implements OnClickListener, A
 				try {
 					Bitmap bitmap = android.provider.MediaStore.Images.Media
 							.getBitmap(getActivity().getContentResolver(), imageUri);
-					
+
 					if(requestCode == PICK_IMAGE_ACTIVITY_REQUEST_CODE) {
 						bitmap = Utils.cropToSquare(bitmap);
 					}

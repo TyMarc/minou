@@ -800,6 +800,9 @@ public class Server {
 			Log.i(TAG, "Setting user from cache");
 			Controller.getInstance().setMyOwnUser(user);
 		} else{
+			ArrayList<String> id = new ArrayList<String>();
+			id.add(Controller.getInstance().getId());
+			getUsers(id);
 			user = new User(userName, Channel.BASE_CHANNEL + Controller.getInstance().getId(), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), Controller.getInstance().getId(), false);
 			Controller.getInstance().setMyOwnUser(user);
 			DatabaseHelper.getInstance().addUser(user);
