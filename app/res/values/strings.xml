@@ -65,6 +65,7 @@
     <string name="done">Done</string>
     <string name="error_upload_avatar">Error when uploading picture</string>
     <string name="error_upload_username">Error when updating username</string>
+    <string name="downloading_file">Downloading file...</string>
 
     <!-- SquareCamera -->
 

@@ -148,7 +148,11 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			holder.time.setVisibility(View.VISIBLE);
 			holder.timePicture.setVisibility(View.GONE);
 			holder.videoPlay.setVisibility(View.GONE);
-			holder.message.setText(message.getContent());
+			if(message.getMsgType() == MessageType.TEXT) {
+				holder.message.setText(message.getContent());
+			} else {
+				holder.message.setText(mContext.getResources().getString(R.string.downloading_file));
+			}
 			holder.time.setText(sdfMessage.format(message.getTimestamp()));
 			setImdn(message.getStatus(), holder.time);
 		}
