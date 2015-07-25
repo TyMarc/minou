@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.lesgens.minou.ChatActivity;
@@ -564,7 +563,6 @@ public class Server {
 	private static void getLastMessages(final Topic topic){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		an.add(TextNode.valueOf(topic.getNamespace()));
-		an.add(LongNode.valueOf(DatabaseHelper.getInstance().getLastMessageFetched(topic.getNamespace())));
 		client.call("plugin.history.fetch", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 
