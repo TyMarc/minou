@@ -290,8 +290,8 @@ public class Server {
 
 			@Override
 			public void call(PubSubData msg) {
-				String type = msg.keywordArguments().get("type").asText();
-				Log.i(TAG, "Received new message of type=" + type);
+				Log.i(TAG, "Received new message=" + msg.keywordArguments());
+				String type = msg.keywordArguments().get("content_type").asText();
 				final String id = msg.keywordArguments().get("from").asText();
 				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
 
@@ -340,8 +340,8 @@ public class Server {
 
 			@Override
 			public void call(PubSubData msg) {
-				String type = msg.keywordArguments().get("type").asText();
-				Log.i(TAG, "Received new message " + msg);
+				Log.i(TAG, "Received new message " + msg.keywordArguments());
+				String type = msg.keywordArguments().get("content_type").asText();
 				final String id = msg.keywordArguments().get("from").asText();
 				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
 				String content = msg.keywordArguments().get("content").asText();
@@ -386,15 +386,15 @@ public class Server {
 
 			@Override
 			public void call(PubSubData msg) {
-				String type = msg.keywordArguments().get("type").asText();
-				Log.i(TAG, "Received new private message " + msg);
+				Log.i(TAG, "Received new private message " + msg.keywordArguments());
+				String type = msg.keywordArguments().get("content_type").asText();
 				final String id = msg.keywordArguments().get("from").asText();
 				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
-
+				subscribeToConversation(context, user);
 				String content = msg.keywordArguments().get("content").asText();
 
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-				Message m = new Message(user, content, user.getUsername(), userToCreate, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+				Message m = new Message(user, content, user.getUsername(), user, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
 				
 				boolean isGoodChannel = false;
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
