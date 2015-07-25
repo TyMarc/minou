@@ -1,5 +1,7 @@
 package com.lesgens.minou.fragments;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
@@ -72,7 +74,12 @@ public class TopicDetailsFragment extends MinouFragment implements OnClickListen
 		((TextView) v.findViewById(R.id.description)).setText(Utils.capitalizeFirstLetters(topic.getDescription()));
 		((TextView) v.findViewById(R.id.city)).setText(Utils.capitalizeFirstLetters(topic.getParentName()));
 		((TextView) v.findViewById(R.id.users_connected)).setText(Utils.capitalizeFirstLetters(getActivity().getResources().getQuantityString(R.plurals.users_connected, topic.getCount(), topic.getCount())));
-		((ImageView) v.findViewById(R.id.image)).setImageBitmap(topic.getImage());
+
+		Bitmap image = topic.getImage();
+		if(image == null) {
+			image = BitmapFactory.decodeResource(getActivity().getResources(), R.drawable.default_topic);
+		}
+		((ImageView) v.findViewById(R.id.image)).setImageBitmap(image);
 
 		int unreadCount = DatabaseHelper.getInstance().getUnreadCountForTopic(topic.getNamespace());
 

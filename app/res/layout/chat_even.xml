@@ -68,7 +68,8 @@
         android:layout_alignLeft="@id/picture"
         android:layout_alignRight="@id/picture"
         android:layout_alignTop="@id/picture"
-        android:layout_margin="75dp"
+        android:background="@color/black_transparent"
+        android:padding="75dp"
         android:src="@drawable/play"
         android:tint="@color/white"
         android:visibility="gone" />

@@ -3,6 +3,8 @@ package com.lesgens.minou.adapters;
 import java.util.ArrayList;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -75,7 +77,11 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 		}
 		String channelName = Utils.capitalizeFirstLetters(topic.getName());
 		
-		holder.image.setImageBitmap(topic.getImage());
+		Bitmap image = topic.getImage();
+		if(image == null) {
+			image = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.default_topic);
+		}
+		holder.image.setImageBitmap(image);
 		holder.name.setText(channelName);
 
 		return rowView;
