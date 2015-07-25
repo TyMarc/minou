@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.lesgens.minou.R;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.Utils;
@@ -49,6 +50,7 @@ public class ConversationsAdapter extends ArrayAdapter<String>{
 	    public TextView lastMessage;
 	    public TextView timeLastMessage;
 	    public TextView dayLastMessage;
+	    public TextView unreadCount;
 	  }
 
 	private LayoutInflater getInflater(){
@@ -71,6 +73,7 @@ public class ConversationsAdapter extends ArrayAdapter<String>{
 			holder.avatar = (ImageView) rowView.findViewById(R.id.avatar);
 			holder.timeLastMessage = (TextView) rowView.findViewById(R.id.last_message_time);
 			holder.dayLastMessage = (TextView) rowView.findViewById(R.id.last_message_day);
+			holder.unreadCount = (TextView) rowView.findViewById(R.id.unread_count);
 			rowView.setTag(holder);
 		} else{
 			rowView = convertView;
@@ -89,13 +92,23 @@ public class ConversationsAdapter extends ArrayAdapter<String>{
 		
 		Message lastMessage = DatabaseHelper.getInstance().getLastMessage(user);
 		if(lastMessage != null){
-			if(lastMessage.getContent() != null && !lastMessage.getContent().isEmpty()){
+			if(lastMessage.getMsgType() == MessageType.TEXT){
 				holder.lastMessage.setText(lastMessage.getContent());
-			} else{
+			} else if(lastMessage.getMsgType() == MessageType.IMAGE){
 				holder.lastMessage.setText(R.string.picture);
+			} else if(lastMessage.getMsgType() == MessageType.VIDEO){
+				holder.lastMessage.setText(R.string.video);
 			}
 			holder.timeLastMessage.setText(sdfMessage.format(lastMessage.getTimestamp()));
 			holder.dayLastMessage.setText(getTimeText(lastMessage.getTimestamp()));
+		}
+		
+		int unread = DatabaseHelper.getInstance().getUnreadCountForTopic(user.getNamespace());
+		if(unread == 0) {
+			holder.unreadCount.setVisibility(View.GONE);
+		} else {
+			holder.unreadCount.setVisibility(View.VISIBLE);
+			holder.unreadCount.setText(unread + "");
 		}
 
 		return rowView;

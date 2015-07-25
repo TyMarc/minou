@@ -84,7 +84,7 @@ public class ConversationsFragment extends MinouFragment implements OnItemClickL
 	}
 
 	public void refreshList() {
-		adapter = new ConversationsAdapter(getActivity(), DatabaseHelper.getInstance().getPrivateChannels());
+		adapter = new ConversationsAdapter(getActivity(), DatabaseHelper.getInstance().getConversations());
 		listView.setAdapter(adapter);
 	}
 

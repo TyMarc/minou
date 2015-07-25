@@ -38,6 +38,7 @@
     <string name="change_picture">Change Avatar</string>
     <string name="change_username">Change Username</string>
     <string name="picture">Picture</string>
+    <string name="video">Video</string>
     <string name="dialog_pm">PM</string>
     <string name="delete">Delete</string>
     <string name="location">Location</string>

@@ -1,9 +1,7 @@
 package com.lesgens.minou.fragments;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,7 +18,7 @@ import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.User;
-import com.lesgens.minou.utils.FileManager;
+import com.lesgens.minou.utils.FileTransferManager;
 import com.lesgens.minou.utils.Utils;
 
 public class ContactDetailsFragment extends DialogFragment implements OnClickListener {
@@ -62,9 +60,14 @@ public class ContactDetailsFragment extends DialogFragment implements OnClickLis
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if ((requestCode == FileManager.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileManager.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == Activity.RESULT_OK) {
+		if ((requestCode == FileTransferManager.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileTransferManager.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == Activity.RESULT_OK) {
 			Uri uri = data.getData();
-			FileManager.preparePicture(getActivity(), uri, user.getNamespace());
+			FileTransferManager.prepareAndSendPicture(getActivity(), uri, user.getNamespace());
+			ChatActivity.show(getActivity(), user.getNamespace());
+			getActivity().finish();
+		} else if ((requestCode == FileTransferManager.PICK_VIDEO_ACTIVITY_REQUEST_CODE || requestCode == FileTransferManager.CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) && resultCode == Activity.RESULT_OK) {
+			Uri uri = data.getData();
+			FileTransferManager.prepareAndSendVideo(getActivity(), uri, user.getNamespace());
 			ChatActivity.show(getActivity(), user.getNamespace());
 			getActivity().finish();
 		}
@@ -76,29 +79,7 @@ public class ContactDetailsFragment extends DialogFragment implements OnClickLis
 			ChatActivity.show(getActivity(), user.getNamespace());
 			getActivity().finish();
 		} else if(v.getId() == R.id.share_btn) {
-			showMenuFT();
+			FileTransferManager.showMenuFT(this);
 		}
 	}
-	
-	private void showMenuFT(){
-		CharSequence fts[] = new CharSequence[] {getResources().getString(R.string.take_picture), getResources().getString(R.string.pick_picture)};
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-		builder.setTitle(R.string.file_transfer);
-		builder.setItems(fts, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				switch(which){
-				case 0:
-					FileManager.takePhoto(getActivity());
-					break;
-				case 1:
-					FileManager.pickPicture(getActivity());
-					break;
-				}
-			}
-		});
-		builder.show();
-	}
-
 }

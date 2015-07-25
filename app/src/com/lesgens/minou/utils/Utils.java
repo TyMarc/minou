@@ -186,7 +186,7 @@ public class Utils {
 	}
 
 	public static String getNormalizedString(final String str){
-		String fullChannelName = str.toLowerCase().replace("-", "_");
+		String fullChannelName = str.toLowerCase().replace("-", "_").replace(" ", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 

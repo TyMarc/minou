@@ -71,7 +71,7 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 			holder.unreadCounter.setVisibility(View.GONE);
 		} else {
 			holder.unreadCounter.setVisibility(View.VISIBLE);
-			holder.unreadCounter.setText(unreadCount);
+			holder.unreadCounter.setText(unreadCount + "");
 		}
 		String channelName = Utils.capitalizeFirstLetters(topic.getName());
 		

@@ -43,7 +43,7 @@ import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.receivers.NetworkStateReceiver;
 import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverListener;
-import com.lesgens.minou.utils.FileManager;
+import com.lesgens.minou.utils.FileTransferManager;
 import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
 
@@ -152,7 +152,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		} else if(v.getId() == R.id.back_btn){
 			onBackPressed();
 		} else if(v.getId() == R.id.send_ft){
-			showMenuFT();
+			FileTransferManager.showMenuFT(this);
 		} else if(v.getId() == R.id.settings_btn){
 			ChannelSettingsActivity.show(this, channelNamespace);
 		}
@@ -166,35 +166,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace, true);
 		editText.setText("");
 		scrollMyListViewToBottom();
-	}
-
-	private void showMenuFT(){
-		CharSequence fts[] = new CharSequence[] {getResources().getString(R.string.take_picture), 
-				getResources().getString(R.string.pick_picture), getResources().getString(R.string.take_video), 
-				getResources().getString(R.string.pick_video)};
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(R.string.file_transfer);
-		builder.setItems(fts, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				switch(which){
-				case 0:
-					FileManager.takePhoto(ChatActivity.this);
-					break;
-				case 1:
-					FileManager.pickPicture(ChatActivity.this);
-					break;
-				case 2:
-					FileManager.takeVideo(ChatActivity.this);
-					break;
-				case 3:
-					FileManager.pickVideo(ChatActivity.this);
-					break;
-				}
-			}
-		});
-		builder.show();
 	}
 
 	private void showLongClickBubble(final Message message){
@@ -276,7 +247,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 		if(message.getMsgType() == MessageType.IMAGE){
 			try {
-				FileManager.sendPicture(this, Utils.read(new File(message.getDataPath())), channelNamespace);
+				FileTransferManager.sendPicture(this, Utils.read(new File(message.getDataPath())), channelNamespace);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -292,6 +263,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	}
 
 	private void addContact(final User user){
+		Server.subscribeToConversation(this, user);
 		DatabaseHelper.getInstance().setUserAsContact(user);
 	}
 
@@ -323,14 +295,14 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if ((requestCode == FileManager.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileManager.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
+		if ((requestCode == FileTransferManager.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileTransferManager.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
 			imageUri = data.getData();
-			Message message = FileManager.preparePicture(this, imageUri, channelNamespace);
+			Message message = FileTransferManager.prepareAndSendPicture(this, imageUri, channelNamespace);
 			chatAdapter.addMessage(message);
 			chatAdapter.notifyDataSetChanged();
-		} else if ((requestCode == FileManager.PICK_VIDEO_ACTIVITY_REQUEST_CODE || requestCode == FileManager.CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
+		} else if ((requestCode == FileTransferManager.PICK_VIDEO_ACTIVITY_REQUEST_CODE || requestCode == FileTransferManager.CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
 			imageUri = data.getData();
-			Message message = FileManager.prepareVideo(this, imageUri, channelNamespace);
+			Message message = FileTransferManager.prepareAndSendVideo(this, imageUri, channelNamespace);
 			chatAdapter.addMessage(message);
 			chatAdapter.notifyDataSetChanged();
 			scrollMyListViewToBottom();

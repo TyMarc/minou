@@ -109,7 +109,22 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 	public void onResume(){
 		super.onResume();
 		editText.setText("");
-		refreshList(Controller.getInstance().getChannelsContainer().getTopics());
+		refreshList();
+	}
+	
+	public void notifyDataSet(){
+		if(adapter != null) {
+			adapter.notifyDataSetChanged();
+		}
+	}
+	
+	public void refreshList() {
+		if(adapter != null) {
+			ArrayList<Topic> topics = adapter.getItems();
+			refreshList(topics);
+		} else {
+			refreshList(Controller.getInstance().getChannelsContainer().getTopics());
+		}
 	}
 
 	public void refreshList(final ArrayList<Topic> topics){
@@ -165,7 +180,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				final Topic channel = adapter.getItem(arg2);
-				DatabaseHelper.getInstance().removePublicChannel(channel.getNamespace());
+				DatabaseHelper.getInstance().removeTopic(channel.getNamespace());
 				DatabaseHelper.getInstance().removeAllMessages(channel.getNamespace());
 				channel.getParent().remove(channel);
 				adapter.remove(channel);

@@ -80,7 +80,7 @@ public class AddTopicActivity extends MinouActivity implements OnClickListener, 
 				final String channelName = Utils.getNormalizedString(currentCity.getNamespace() + "." + text);
 				if(!Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
 					DatabaseHelper.getInstance().addPublicChannel(channelName);
-					Server.subscribeToChannel(this, channelName);
+					Server.subscribeToTopic(this, channelName);
 					finish();
 				}
 			}

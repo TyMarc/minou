@@ -38,8 +38,8 @@ public class Message extends Event{
 		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), null, user, content,  isIncoming, dataPath, status, msgType);
 	}
 
-	public Message(User user, String content, String userName, Channel iDestination, boolean isIncoming, String dataPath, SendingStatus status, MessageType msgType){
-		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), iDestination, user, content,  isIncoming, dataPath, status, msgType);
+	public Message(User user, String content, String userName, Channel channel, boolean isIncoming, String dataPath, SendingStatus status, MessageType msgType){
+		this(UUID.randomUUID(), new Timestamp(System.currentTimeMillis()), channel, user, content,  isIncoming, dataPath, status, msgType);
 	}
 
 	public Message(UUID id, Timestamp timestamp, Channel channel, User user, String content, boolean isIncoming, String dataPath, SendingStatus status, MessageType msgType) {
@@ -75,6 +75,7 @@ public class Message extends Event{
 	}
 
 	public byte[] getThumbnail(){
+		Log.i("Message", "trying to get a thumbnail, msgtype=" + msgType + " content=" + content);
 		if(thumbnail == null) {
 			if(dataPath != null) {
 				try {

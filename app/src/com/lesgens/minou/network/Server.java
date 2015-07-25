@@ -143,19 +143,19 @@ public class Server {
 
 						initChannels(context);
 
-						subscribeToPrivateChannel(context, Controller.getInstance().getMyself());
+						subscribeToConversation(context, Controller.getInstance().getMyself());
 
 						subscribeToCity(context, Controller.getInstance().getGeolocation().getStateNameSpace());
 
 						addGeolocationChannels();
 
 						for(String channel : DatabaseHelper.getInstance().getPublicChannels()){
-							subscribeToChannel(context, channel);
+							subscribeToTopic(context, channel);
 						}
 
-						for(String userId : DatabaseHelper.getInstance().getPrivateChannels()){
+						for(String userId : DatabaseHelper.getInstance().getConversations()){
 							final User user = DatabaseHelper.getInstance().getUser(userId);
-							subscribeToPrivateChannel(context, user);
+							subscribeToConversation(context, user);
 						}
 
 						getTopicsCount();
@@ -254,19 +254,19 @@ public class Server {
 		Controller.getInstance().getChannelsContainer().addByForceSubscription(city);
 	}
 
-	public static void subscribeToChannel(final Context context, final String channelName){
+	public static void subscribeToTopic(final Context context, final String channelName){
 		if(Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
 			return;
 		}
 
-		final Topic channel = createChannelTopic(context, channelName);
+		final Topic topic = createChannelTopic(context, channelName);
 
-		Controller.getInstance().getChannelsContainer().addSubscription(channel);
+		Controller.getInstance().getChannelsContainer().addSubscription(topic);
 
-		getLastMessages(channel);
+		getLastMessages(topic);
 	}
 
-	public static void subscribeToPrivateChannel(final Context context, final User user){
+	public static void subscribeToConversation(final Context context, final User user){
 		if(Controller.getInstance().getChannelsContainer().isContainSubscription(user.getNamespace())){
 			return;
 		}
@@ -408,7 +408,7 @@ public class Server {
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace());
 				if((!MinouApplication.isActivityVisible() || !isGoodChannel) && 
 						!PreferencesController.isPrivateNotificationsDisabled(context, fullChannelName) 
-						&& isIncoming && DatabaseHelper.getInstance().getPrivateChannels().contains(user.getId())){
+						&& isIncoming && DatabaseHelper.getInstance().getConversations().contains(user.getId())){
 					Log.i(TAG, "Application not visible, should send notification");
 					NotificationHelper.notify(context, null, user, content);
 				}
@@ -428,7 +428,7 @@ public class Server {
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
 		Log.i(TAG, "sendMessage message=" + message + " fullChannelName=" + fullChannelName);
-		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message.getContent()))
+		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message.getContent(), message.getMsgType().toString()))
 		.forEach(new Action1<Long>(){
 
 			@Override
@@ -451,15 +451,15 @@ public class Server {
 		FileManagerS3.getInstance().uploadFile(message.getContent(), Utils.read(message.getDataPath()), new MinouUploadFileProgressListener(message, channelNamespace));
 	}
 	
-	public static void publishPicture(final Message message, final String channelNamespace){
+	public static void publishMessage(final Message message, final String channelNamespace){
 		String fullChannelName = channelNamespace.toLowerCase().replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
 		fullChannelName = fullChannelName.replaceAll("\\p{M}", "");
-		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodePicture(message.getContent()));
+		client.publish(fullChannelName, new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(message.getContent(), message.getMsgType().toString()));
 	}
 
 	public static void sendStayAliveMessage(){
-		client.publish("heartbeat", new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage(""));
+		client.publish("heartbeat", new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage("", MessageType.TEXT.toString()));
 	}
 
 	public static void getTopicsCount(){
@@ -561,16 +561,16 @@ public class Server {
 				}});
 	}
 
-	private static void getLastMessages(final Channel channel){
+	private static void getLastMessages(final Topic topic){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
-		an.add(TextNode.valueOf(channel.getNamespace()));
-		an.add(LongNode.valueOf(DatabaseHelper.getInstance().getLastMessageFetched(channel.getNamespace())));
+		an.add(TextNode.valueOf(topic.getNamespace()));
+		an.add(LongNode.valueOf(DatabaseHelper.getInstance().getLastMessageFetched(topic.getNamespace())));
 		client.call("plugin.history.fetch", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 
 			@Override
 			public void call(Reply reply) {
-				Log.i(TAG, "Received missed messages for=" + channel.getNamespace() + " arguments=" + reply.arguments());
+				Log.i(TAG, "Received missed messages for=" + topic.getNamespace() + " arguments=" + reply.arguments());
 				JsonNode msg = null;
 				Iterator<JsonNode> iterator = reply.arguments().get(0).elements();
 				while(iterator.hasNext()){
@@ -579,17 +579,19 @@ public class Server {
 					final String type = msg.get("type").asText();
 					final String id = msg.get("user").asText();
 					final User user = DatabaseHelper.getInstance().getUser(id);
-					final long sentAt = msg.get("sent_at").asLong() * 1000;
+					final long sentAt = msg.get("sent_at").asLong() / 1000;
 					String content = msg.get("content").asText();
 
-					final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-					Message m = new Message(user, content, user.getUsername(), channel, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
-					
-					for(EventsListener el : eventsListeners) {
-						el.onNewEvent(m);
+					if(!DatabaseHelper.getInstance().isContainMessage(id, content, type, topic.getNamespace())){
+						final boolean isIncoming = !id.equals(Controller.getInstance().getId());
+						Message m = new Message(user, content, user.getUsername(), topic, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+						
+						for(EventsListener el : eventsListeners) {
+							el.onNewEvent(m);
+						}
+	
+						DatabaseHelper.getInstance().addMessage(m, user.getId(), topic.getNamespace(), sentAt, false);
 					}
-
-					DatabaseHelper.getInstance().addMessage(m, user.getId(), channel.getNamespace(), sentAt, false);
 				}
 			}}, new Action1<Throwable>() {
 
@@ -602,13 +604,14 @@ public class Server {
 	private static void getLastPrivateMessages(final User userMessages){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		an.add(userMessages.getNamespace());
-		an.add(DatabaseHelper.getInstance().getLastMessageFetched(userMessages.getNamespace()));
+		final long lastMessage = DatabaseHelper.getInstance().getLastMessageFetched(userMessages.getNamespace());
+		an.add(lastMessage);
 		client.call("plugin.history.fetch", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 
 			@Override
 			public void call(Reply reply) {
-				Log.i(TAG, "Received missed messages for=" + userMessages.getNamespace() + " arguments=" + reply.arguments());
+				Log.i(TAG, "LastMessage=" + lastMessage + " Received missed messages for=" + userMessages.getNamespace() + " arguments=" + reply.arguments());
 				JsonNode msg = null;
 				Iterator<JsonNode> iterator = reply.arguments().get(0).elements();
 				while(iterator.hasNext()){
@@ -617,16 +620,18 @@ public class Server {
 					final String type = msg.get("type").asText();
 					final String id = msg.get("user").asText();
 					final User user = DatabaseHelper.getInstance().getUser(id);
-					final long sentAt = msg.get("sent_at").asLong() * 1000;
+					final long sentAt = msg.get("sent_at").asLong() / 1000;
 					String content = msg.get("content").asText();
 
-					final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-					Message m = new Message(user, content, user.getUsername(), userMessages, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
-					
-					for(EventsListener el : eventsListeners) {
-						el.onNewEvent(m);
+					if(!DatabaseHelper.getInstance().isContainMessage(id, content, type, userMessages.getNamespace())){
+						final boolean isIncoming = !id.equals(Controller.getInstance().getId());
+						Message m = new Message(user, content, user.getUsername(), userMessages, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+						
+						for(EventsListener el : eventsListeners) {
+							el.onNewEvent(m);
+						}
+						DatabaseHelper.getInstance().addMessage(m, user.getId(), userMessages.getNamespace(), sentAt, false);
 					}
-					DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace(), sentAt, false);
 				}
 			}}, new Action1<Throwable>() {
 
@@ -636,21 +641,12 @@ public class Server {
 				}});
 	}
 
-	private static ObjectNode getObjectNodeMessage(final String message){
+	private static ObjectNode getObjectNodeMessage(final String message, final String messageType){
 		ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
 		ob.put("from", Controller.getInstance().getId());
 		ob.put("user_name", Controller.getInstance().getMyself().getUsername());
 		ob.put("content", message);
-		ob.put("content_type", "text/plain");
-		return ob;
-	}
-
-	private static ObjectNode getObjectNodePicture(final String filename){
-		ObjectNode ob = new ObjectNode(JsonNodeFactory.instance);
-		ob.put("from", Controller.getInstance().getId());
-		ob.put("user_name", Controller.getInstance().getMyself().getName());
-		ob.put("content", filename);
-		ob.put("content_type", "image/jpeg");
+		ob.put("content_type", messageType);
 		return ob;
 	}
 
@@ -800,9 +796,6 @@ public class Server {
 			Log.i(TAG, "Setting user from cache");
 			Controller.getInstance().setMyOwnUser(user);
 		} else{
-			ArrayList<String> id = new ArrayList<String>();
-			id.add(Controller.getInstance().getId());
-			getUsers(id);
 			user = new User(userName, Channel.BASE_CHANNEL + Controller.getInstance().getId(), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), Controller.getInstance().getId(), false);
 			Controller.getInstance().setMyOwnUser(user);
 			DatabaseHelper.getInstance().addUser(user);

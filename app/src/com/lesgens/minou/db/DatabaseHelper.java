@@ -161,6 +161,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			byte[] dataAvatar = c.getBlob(2);
 			Bitmap avatar = BitmapFactory.decodeByteArray(dataAvatar, 0, dataAvatar.length);
 			boolean isContact = c.getInt(3) == 1;
+			Log.i(TAG, "preload userId=" + userId + " isContact=" + isContact);
 			user = new User(username, Channel.BASE_CHANNEL + userId.replace(".", "_"), avatar, userId, isContact);
 			userCache.put(userId, user);
 		}
@@ -170,7 +171,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		User user = userCache.get(userId);
 		
 		if(user != null){
-			Log.i(TAG, "found user in cache");
+			Log.i(TAG, "found userId=" + userId + " in cache");
 			return user;
 		}
 		SQLiteDatabase db = this.getReadableDatabase();
@@ -188,6 +189,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		
 		if(user == null){
 			user = new User(userId, Channel.BASE_CHANNEL + userId.replace(".", "_"), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), userId, false);
+			addUser(user);
 		}
 		
 		userCache.put(userId, user);
@@ -349,7 +351,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		db.delete("minou_last_message", "channel LIKE ?", new String[]{channel.toLowerCase().replace("-", "_") + ".%"});
 	}
 	
-	public ArrayList<String> getPrivateChannels(){
+	public ArrayList<String> getConversations(){
 		ArrayList<String> usersId = new ArrayList<String>();
 		SQLiteDatabase db = this.getReadableDatabase();
 
@@ -405,7 +407,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		return contacts;
 	}
 	
-	public void removePublicChannel(String channel) {
+	public void removeTopic(String channel) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		
 		db.delete("minou_public", "channel = ?", new String[]{channel.toLowerCase().replace("-", "_")});
@@ -422,6 +424,18 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		}
 		
 		return 0;		
+	}
+	
+	public boolean isContainMessage(String userId, String content, String type, String channel) {
+		SQLiteDatabase db = this.getReadableDatabase();
+
+		Cursor c = db.rawQuery("SELECT COUNT(*) FROM minou_message WHERE channel = ? AND userId = ? AND content = ? AND msgType = ?;", new String[]{channel.toLowerCase().replace("-", "_"), userId, content, type} );
+		
+		if(c.moveToFirst()){
+			return c.getInt(0) > 0;
+		}
+		
+		return false;
 	}
 
 	public void eraseBD(){
@@ -470,6 +484,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	}
 
 	public void setUserAsContact(final User user) {
+		Log.i(TAG, " setUserAsContact: userId=" + user.getId());
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		final String userId = user.getId();
@@ -508,6 +523,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public ArrayList<String> getUsersId() {
 		return new ArrayList<String>(userCache.keySet());
 	}
+
+	
 
 	
 

@@ -80,7 +80,7 @@ public class TopicDetailsFragment extends MinouFragment implements OnClickListen
 			((TextView) v.findViewById(R.id.unread_count)).setVisibility(View.GONE);
 		} else {
 			((TextView) v.findViewById(R.id.unread_count)).setVisibility(View.VISIBLE);
-			((TextView) v.findViewById(R.id.unread_count)).setText(unreadCount);
+			((TextView) v.findViewById(R.id.unread_count)).setText(unreadCount + "");
 		}
 
 		v.findViewById(R.id.container).setOnClickListener(this);

@@ -22,6 +22,7 @@ import com.lesgens.minou.fragments.TopicsFragment;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.models.Event;
+import com.lesgens.minou.models.Topic;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.receivers.NetworkStateReceiver;
@@ -173,6 +174,13 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 				@Override
 				public void run() {
 					conversationsFragment.refreshList();
+				}});
+		} else if(event.getChannel() instanceof Topic){
+			runOnUiThread(new Runnable(){
+
+				@Override
+				public void run() {
+					topicsFragment.notifyDataSet();
 				}});
 		}
 	}

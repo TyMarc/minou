@@ -23,7 +23,7 @@ public class MinouUploadFileProgressListener implements ProgressListener {
 	public void progressChanged(ProgressEvent event) {
 		Log.i("MinouProgressListener", "progressChanged: eventCode=" + event.getEventCode() + " byteTransfered=" + event.getBytesTransferred());
 		if(event.getEventCode() == ProgressEvent.COMPLETED_EVENT_CODE){
-			Server.publishPicture(message, channelNamespace);
+			Server.publishMessage(message, channelNamespace);
 			message.setStatus(message.isIncoming() ? SendingStatus.RECEIVED : SendingStatus.SENT);
 			
 			if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
