@@ -75,7 +75,6 @@ public class Message extends Event{
 	}
 
 	public byte[] getThumbnail(){
-		Log.i("Message", "trying to get a thumbnail, msgtype=" + msgType + " content=" + content);
 		if(thumbnail == null) {
 			if(dataPath != null) {
 				try {

@@ -302,15 +302,16 @@ public class Server {
 
 				
 				boolean isGoodChannel = false;
+				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
 					if(topic.getNamespace().equals(((ChatActivity) MinouApplication.getCurrentActivity()).getNamespace())){
 						isGoodChannel = true;
+						DatabaseHelper.getInstance().updateMessageAsRead(m.getId().toString());
 					}
 				}
 				for(EventsListener el : eventsListeners) {
 					el.onNewEvent(m);
 				}
-				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
 				if((!MinouApplication.isActivityVisible() || !isGoodChannel) 
 						&& (PreferencesController.isPublicNotificationsEnabled(context, fullChannelName) 
 								|| m.getContent().toLowerCase().contains(Controller.getInstance().getMyself().getUsername().toLowerCase()))
@@ -351,15 +352,16 @@ public class Server {
 				Message m = new Message(user, content, user.getName(), city, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
 				
 				boolean isGoodChannel = false;
+				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
 					if(city.getNamespace().equals(((ChatActivity) MinouApplication.getCurrentActivity()).getNamespace())){
 						isGoodChannel = true;
+						DatabaseHelper.getInstance().updateMessageAsRead(m.getId().toString());
 					}
 				}
 				for(EventsListener el : eventsListeners) {
 					el.onNewEvent(m);
 				}
-				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
 				if((!MinouApplication.isActivityVisible() || !isGoodChannel) 
 						&& (PreferencesController.isPublicNotificationsEnabled(context, fullChannelName) 
 								|| m.getContent().toLowerCase().contains(Controller.getInstance().getMyself().getUsername().toLowerCase()))
@@ -396,15 +398,17 @@ public class Server {
 				Message m = new Message(user, content, user.getUsername(), user, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
 				
 				boolean isGoodChannel = false;
+				DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace());
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
 					if(user.getNamespace().equals(((ChatActivity) MinouApplication.getCurrentActivity()).getNamespace())){
 						isGoodChannel = true;
+						DatabaseHelper.getInstance().updateMessageAsRead(m.getId().toString());
 					}
 				}
 				for(EventsListener el : eventsListeners) {
 					el.onNewEvent(m);
 				}
-				DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace());
+				
 				if((!MinouApplication.isActivityVisible() || !isGoodChannel) && 
 						!PreferencesController.isPrivateNotificationsDisabled(context, fullChannelName) 
 						&& isIncoming && DatabaseHelper.getInstance().getConversations().contains(user.getId())){
@@ -589,6 +593,11 @@ public class Server {
 						}
 	
 						DatabaseHelper.getInstance().addMessage(m, user.getId(), topic.getNamespace(), sentAt, false);
+						if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
+							if(user.getNamespace().equals(((ChatActivity) MinouApplication.getCurrentActivity()).getNamespace())){
+								DatabaseHelper.getInstance().updateMessageAsRead(m.getId().toString());
+							}
+						}
 					}
 				}
 			}}, new Action1<Throwable>() {
@@ -629,6 +638,11 @@ public class Server {
 							el.onNewEvent(m);
 						}
 						DatabaseHelper.getInstance().addMessage(m, user.getId(), userMessages.getNamespace(), sentAt, false);
+						if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
+							if(user.getNamespace().equals(((ChatActivity) MinouApplication.getCurrentActivity()).getNamespace())){
+								DatabaseHelper.getInstance().updateMessageAsRead(m.getId().toString());
+							}
+						}
 					}
 				}
 			}}, new Action1<Throwable>() {
