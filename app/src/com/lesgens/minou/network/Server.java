@@ -67,6 +67,7 @@ public class Server {
 	private static ArrayList<EventsListener> eventsListeners = new ArrayList<EventsListener>();
 	private static ArrayList<CrossbarConnectionListener> connectionListeners = new ArrayList<CrossbarConnectionListener>();
 	private static String address = "https://minou-backend.herokuapp.com/";
+	private static String ADDRESS_CROSSBAR = "wss://minou-crossbar.herokuapp.com/ws";
 	private static String TAG = "Server";
 	private static boolean isConnected = false;
 	private static WampClient client;
@@ -124,7 +125,7 @@ public class Server {
 			// Create a builder and configure the client
 			disconnect();
 			WampClientBuilder builder = new WampClientBuilder();
-			builder.withUri("wss://minou-crossbar.herokuapp.com/ws")
+			builder.withUri(ADDRESS_CROSSBAR)
 			.withRealm("minou")
 			.withInfiniteReconnects()
 			.withAuthId(Controller.getInstance().getId())
@@ -628,7 +629,7 @@ public class Server {
 				while(iterator.hasNext()){
 					msg = iterator.next();
 					Log.i(TAG, "Message=" + msg);
-					final String type = msg.get("type").asText();
+					final String type = msg.get("content_type").asText();
 					final String id = msg.get("user").asText();
 					final User user = DatabaseHelper.getInstance().getUser(id);
 					final long sentAt = msg.get("sent_at").asLong() / 1000;
@@ -675,7 +676,7 @@ public class Server {
 				while(iterator.hasNext()){
 					msg = iterator.next();
 					Log.i(TAG, "Message=" + msg);
-					final String type = msg.get("type").asText();
+					final String type = msg.get("content_type").asText();
 					final String id = msg.get("user").asText();
 					final User user = DatabaseHelper.getInstance().getUser(id);
 					final long sentAt = msg.get("sent_at").asLong() / 1000;

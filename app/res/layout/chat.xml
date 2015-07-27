@@ -87,6 +87,17 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:background="@color/white" >
+        
+        <ImageView
+            android:id="@+id/send_ft"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignBottom="@id/editText"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:background="@drawable/gen_black_sel"
+            android:padding="5dp"
+            android:src="@drawable/share" />
 
         <EditText
             android:id="@+id/editText"
@@ -96,7 +107,8 @@
             android:layout_marginBottom="10dp"
             android:layout_marginLeft="10dp"
             android:layout_marginTop="10dp"
-            android:layout_toLeftOf="@+id/send_ft"
+            android:layout_toLeftOf="@+id/send"
+            android:layout_toRightOf="@+id/send_ft"
             android:background="@drawable/rounded_edittext"
             android:gravity="center_vertical"
             android:inputType="textCapSentences|textMultiLine"
@@ -106,18 +118,6 @@
             android:paddingRight="5dp"
             android:paddingTop="3dp"
             android:textSize="14sp" />
-
-        <ImageView
-            android:id="@+id/send_ft"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignBottom="@id/editText"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:layout_toLeftOf="@+id/send"
-            android:background="@drawable/gen_black_sel"
-            android:padding="5dp"
-            android:src="@drawable/share" />
 
         <ImageView
             android:id="@+id/send"

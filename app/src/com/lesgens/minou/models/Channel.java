@@ -127,6 +127,8 @@ public class Channel {
 		for(Observable<PubSubData> obs : subscriptions){
 			obs.unsubscribeOn(Schedulers.immediate());
 		}
+		
+		subscriptions.clear();
 	}
 
 	public ArrayList<String> getAllChannelsNamespace(){
