@@ -14,10 +14,11 @@ public class Channel {
 	private static final String TAG = "Channel";
 	public static final String BASE_CHANNEL = "minou.";
 	public static final String BASE_PUBLIC_CHANNEL = BASE_CHANNEL + "public";
+	public static final String BASE_PRIVATE_CHANNEL = BASE_CHANNEL + "private";
 	public static final String WORLDWIDE_CHANNEL = BASE_PUBLIC_CHANNEL + ".worldwide";
 	private String name;
 	private String namespace;
-	private Observable<PubSubData> subscription;
+	private ArrayList<Observable<PubSubData>> subscriptions;
 	private ArrayList<Channel> channels;
 	private int count;
 
@@ -25,16 +26,13 @@ public class Channel {
 		channels = new ArrayList<Channel>();
 		this.name = Utils.getNameFromNamespace(namespace);
 		this.namespace = namespace;
-		this.subscription = subscription;
+		subscriptions = new ArrayList<Observable<PubSubData>>();
+		subscriptions.add(subscription);
 		count = 0;
 	}
 
-	public Observable<PubSubData> getSubscription(){
-		return subscription;
-	}
-
-	public void setSubscription(final Observable<PubSubData> subscription){
-		this.subscription = subscription;
+	public void addSubscription(final Observable<PubSubData> subscription){
+		subscriptions.add(subscription);
 	}
 
 	public String getNamespace(){
@@ -126,8 +124,8 @@ public class Channel {
 			channel.closeSubscriptions();
 		}
 
-		if(subscription != null){
-			subscription.unsubscribeOn(Schedulers.immediate());
+		for(Observable<PubSubData> obs : subscriptions){
+			obs.unsubscribeOn(Schedulers.immediate());
 		}
 	}
 

@@ -311,8 +311,8 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 	@Override
 	public void onNewEvent(final Event event) {
-		Log.i(TAG, "channel received=" + event.getChannel().getName() + " this channel=" + channelNamespace);
-		if(!event.getChannel().getNamespace().equals(channelNamespace)){
+		Log.i(TAG, "channel received=" + event.getChannelNamespace()+ " this channel=" + channelNamespace);
+		if(!event.getChannelNamespace().equals(channelNamespace)){
 			return ;
 		}
 		runOnUiThread(new Runnable(){

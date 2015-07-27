@@ -26,6 +26,7 @@ import com.lesgens.minou.models.ContactPicker;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.AvatarGenerator;
+import com.lesgens.minou.utils.Utils;
 
 public class DatabaseHelper extends SQLiteOpenHelper
 {
@@ -151,6 +152,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 	public void preloadUsers(){
 		Log.i(TAG, "preloading users");
+		userCache.clear();
 		SQLiteDatabase db = this.getReadableDatabase();
 		Cursor c = db.rawQuery("SELECT userId, username, avatar, isContact FROM minou_users;", null);
 
@@ -162,7 +164,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			Bitmap avatar = BitmapFactory.decodeByteArray(dataAvatar, 0, dataAvatar.length);
 			boolean isContact = c.getInt(3) == 1;
 			Log.i(TAG, "preload userId=" + userId + " isContact=" + isContact);
-			user = new User(username, Channel.BASE_CHANNEL + userId.replace(".", "_"), avatar, userId, isContact);
+			user = new User(username, Utils.getFullPrivateChannel(userId), avatar, userId, isContact);
 			userCache.put(userId, user);
 		}
 	}
@@ -176,19 +178,19 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		}
 		SQLiteDatabase db = this.getReadableDatabase();
 		Log.i(TAG, "get user with userId=" + userId);
-
+		
 		Cursor c = db.rawQuery("SELECT username, avatar, isContact FROM minou_users WHERE userId = ?;", new String[]{userId} );
 		while(c.moveToNext()){
 			String username = c.getString(0);
 			byte[] dataAvatar = c.getBlob(1);
 			Bitmap avatar = BitmapFactory.decodeByteArray(dataAvatar, 0, dataAvatar.length);
 			boolean isContact = c.getInt(2) == 1;
-			user = new User(username, Channel.BASE_CHANNEL + userId.replace(".", "_"), avatar, userId, isContact);
+			user = new User(username, Utils.getFullPrivateChannel(userId), avatar, userId, isContact);
 			break;
 		}
 
 		if(user == null){
-			user = new User(userId, Channel.BASE_CHANNEL + userId.replace(".", "_"), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), userId, false);
+			user = new User(userId, Utils.getFullPrivateChannel(userId), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), userId, false);
 			addUser(user);
 		}
 
@@ -218,7 +220,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			byte[] dataAvatar = c.getBlob(1);
 			Bitmap avatar = BitmapFactory.decodeByteArray(dataAvatar, 0, dataAvatar.length);
 			boolean isContact = c.getInt(2) == 1;
-			user = new User(username, Channel.BASE_CHANNEL + userId.replace(".", "_"), avatar, userId, isContact);
+			user = new User(username, Utils.getFullPrivateChannel(userId), avatar, userId, isContact);
 
 			if(!username.equals(usernameDB)){
 				updateUsername(userId, username);
@@ -227,7 +229,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		}
 
 		if(user == null){
-			user = new User(username, Channel.BASE_CHANNEL + userId.replace(".", "_"), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), userId, false);
+			user = new User(username, Utils.getFullPrivateChannel(userId), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), userId, false);
 			addUser(user);
 		}
 
@@ -285,7 +287,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			User user = getUser(userId);
 			int status = c.getInt(6);
 			String msgType = c.getString(7);
-			message = new Message(id, timestamp, channel, 
+			message = new Message(id, timestamp, channel.getNamespace(), 
 					user, text, isIncoming, dataPath, SendingStatus.fromInt(status), MessageType.fromString(msgType));
 			messages.add(message);
 			updateMessageAsRead(id.toString());
@@ -294,11 +296,11 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		return messages;
 	}
 
-	public Message getLastMessage(Channel channel){
+	public Message getLastMessage(String channelNamespace){
 		SQLiteDatabase db = this.getReadableDatabase();
-		Log.i(TAG, "get last Message for channel=" + channel.getNamespace().toLowerCase().replace("-", "_"));
+		Log.i(TAG, "get last Message for channel=" + channelNamespace);
 
-		Cursor c = db.rawQuery("SELECT message_id, timestamp, content, isIncoming, dataPath, userId, status, msgType FROM minou_message WHERE channel = ? ORDER BY timestamp DESC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, content, isIncoming, dataPath, userId, status, msgType FROM minou_message WHERE channel = ? ORDER BY timestamp DESC;", new String[]{channelNamespace} );
 		Message message = null;
 		if(c.moveToNext()){
 			UUID id = UUID.fromString(c.getString(0));
@@ -310,7 +312,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			User user = getUser(userId);
 			int status = c.getInt(6);
 			String msgType = c.getString(7);
-			message = new Message(id, timestamp, channel, 
+			message = new Message(id, timestamp, channelNamespace, 
 					user, text, isIncoming, dataPath, SendingStatus.fromInt(status), MessageType.fromString(msgType));
 		}
 
@@ -366,10 +368,10 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		ArrayList<String> usersId = new ArrayList<String>();
 		SQLiteDatabase db = this.getReadableDatabase();
 
-		Cursor c = db.rawQuery("SELECT channel FROM minou_last_message WHERE (NOT channel LIKE 'minou.public.%') AND channel != ? GROUP BY channel ORDER BY timestamp DESC;", new String[]{Controller.getInstance().getMyself().getNamespace()});
+		Cursor c = db.rawQuery("SELECT channel FROM minou_last_message WHERE (channel LIKE '" + Channel.BASE_PRIVATE_CHANNEL + ".%') GROUP BY channel ORDER BY timestamp DESC;", null);
 
 		while(c.moveToNext()){
-			String userId = c.getString(0).replace("minou.", "");
+			String userId = c.getString(0).replace(Channel.BASE_PRIVATE_CHANNEL, "").replace(Controller.getInstance().getId(), "").replace(".", "");
 			usersId.add(userId);
 		}
 

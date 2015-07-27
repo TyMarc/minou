@@ -30,6 +30,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.models.Channel;
+
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -56,6 +59,13 @@ public class Utils {
 	public static final String MINOU_IMAGE_BASE = "MINOU_IMAGE_BASE:";
 	public static final int MAX_IMAGE_DIMEN = 1600;
 	private static final String TAG = "Utils";
+	
+	public static String getFullPrivateChannel(String userId){
+		final long myId = Long.parseLong(Controller.getInstance().getId());
+		final long otherId = Long.parseLong(userId);
+		return Channel.BASE_PRIVATE_CHANNEL + "." + String.valueOf(Math.min(myId, otherId)) + "." + String.valueOf(Math.max(myId, otherId));
+
+	}
 
 	public static int dpInPixels(Context context, int dp) {
 		return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources()

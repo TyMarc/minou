@@ -19,6 +19,7 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import ws.wamp.jawampa.PubSubData;
 import ws.wamp.jawampa.Reply;
+import ws.wamp.jawampa.SubscriptionFlags;
 import ws.wamp.jawampa.WampClient;
 import ws.wamp.jawampa.WampClientBuilder;
 import ws.wamp.jawampa.WampError;
@@ -119,6 +120,7 @@ public class Server {
 
 	public static void connectToCrossbar(final Context context){
 		try {
+			DatabaseHelper.getInstance().preloadUsers();
 			// Create a builder and configure the client
 			disconnect();
 			WampClientBuilder builder = new WampClientBuilder();
@@ -265,16 +267,18 @@ public class Server {
 		getLastMessages(topic);
 	}
 
-	public static void subscribeToConversation(final Context context, final User user){
+	public static void subscribeToConversation(final Context context, User user){
 		if(Controller.getInstance().getChannelsContainer().isContainSubscription(user.getNamespace())){
 			return;
 		}
 
-		final User userToAdd = createPrivateChannel(context, user);
+		if(user.getId().equals(Controller.getInstance().getId())) {
+			user = createConversation(context, user);
+		}
 
-		Controller.getInstance().getChannelsContainer().addByForceSubscription(userToAdd);
+		Controller.getInstance().getChannelsContainer().addByForceSubscription(user);
 
-		getLastPrivateMessages(userToAdd);
+		getLastPrivateMessages(user);
 	}
 
 	private static Topic createChannelTopic(final Context context, final String channelName){
@@ -298,7 +302,7 @@ public class Server {
 
 				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getId());
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-				Message m = new Message(user, content, user.getName(), topic, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+				Message m = new Message(user, content, user.getName(), fullChannelName, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
 
 				
 				boolean isGoodChannel = false;
@@ -349,7 +353,7 @@ public class Server {
 				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getId());
 
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-				Message m = new Message(user, content, user.getName(), city, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+				Message m = new Message(user, content, user.getName(), fullChannelName, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
 				
 				boolean isGoodChannel = false;
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
@@ -379,10 +383,11 @@ public class Server {
 		return city;
 	}
 
-	private static User createPrivateChannel(final Context context, final User userToCreate){
-		final String fullChannelName = Utils.getNormalizedString(Channel.BASE_CHANNEL + userToCreate.getId().replace(".", "_").replace("-", "_"));
+	private static User createConversation(final Context context, final User userToCreate){
+		String myId = Controller.getInstance().getId();
+		final String fullChannelName = Utils.getNormalizedString(Channel.BASE_PRIVATE_CHANNEL + ".." + myId);
 		Log.i(TAG, "Subscribing to: " + fullChannelName);
-		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName);
+		Observable<PubSubData> channelSubscription = client.makeSubscription(fullChannelName, SubscriptionFlags.Wildcard);
 		channelSubscription.forEach(new Action1<PubSubData>(){
 
 			@Override
@@ -395,7 +400,7 @@ public class Server {
 				String content = msg.keywordArguments().get("content").asText();
 
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-				Message m = new Message(user, content, user.getUsername(), user, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+				Message m = new Message(user, content, user.getUsername(), fullChannelName.replace("..", "." + id + "."), isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
 				
 				boolean isGoodChannel = false;
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace());
@@ -422,7 +427,52 @@ public class Server {
 					Log.i(TAG, "Error on private message, error=" + arg0.getMessage());
 				}});
 
-		userToCreate.setSubscription(channelSubscription);
+		userToCreate.addSubscription(channelSubscription);
+		
+		final String secondFullChannelName = Utils.getNormalizedString(Channel.BASE_PRIVATE_CHANNEL + "." + myId);
+		Log.i(TAG, "Subscribing to: " + secondFullChannelName);
+		Observable<PubSubData> secondChannelSubscription = client.makeSubscription(secondFullChannelName, SubscriptionFlags.Prefix);
+		secondChannelSubscription.forEach(new Action1<PubSubData>(){
+
+			@Override
+			public void call(PubSubData msg) {
+				Log.i(TAG, "Received new private message " + msg.keywordArguments());
+				String type = msg.keywordArguments().get("content_type").asText();
+				final String id = msg.keywordArguments().get("from").asText();
+				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
+				subscribeToConversation(context, user);
+				String content = msg.keywordArguments().get("content").asText();
+
+				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
+				Message m = new Message(user, content, user.getUsername(), secondFullChannelName + "." + id, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+				
+				boolean isGoodChannel = false;
+				DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace());
+				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
+					if(user.getNamespace().equals(((ChatActivity) MinouApplication.getCurrentActivity()).getNamespace())){
+						isGoodChannel = true;
+						DatabaseHelper.getInstance().updateMessageAsRead(m.getId().toString());
+					}
+				}
+				for(EventsListener el : eventsListeners) {
+					el.onNewEvent(m);
+				}
+				
+				if((!MinouApplication.isActivityVisible() || !isGoodChannel) && 
+						!PreferencesController.isPrivateNotificationsDisabled(context, secondFullChannelName) 
+						&& isIncoming && DatabaseHelper.getInstance().getConversations().contains(user.getId())){
+					Log.i(TAG, "Application not visible, should send notification");
+					NotificationHelper.notify(context, null, user, content);
+				}
+			}}, new Action1<Throwable>() {
+
+				@Override
+				public void call(Throwable arg0) {
+					Log.i(TAG, "Error on private message, error=" + arg0.getMessage());
+				}});
+
+		userToCreate.addSubscription(secondChannelSubscription);
+
 		return userToCreate;
 	}
 
@@ -586,7 +636,7 @@ public class Server {
 
 					if(!DatabaseHelper.getInstance().isContainMessage(id, content, type, topic.getNamespace())){
 						final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-						Message m = new Message(user, content, user.getUsername(), topic, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+						Message m = new Message(user, content, user.getUsername(), topic.getNamespace(), isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
 						
 						for(EventsListener el : eventsListeners) {
 							el.onNewEvent(m);
@@ -610,15 +660,16 @@ public class Server {
 
 	private static void getLastPrivateMessages(final User userMessages){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
-		an.add(userMessages.getNamespace());
-		final long lastMessage = DatabaseHelper.getInstance().getLastMessageFetched(userMessages.getNamespace());
+		final String fullChannelName = Utils.getFullPrivateChannel(userMessages.getId());
+		an.add(fullChannelName);
+		final long lastMessage = DatabaseHelper.getInstance().getLastMessageFetched(fullChannelName);
 		an.add(lastMessage);
 		client.call("plugin.history.fetch", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 
 			@Override
 			public void call(Reply reply) {
-				Log.i(TAG, "LastMessage=" + lastMessage + " Received missed messages for=" + userMessages.getNamespace() + " arguments=" + reply.arguments());
+				Log.i(TAG, "LastMessage=" + lastMessage + " Received missed messages for=" + fullChannelName + " arguments=" + reply.arguments());
 				JsonNode msg = null;
 				Iterator<JsonNode> iterator = reply.arguments().get(0).elements();
 				while(iterator.hasNext()){
@@ -630,14 +681,14 @@ public class Server {
 					final long sentAt = msg.get("sent_at").asLong() / 1000;
 					String content = msg.get("content").asText();
 
-					if(!DatabaseHelper.getInstance().isContainMessage(id, content, type, userMessages.getNamespace())){
+					if(!DatabaseHelper.getInstance().isContainMessage(id, content, type, fullChannelName)){
 						final boolean isIncoming = !id.equals(Controller.getInstance().getId());
-						Message m = new Message(user, content, user.getUsername(), userMessages, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+						Message m = new Message(user, content, user.getUsername(), fullChannelName, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
 						
 						for(EventsListener el : eventsListeners) {
 							el.onNewEvent(m);
 						}
-						DatabaseHelper.getInstance().addMessage(m, user.getId(), userMessages.getNamespace(), sentAt, false);
+						DatabaseHelper.getInstance().addMessage(m, user.getId(), fullChannelName, sentAt, false);
 						if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
 							if(user.getNamespace().equals(((ChatActivity) MinouApplication.getCurrentActivity()).getNamespace())){
 								DatabaseHelper.getInstance().updateMessageAsRead(m.getId().toString());

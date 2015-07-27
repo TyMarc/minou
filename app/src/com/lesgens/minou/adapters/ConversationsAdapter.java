@@ -90,7 +90,7 @@ public class ConversationsAdapter extends ArrayAdapter<String>{
 			holder.avatar.setImageBitmap(Utils.cropToCircle(user.getAvatar()));
 		}
 		
-		Message lastMessage = DatabaseHelper.getInstance().getLastMessage(user);
+		Message lastMessage = DatabaseHelper.getInstance().getLastMessage(user.getNamespace());
 		if(lastMessage != null){
 			if(lastMessage.getMsgType() == MessageType.TEXT){
 				holder.lastMessage.setText(lastMessage.getContent());

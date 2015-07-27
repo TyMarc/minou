@@ -8,13 +8,13 @@ public abstract class Event {
 	
 	protected UUID id;
 	private Timestamp timestamp;
-	private Channel channel;
+	private String channelNamespace;
 	private User sourceUser;
 	
-	public Event(UUID id, Timestamp timestamp, Channel channel, User user) {
+	public Event(UUID id, Timestamp timestamp, String channelNamespace, User user) {
 		this.id = id;
 		this.timestamp = timestamp;
-		this.channel = channel;
+		this.channelNamespace = channelNamespace;
 		this.sourceUser = user;
 	}
 	
@@ -26,8 +26,8 @@ public abstract class Event {
 		return timestamp;
 	}
 	
-	public Channel getChannel(){
-		return channel;
+	public String getChannelNamespace(){
+		return channelNamespace;
 	}
 	
 	public User getUser(){

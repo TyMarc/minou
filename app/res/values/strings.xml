@@ -66,6 +66,7 @@
     <string name="error_upload_avatar">Error when uploading picture</string>
     <string name="error_upload_username">Error when updating username</string>
     <string name="downloading_file">Downloading file...</string>
+    <string name="location_disabled">Your GPS seems to be disabled, do you want to enable it?</string>
 
     <!-- SquareCamera -->
 

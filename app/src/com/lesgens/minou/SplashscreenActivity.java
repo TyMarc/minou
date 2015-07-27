@@ -92,7 +92,6 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 		setContentView(R.layout.splashscreen);
 
 		DatabaseHelper.init(this);
-		DatabaseHelper.getInstance().preloadUsers();
 
 		TextView tv = (TextView) findViewById(R.id.splash_text);
 
@@ -111,6 +110,9 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 				.show();
 		} else{
 			LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
+			if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+				buildAlertMessageNoGps();
+			}
 			locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, this, getMainLooper());
 		}
 
@@ -122,6 +124,24 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 		authButton.setReadPermissions(PERMISSIONS);
 		uiHelper = new UiLifecycleHelper(this, callback);
 		uiHelper.onCreate(savedInstanceState);
+	}
+
+	private void buildAlertMessageNoGps() {
+		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage(R.string.location_disabled)
+		.setCancelable(false)
+		.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+			public void onClick(final DialogInterface dialog, final int id) {
+				startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+			}
+		})
+		.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+			public void onClick(final DialogInterface dialog, final int id) {
+				dialog.cancel();
+			}
+		});
+		final AlertDialog alert = builder.create();
+		alert.show();
 	}
 
 	public void onDestroy(){

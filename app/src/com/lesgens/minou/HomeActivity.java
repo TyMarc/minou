@@ -21,6 +21,7 @@ import com.lesgens.minou.fragments.ProfileFragment;
 import com.lesgens.minou.fragments.TopicsFragment;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
+import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Topic;
 import com.lesgens.minou.models.User;
@@ -168,14 +169,14 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 
 	@Override
 	public void onNewEvent(Event event) {
-		if(event.getChannel() instanceof User){
+		if(event.getChannelNamespace().startsWith(Channel.BASE_PRIVATE_CHANNEL)){
 			runOnUiThread(new Runnable(){
 
 				@Override
 				public void run() {
 					conversationsFragment.refreshList();
 				}});
-		} else if(event.getChannel() instanceof Topic){
+		} else if(event.getChannelNamespace().startsWith(Channel.BASE_PUBLIC_CHANNEL)){
 			runOnUiThread(new Runnable(){
 
 				@Override
