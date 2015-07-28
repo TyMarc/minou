@@ -123,7 +123,9 @@ public class Channel {
 		}
 
 		for(Observable<PubSubData> obs : subscriptions){
-			obs.unsubscribeOn(Schedulers.immediate());
+			if(obs != null) {
+				obs.unsubscribeOn(Schedulers.immediate());
+			}
 		}
 		
 		subscriptions.clear();

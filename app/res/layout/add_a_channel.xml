@@ -83,11 +83,12 @@
         android:layout_width="fill_parent"
         android:layout_height="42dp"
         android:layout_below="@id/setting_fetch_all_messages"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="5dp"
         android:background="@drawable/gen_sel"
         android:gravity="center_vertical"
-        android:paddingLeft="15dp"
+        android:hint="@string/no_channel_entered"
+        android:paddingLeft="10dp"
         android:textColor="@color/black"
         android:textSize="18sp" />
 

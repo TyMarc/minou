@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -28,7 +30,7 @@ import com.lesgens.minou.models.ChannelTrending;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.utils.Utils;
 
-public class AddTopicActivity extends MinouActivity implements OnClickListener, TextWatcher, TrendingChannelsListener{
+public class AddTopicActivity extends MinouActivity implements OnClickListener, TextWatcher, TrendingChannelsListener, OnItemClickListener{
 	private ChannelsTrendingAdapter adapter;
 	private Channel currentCity;
 
@@ -62,6 +64,8 @@ public class AddTopicActivity extends MinouActivity implements OnClickListener, 
 				return null; 
 			}
 		};
+		
+		((ListView) findViewById(R.id.list_view)).setOnItemClickListener(this);
 
 		findViewById(R.id.back_btn).setOnClickListener(this);
 		((EditText) findViewById(R.id.editText)).setFilters(new InputFilter[]{filter}); 
@@ -109,15 +113,20 @@ public class AddTopicActivity extends MinouActivity implements OnClickListener, 
 	}
 
 	@Override
-	public void onTrendingChannelsFetched(ArrayList<ChannelTrending> topics) {
-		findViewById(R.id.progress_trending).setVisibility(View.GONE);
-		if(topics.size() > 0) {
-			adapter = new ChannelsTrendingAdapter(this, topics);
-			((ListView) findViewById(R.id.list_view)).setAdapter(adapter);
-			findViewById(android.R.id.empty).setVisibility(View.GONE);
-		} else{
-			findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
-		}
+	public void onTrendingChannelsFetched(final ArrayList<ChannelTrending> topics) {
+		runOnUiThread(new Runnable(){
+
+			@Override
+			public void run() {
+				findViewById(R.id.progress_trending).setVisibility(View.GONE);
+				if(topics.size() > 0) {
+					adapter = new ChannelsTrendingAdapter(AddTopicActivity.this, topics);
+					((ListView) findViewById(R.id.list_view)).setAdapter(adapter);
+					findViewById(android.R.id.empty).setVisibility(View.GONE);
+				} else{
+					findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
+				}
+			}});
 	}
 
 	@Override
@@ -125,6 +134,20 @@ public class AddTopicActivity extends MinouActivity implements OnClickListener, 
 		findViewById(R.id.progress_trending).setVisibility(View.GONE);
 		findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
 		Log.i("AddAChannelActivity", "Error when fetching trending channels: " + throwable.getMessage());
+	}
+
+	@Override
+	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+		ChannelTrending channelTrending = adapter.getItem(arg2);
+		final String channelName = channelTrending.getNamespace();
+		if(!Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
+			DatabaseHelper.getInstance().addPublicChannel(channelName);
+			if(((CheckBox) findViewById(R.id.setting_fetch_all_messages)).isChecked()) {
+				PreferencesController.addTopicFetchAllMessages(this, channelName);
+			}
+			Server.subscribeToTopic(this, channelName);
+			finish();
+		}
 	}
 
 

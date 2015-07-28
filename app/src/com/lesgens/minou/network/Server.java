@@ -201,30 +201,30 @@ public class Server {
 	}
 
 	private static void addGeolocationChannels(){
-//		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace())) {
-//			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace());
-//		}
+		//		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace())) {
+		//			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace());
+		//		}
 
 		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getStateNameSpace())) {
 			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getStateNameSpace());
 		}
 
 
-//		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace())) {
-//			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace());
-//		}
+		//		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace())) {
+		//			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace());
+		//		}
 
-//		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general")) {
-//			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general");
-//		}
+		//		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general")) {
+		//			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCityNameSpace() + ".general");
+		//		}
 
 		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getStateNameSpace() + ".general")) {
 			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getStateNameSpace() + ".general");
 		}
 
-//		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace() + ".general")) {
-//			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace() + ".general");
-//		}
+		//		if(!DatabaseHelper.getInstance().isPublicChannelAlreadyIn(Controller.getInstance().getGeolocation().getCountryNameSpace() + ".general")) {
+		//			DatabaseHelper.getInstance().addPublicChannel(Controller.getInstance().getGeolocation().getCountryNameSpace() + ".general");
+		//		}
 	}
 
 	private static void closeSubscriptions() {
@@ -305,7 +305,7 @@ public class Server {
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
 				Message m = new Message(user, content, user.getName(), fullChannelName, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
 
-				
+
 				boolean isGoodChannel = false;
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
@@ -355,7 +355,7 @@ public class Server {
 
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
 				Message m = new Message(user, content, user.getName(), fullChannelName, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
-				
+
 				boolean isGoodChannel = false;
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), channelName);
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
@@ -402,7 +402,7 @@ public class Server {
 
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
 				Message m = new Message(user, content, user.getUsername(), fullChannelName.replace("..", "." + id + "."), isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
-				
+
 				boolean isGoodChannel = false;
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace());
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
@@ -414,7 +414,7 @@ public class Server {
 				for(EventsListener el : eventsListeners) {
 					el.onNewEvent(m);
 				}
-				
+
 				if((!MinouApplication.isActivityVisible() || !isGoodChannel) && 
 						!PreferencesController.isPrivateNotificationsDisabled(context, fullChannelName) 
 						&& isIncoming && DatabaseHelper.getInstance().getConversations().contains(user.getId())){
@@ -429,7 +429,7 @@ public class Server {
 				}});
 
 		userToCreate.addSubscription(channelSubscription);
-		
+
 		final String secondFullChannelName = Utils.getNormalizedString(Channel.BASE_PRIVATE_CHANNEL + "." + myId);
 		Log.i(TAG, "Subscribing to: " + secondFullChannelName);
 		Observable<PubSubData> secondChannelSubscription = client.makeSubscription(secondFullChannelName, SubscriptionFlags.Prefix);
@@ -446,7 +446,7 @@ public class Server {
 
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
 				Message m = new Message(user, content, user.getUsername(), secondFullChannelName + "." + id, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
-				
+
 				boolean isGoodChannel = false;
 				DatabaseHelper.getInstance().addMessage(m, user.getId(), user.getNamespace());
 				if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
@@ -458,7 +458,7 @@ public class Server {
 				for(EventsListener el : eventsListeners) {
 					el.onNewEvent(m);
 				}
-				
+
 				if((!MinouApplication.isActivityVisible() || !isGoodChannel) && 
 						!PreferencesController.isPrivateNotificationsDisabled(context, secondFullChannelName) 
 						&& isIncoming && DatabaseHelper.getInstance().getConversations().contains(user.getId())){
@@ -504,7 +504,7 @@ public class Server {
 		Log.i(TAG, "sendMessage message=picture" + " fullChannelName=" + fullChannelName);
 		FileManagerS3.getInstance().uploadFile(message.getContent(), Utils.read(message.getDataPath()), new MinouUploadFileProgressListener(message, channelNamespace));
 	}
-	
+
 	public static void publishMessage(final Message message, final String channelNamespace){
 		String fullChannelName = channelNamespace.toLowerCase().replace("-", "_");
 		fullChannelName = Normalizer.normalize(fullChannelName, Normalizer.Form.NFD);
@@ -521,6 +521,7 @@ public class Server {
 		for(String ns : Controller.getInstance().getChannelsContainer().getAllChannelsNamespace()){
 			an.add(TextNode.valueOf(ns));
 		}
+		
 		client.call("plugin.population.topics_count", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 
@@ -561,15 +562,18 @@ public class Server {
 				while(iterator.hasNext()){
 					msg = iterator.next();
 					Log.i(TAG, "User=" + msg);
-					final String userId = msg.get("id").asText();
-					final String username = msg.get("user_name").asText();
-					final String avatarUrl = msg.get("avatar").asText();
-					if(DatabaseHelper.getInstance().isAvatarNeededToChange(userId, avatarUrl)) {
-						MinouDownloadAvatarProgressListener listener = new MinouDownloadAvatarProgressListener(userId, avatarUrl);
-						FileManagerS3.getInstance().downloadFile(avatarUrl, listener);
+					if(msg != null) {
+						final String userId = msg.get("id").asText();
+						final String username = msg.get("user_name").asText();
+						final String avatarUrl = msg.get("avatar").asText();
+						if(!avatarUrl.equals("null") && DatabaseHelper.getInstance().isAvatarNeededToChange(userId, avatarUrl)) {
+							MinouDownloadAvatarProgressListener listener = new MinouDownloadAvatarProgressListener(userId, avatarUrl);
+							FileManagerS3.getInstance().downloadFile(avatarUrl, listener);
+						}
+						DatabaseHelper.getInstance().updateUsername(userId, username);
 					}
-					DatabaseHelper.getInstance().updateUsername(userId, username);
 				}
+
 
 			}}, new Action1<Throwable>(){
 
@@ -643,11 +647,11 @@ public class Server {
 					if(!DatabaseHelper.getInstance().isContainMessage(id, content, type, topic.getNamespace())){
 						final boolean isIncoming = !id.equals(Controller.getInstance().getId());
 						Message m = new Message(user, content, user.getUsername(), topic.getNamespace(), isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
-						
+
 						for(EventsListener el : eventsListeners) {
 							el.onNewEvent(m);
 						}
-	
+
 						DatabaseHelper.getInstance().addMessage(m, user.getId(), topic.getNamespace(), sentAt, false);
 						if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
 							if(user.getNamespace().equals(((ChatActivity) MinouApplication.getCurrentActivity()).getNamespace())){
@@ -690,7 +694,7 @@ public class Server {
 					if(!DatabaseHelper.getInstance().isContainMessage(id, content, type, fullChannelName)){
 						final boolean isIncoming = !id.equals(Controller.getInstance().getId());
 						Message m = new Message(user, content, user.getUsername(), fullChannelName, isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
-						
+
 						for(EventsListener el : eventsListeners) {
 							el.onNewEvent(m);
 						}
@@ -766,7 +770,7 @@ public class Server {
 			protected void onPostExecute(String result) {
 				super.onPostExecute(result);
 				Log.i(TAG, "Auth response's json: "+ result);
-				
+
 				if(result == null || result.contains("error")) {
 					if(listener != null) {
 						listener.onUsernameUploadError();
@@ -781,7 +785,7 @@ public class Server {
 		};
 		request.execute(newUsername, Controller.getInstance().getToken());
 	}
-	
+
 	public static void changeAvatar(final String avatarUrl, final byte[] avatar, final AvatarUploadListener listener) {
 		AsyncTask<String, Void, String> request = new AsyncTask<String, Void, String>() {
 
@@ -801,7 +805,7 @@ public class Server {
 			protected void onPostExecute(String result) {
 				super.onPostExecute(result);
 				Log.i(TAG, "Auth response's json: "+ result);
-				
+
 				if(result == null || result.contains("error")){
 					if(listener != null){
 						listener.onAvatarUploadError();
@@ -860,7 +864,7 @@ public class Server {
 		reader.endObject();
 		reader.close();
 		User user = DatabaseHelper.getInstance().getUser(Controller.getInstance().getId());
-		
+
 		if(!user.getUsername().equals(Controller.getInstance().getId())){
 			Log.i(TAG, "Setting user from cache");
 			Controller.getInstance().setMyOwnUser(user);

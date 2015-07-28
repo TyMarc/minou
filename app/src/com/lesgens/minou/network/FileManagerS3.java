@@ -6,6 +6,7 @@ import java.io.InputStream;
 
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Log;
 
 import com.amazonaws.event.ProgressListener;
 import com.amazonaws.mobileconnectors.s3.transfermanager.Download;
@@ -14,6 +15,7 @@ import com.amazonaws.mobileconnectors.s3.transfermanager.Upload;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.lesgens.minou.listeners.MinouDownloadAvatarProgressListener;
 import com.lesgens.minou.listeners.MinouDownloadProgressListener;
 
 public class FileManagerS3 {
@@ -50,19 +52,22 @@ public class FileManagerS3 {
 
 			@Override
 			protected Integer doInBackground(Void... arg0) {
-				GetObjectRequest gor = new GetObjectRequest(BUCKET_NAME, filename);
-				File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), filename);
-				listener.setFileDownload(file);
-				Download download = transferManager.download(gor, file);
-				download.addProgressListener(listener);
+				try{
+					GetObjectRequest gor = new GetObjectRequest(BUCKET_NAME, filename);
+					File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), filename);
+					listener.setFileDownload(file);
+					Download download = transferManager.download(gor, file);
+					download.addProgressListener(listener);
+				} catch(Exception e) {
+					e.printStackTrace();
+					Log.i("FileManagerS3", " error while downloading " + filename);
+				}
 				return 1;
 			}
 
 			@Override
 			protected void onPostExecute(Integer v) {
 				super.onPostExecute(v);
-
-
 			}
 
 

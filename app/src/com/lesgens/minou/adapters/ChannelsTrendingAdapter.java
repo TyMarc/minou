@@ -59,7 +59,7 @@ public class ChannelsTrendingAdapter extends ArrayAdapter<ChannelTrending>{
 		String channelName = Utils.capitalizeFirstLetters(Utils.getNameFromNamespace(trending.getNamespace()));
 
 		holder.name.setText(channelName);
-		holder.count.setText(trending.getCount());
+		holder.count.setText(trending.getCount() + "");
 
 		return rowView;
 	}
