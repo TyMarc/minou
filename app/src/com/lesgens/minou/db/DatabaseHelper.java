@@ -461,7 +461,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		Cursor c = db.rawQuery("SELECT COUNT(*) FROM minou_users WHERE userId = ? AND avatarURL = ?;", new String[]{userId, avatarUrl});
 
 		while(c.moveToNext()){
-			return c.getInt(0) > 0;
+			return c.getInt(0) == 0;
 		}
 
 		return true;		
@@ -474,6 +474,10 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		cv.put("avatarURL", avatarUrl);
 		cv.put("avatar", avatar);
 		db.update("minou_users", cv, "userId = ?", new String[]{userId});
+		
+		if(userCache.get(userId) != null){
+			userCache.get(userId).setAvatar(BitmapFactory.decodeByteArray(avatar, 0, avatar.length), avatar, avatarUrl);
+		}
 	}
 
 	public void updateMessageAsRead(final String messageId) {

@@ -69,11 +69,20 @@
         </LinearLayout>
     </RelativeLayout>
 
+    <CheckBox
+        android:id="@+id/setting_fetch_all_messages"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_below="@id/search_bar"
+        android:background="@drawable/gen_sel"
+        android:text="@string/fetch_all_messages"
+        android:textSize="14sp" />
+
     <TextView
         android:id="@+id/currently_written"
         android:layout_width="fill_parent"
         android:layout_height="42dp"
-        android:layout_below="@id/search_bar"
+        android:layout_below="@id/setting_fetch_all_messages"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="10dp"
         android:background="@drawable/gen_sel"

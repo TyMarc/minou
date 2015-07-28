@@ -66,8 +66,8 @@ public class Server {
 	private static List<UserAuthenticatedListener> userAuthenticatedListeners = new ArrayList<UserAuthenticatedListener>();
 	private static ArrayList<EventsListener> eventsListeners = new ArrayList<EventsListener>();
 	private static ArrayList<CrossbarConnectionListener> connectionListeners = new ArrayList<CrossbarConnectionListener>();
-	private static String address = "https://minou-backend.herokuapp.com/";
-	private static String ADDRESS_CROSSBAR = "wss://minou-crossbar.herokuapp.com/ws";
+	private static String address = "http://minou.blindr.me/";
+	private static String ADDRESS_CROSSBAR = "ws://router.minou.blindr.me/ws";
 	private static String TAG = "Server";
 	private static boolean isConnected = false;
 	private static WampClient client;
@@ -581,7 +581,7 @@ public class Server {
 
 	public static void getTrendingTopics(final Channel channel, final TrendingChannelsListener listener){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
-		an.add(TextNode.valueOf(channel.getNamespace() + ".*"));
+		an.add(TextNode.valueOf(channel.getNamespace()));
 		an.add(IntNode.valueOf(25));
 
 		client.call("plugin.population.top_topics", an, new ObjectNode(JsonNodeFactory.instance))
@@ -618,6 +618,11 @@ public class Server {
 	private static void getLastMessages(final Topic topic){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		an.add(TextNode.valueOf(topic.getNamespace()));
+		if(PreferencesController.isTopicFetchAllMessagesEnabled(MinouApplication.getCurrentActivity(), topic.getNamespace())) {
+			long lastMessages = DatabaseHelper.getInstance().getLastMessageFetched(topic.getNamespace());
+			Log.i(TAG, "Receiving all messages for " + topic.getNamespace() + " since " + lastMessages);
+			an.add(lastMessages);
+		}
 		client.call("plugin.history.fetch", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 

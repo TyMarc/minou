@@ -3,9 +3,11 @@ package com.lesgens.minou.listeners;
 import java.io.File;
 import java.io.IOException;
 
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.amazonaws.event.ProgressEvent;
+import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.utils.Utils;
 
@@ -23,7 +25,11 @@ public class MinouDownloadAvatarProgressListener extends MinouDownloadProgressLi
 		Log.i("MinouProgressListener", "progressChanged: eventCode=" + event.getEventCode() + " byteTransfered=" + event.getBytesTransferred());
 		if(event.getEventCode() == ProgressEvent.COMPLETED_EVENT_CODE){
 			try {
-				DatabaseHelper.getInstance().updateAvatar(userId, avatarUrl, Utils.read(fileDownload));
+				byte[] byteArray = Utils.read(fileDownload);
+				DatabaseHelper.getInstance().updateAvatar(userId, avatarUrl, byteArray);
+				if(userId.equals(Controller.getInstance().getId())) {
+					Controller.getInstance().getMyself().setAvatar(BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length), byteArray, avatarUrl);
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

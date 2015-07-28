@@ -39,6 +39,8 @@ public class ChannelSettingsActivity extends MinouActivity implements OnClickLis
 		boolean isChecked = false;
 		if(isPrivate()){
 			isChecked = !PreferencesController.isPrivateNotificationsDisabled(this, namespace);
+			findViewById(R.id.setting_fetch_all_messages_sep).setVisibility(View.GONE);
+			findViewById(R.id.setting_fetch_all_messages).setVisibility(View.GONE);
 		} else{
 			isChecked = PreferencesController.isPublicNotificationsEnabled(this, namespace);
 		}
@@ -48,6 +50,10 @@ public class ChannelSettingsActivity extends MinouActivity implements OnClickLis
 		isChecked = !PreferencesController.isMentionNotificationsDisabled(this, namespace);
 		((CheckBox) findViewById(R.id.setting_notifications_mention)).setChecked(isChecked);
 		findViewById(R.id.setting_notifications_mention).setOnClickListener(this);
+		
+		isChecked = PreferencesController.isTopicFetchAllMessagesEnabled(this, namespace);
+		((CheckBox) findViewById(R.id.setting_fetch_all_messages)).setChecked(isChecked);
+		findViewById(R.id.setting_fetch_all_messages).setOnClickListener(this);
 	}
 
 	private boolean isPrivate(){
@@ -79,6 +85,14 @@ public class ChannelSettingsActivity extends MinouActivity implements OnClickLis
 				PreferencesController.removeMentionNotificationDisabled(this, namespace);
 			} else{
 				PreferencesController.addMentionNotificationDisabled(this, namespace);
+
+			}
+		} else if(v.getId() == R.id.setting_fetch_all_messages){
+			final boolean isChecked = ((CheckBox) findViewById(R.id.setting_fetch_all_messages)).isChecked();
+			if(isChecked){
+				PreferencesController.addTopicFetchAllMessages(this, namespace);
+			} else{
+				PreferencesController.removeTopicFetchAllMessages(this, namespace);
 
 			}
 		}

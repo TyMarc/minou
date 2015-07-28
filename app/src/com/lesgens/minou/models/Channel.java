@@ -43,7 +43,6 @@ public class Channel {
 		ArrayList<Topic> topics = new ArrayList<Topic>();
 
 		for(Channel c : channels) {
-			Log.i("Channel", "c.getNamespace=" + c.getNamespace() + " isTopic=" + (c instanceof Topic));
 			if(c instanceof Topic) {
 				topics.add((Topic) c);
 			}
@@ -58,7 +57,6 @@ public class Channel {
 		ArrayList<Topic> topics = new ArrayList<Topic>();
 
 		for(Channel c : channels) {
-			Log.i("Channel", "c.getNamespace=" + c.getNamespace() + " isTopic=" + (c instanceof Topic));
 			if(c instanceof Topic && c.getNamespace().contains(search)) {
 				topics.add((Topic) c);
 			}

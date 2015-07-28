@@ -13,12 +13,14 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.lesgens.minou.adapters.ChannelsTrendingAdapter;
 import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.listeners.TrendingChannelsListener;
 import com.lesgens.minou.models.Channel;
@@ -80,6 +82,9 @@ public class AddTopicActivity extends MinouActivity implements OnClickListener, 
 				final String channelName = Utils.getNormalizedString(currentCity.getNamespace() + "." + text);
 				if(!Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
 					DatabaseHelper.getInstance().addPublicChannel(channelName);
+					if(((CheckBox) findViewById(R.id.setting_fetch_all_messages)).isChecked()) {
+						PreferencesController.addTopicFetchAllMessages(this, channelName);
+					}
 					Server.subscribeToTopic(this, channelName);
 					finish();
 				}

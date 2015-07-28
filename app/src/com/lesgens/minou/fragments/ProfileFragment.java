@@ -49,7 +49,6 @@ public class ProfileFragment extends MinouFragment implements OnClickListener, A
 		((TextView) v.findViewById(R.id.username)).setText(Controller.getInstance().getMyself().getUsername());
 
 		avatar = ((ImageView) v.findViewById(R.id.avatar));
-		avatar.setImageBitmap(Utils.cropToCircle(Controller.getInstance().getMyself().getAvatar()));
 
 		v.findViewById(R.id.change_picture).setOnClickListener(this);
 		v.findViewById(R.id.change_username).setOnClickListener(this);
@@ -77,7 +76,7 @@ public class ProfileFragment extends MinouFragment implements OnClickListener, A
 	@Override
 	public void onResume(){
 		super.onResume();
-
+		avatar.setImageBitmap(Utils.cropToCircle(Controller.getInstance().getMyself().getAvatar()));
 	}
 
 	@Override
@@ -213,6 +212,7 @@ public class ProfileFragment extends MinouFragment implements OnClickListener, A
 				getView().findViewById(R.id.progress_upload_picture).setVisibility(View.GONE);
 				Bitmap bitmap = BitmapFactory.decodeByteArray(bytesAvatar, 0, bytesAvatar.length);
 				Controller.getInstance().getMyself().setAvatar(bitmap, bytesAvatar, avatarUrl);
+				DatabaseHelper.getInstance().updateAvatar(Controller.getInstance().getId(), avatarUrl, bytesAvatar);
 				((ImageView) getView().findViewById(R.id.avatar)).setImageBitmap(Utils.cropToCircle(Controller.getInstance().getMyself().getAvatar()));
 			}});
 
