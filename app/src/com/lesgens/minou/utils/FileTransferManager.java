@@ -55,7 +55,7 @@ public class FileTransferManager {
 	public static Message sendPicture(final Context context, byte[] byteArray, final String channelNamespace){
 		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
 
-		Uri filenameSaved = ImageUtility.savePicture(context, BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length));
+		Uri filenameSaved = ImageUtility.savePicture(context, BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length), false);
 		Message message = new Message(Controller.getInstance().getMyself(), filename, filenameSaved.getPath(), false, SendingStatus.PENDING, MessageType.IMAGE);
 
 

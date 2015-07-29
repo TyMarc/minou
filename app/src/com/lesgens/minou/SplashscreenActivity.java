@@ -311,15 +311,17 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 					Controller.getInstance().setCity(new Geolocation(city, state, country));
 					geolocated = true;
 					if(authenticated){
-						Server.connectToCrossbar(MinouApplication.getCurrentActivity());
+						Server.connectToCrossbar(MinouApplication.getInstance());
 					}
 				} else{
-					new AlertDialog.Builder(MinouApplication.getCurrentActivity()).setPositiveButton(R.string.retry, new OnClickListener(){
+					new AlertDialog.Builder(MinouApplication.getInstance()).setPositiveButton(R.string.retry, new OnClickListener(){
 
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							SplashscreenActivity.show(MinouApplication.getCurrentActivity());
-							MinouApplication.getCurrentActivity().finish();
+							SplashscreenActivity.show(MinouApplication.getInstance());
+							if(MinouApplication.getCurrentActivity() != null) {
+								MinouApplication.getCurrentActivity().finish();
+							}
 						}})
 						.setNegativeButton(R.string.no, null)
 						.setTitle(R.string.location)

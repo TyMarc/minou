@@ -57,8 +57,12 @@ public class ImageUtility {
 
         return bitmap;
     }
-
+    
     public static Uri savePicture(Context context, Bitmap bitmap) {
+    	return savePicture(context, bitmap, true);
+    }
+
+    public static Uri savePicture(Context context, Bitmap bitmap, boolean crop) {
         int cropHeight;
         if (bitmap.getHeight() > bitmap.getWidth()) cropHeight = bitmap.getWidth();
         else                                        cropHeight = bitmap.getHeight();

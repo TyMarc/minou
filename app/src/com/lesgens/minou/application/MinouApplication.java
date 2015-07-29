@@ -7,10 +7,12 @@ import android.util.Log;
 public class MinouApplication extends Application {
 	private static final String TAG = "Minou_Application";
 	private static Activity currentActivity = null;
+	private static MinouApplication instance;
 
 	@Override
 	public void onCreate(){
 		super.onCreate();
+		instance = this;
 	}
 
 	public static boolean isActivityVisible() {
@@ -35,5 +37,9 @@ public class MinouApplication extends Application {
 	
 	public static Activity getCurrentActivity() {
 		return currentActivity;
+	}
+	
+	public static MinouApplication getInstance() {
+		return instance;
 	}
 }

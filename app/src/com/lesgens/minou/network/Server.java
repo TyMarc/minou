@@ -622,7 +622,7 @@ public class Server {
 	private static void getLastMessages(final Topic topic){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		an.add(TextNode.valueOf(topic.getNamespace()));
-		if(PreferencesController.isTopicFetchAllMessagesEnabled(MinouApplication.getCurrentActivity(), topic.getNamespace())) {
+		if(PreferencesController.isTopicFetchAllMessagesEnabled(MinouApplication.getInstance(), topic.getNamespace())) {
 			long lastMessages = DatabaseHelper.getInstance().getLastMessageFetched(topic.getNamespace());
 			Log.i(TAG, "Receiving all messages for " + topic.getNamespace() + " since " + lastMessages);
 			an.add(lastMessages);
