@@ -13,6 +13,9 @@ public class ExpandCollapseAnimation extends Animation {
     private View mAnimatedView;
     private int mEndHeight;
     private int mType;
+    
+    public static final int EXPAND = 0;
+    public static final int COLLAPSE = 1;
 
     /**
      * Initializes expand collapse animation, has two types, collapse (1) and expand (0).

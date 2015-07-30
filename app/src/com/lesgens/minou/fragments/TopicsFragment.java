@@ -8,10 +8,8 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentTransaction;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -21,8 +19,6 @@ import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
-import android.widget.AbsListView;
-import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
@@ -30,23 +26,20 @@ import android.widget.EditText;
 import android.widget.GridView;
 
 import com.lesgens.minou.AddTopicActivity;
+import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.TopicsAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.Topic;
 
-public class TopicsFragment extends MinouFragment implements OnClickListener, OnItemClickListener, OnItemLongClickListener, TextWatcher, OnScrollListener {
+public class TopicsFragment extends MinouFragment implements OnClickListener, OnItemClickListener, OnItemLongClickListener, TextWatcher {
 	private GridView gridView;
 	private TopicsAdapter adapter;
-	private TopicDetailsFragment topicDetailsFragment;
 	private EditText editText;
 	private boolean firstLaunch;
 	private Handler handler;
 	private RefreshListRunnable refreshListRunnable;
-	private boolean isSmoothScroll;
-	private Topic topicSelected;
-	private View selectedView;
 
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
@@ -58,10 +51,6 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 			} else if(getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
 				gridView.setNumColumns(2);
 			}
-		}
-
-		if(topicDetailsFragment != null && topicDetailsFragment.isVisible()) {
-			topicDetailsFragment.slideOut();
 		}
 	}
 
@@ -75,7 +64,6 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 		getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
 		firstLaunch = true;
-		isSmoothScroll = false;
 
 		handler = new Handler(getActivity().getMainLooper());
 		refreshListRunnable = new RefreshListRunnable();
@@ -86,7 +74,6 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 		gridView = (GridView) v.findViewById(R.id.grid_view);
 		gridView.setOnItemLongClickListener(this);
 		gridView.setOnItemClickListener(this);
-		gridView.setOnScrollListener(this);
 
 		if(getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
 			gridView.setNumColumns(3);
@@ -201,28 +188,11 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 		}
 	}
 
-	public boolean isDetailsOpen(){
-		return (topicDetailsFragment != null && topicDetailsFragment.isVisible());
-	}
-
-	public void closeDetails(){
-		if(topicDetailsFragment != null && topicDetailsFragment.isVisible()){
-			topicDetailsFragment.slideOut();
-		}
-	}
-
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		topicSelected = adapter.getItem(position);
-		selectedView = view;
-
-		
-		if(view.getTop() < 0 || view.getBottom() > gridView.getBottom()){
-			isSmoothScroll = true;
-			gridView.smoothScrollToPosition(position);
-		} else{
-			showDetailsFragment();
-		}
+		final Topic topic = adapter.getItem(position);
+		ChatActivity.show(getActivity(), topic.getNamespace());
+		getActivity().finish();
 	}
 
 
@@ -257,34 +227,5 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 			}
 		}
 	}
-
-	@Override
-	public void onScrollStateChanged(AbsListView view, int scrollState) {
-		Log.i("TopicsFragment", "scrollState=" + scrollState + " isSmoothScroll=" + isSmoothScroll);
-		if(isSmoothScroll && scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
-			isSmoothScroll = false;
-			showDetailsFragment();
-		}
-	}
-	
-	private void showDetailsFragment(){
-		int[] locationSelected = new int[2];
-		selectedView.getLocationOnScreen(locationSelected);
-		topicDetailsFragment = TopicDetailsFragment.newInstance(selectedView.getWidth(), locationSelected[0], locationSelected[1], topicSelected.getNamespace());
-		FragmentTransaction ft = getActivity().getSupportFragmentManager().beginTransaction();
-		ft.add(android.R.id.content, topicDetailsFragment).commit();
-		selectedView = null;
-		topicSelected = null;
-	}
-
-
-
-	@Override
-	public void onScroll(AbsListView view, int firstVisibleItem,
-			int visibleItemCount, int totalItemCount) {
-		
-	}
-
-
 
 }

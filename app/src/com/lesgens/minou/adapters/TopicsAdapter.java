@@ -31,9 +31,7 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 	
 	static class ViewHolder {
 	    public TextView name;
-	    public TextView desc;
 	    public TextView usersConnected;
-	    public TextView cityName;
 	    public TextView unreadCounter;
 	    public ImageView image;
 	  }
@@ -57,8 +55,6 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 			ViewHolder holder = new ViewHolder();
 			holder.name = (TextView) rowView.findViewById(R.id.name);
 			holder.usersConnected = (TextView) rowView.findViewById(R.id.users_connected);
-			holder.cityName = (TextView) rowView.findViewById(R.id.city);
-			holder.desc = (TextView) rowView.findViewById(R.id.description);
 			holder.image = (ImageView) rowView.findViewById(R.id.image);
 			holder.unreadCounter = (TextView) rowView.findViewById(R.id.unread_count); 
 			rowView.setTag(holder);
@@ -83,6 +79,8 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 		}
 		holder.image.setImageBitmap(image);
 		holder.name.setText(channelName);
+		
+		holder.usersConnected.setText(topic.getCount() + "");
 
 		return rowView;
 	}

@@ -19,6 +19,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
@@ -39,10 +41,12 @@ import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
+import com.lesgens.minou.models.Topic;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.receivers.NetworkStateReceiver;
 import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverListener;
+import com.lesgens.minou.utils.ExpandCollapseAnimation;
 import com.lesgens.minou.utils.FileTransferManager;
 import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
@@ -102,8 +106,44 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		listMessages.setOnScrollListener(this);
 
 		networkStateReceiver = new NetworkStateReceiver(this);
+		
+		if(isTopic()) {
+			((TextView) findViewById(R.id.name)).setText(Utils.capitalizeFirstLetters(((Topic) channel).getDescription()));
+			((TextView) findViewById(R.id.users_connected)).setText(((Topic) channel).getCount() + "");
+			//animateSlideInDetails(0);
+		}
 
 		refreshChannel();
+	}
+	
+	private void animateSlideOutDetails(final int delay){
+		ExpandCollapseAnimation anim = new ExpandCollapseAnimation(findViewById(R.id.topic_details), 500, ExpandCollapseAnimation.COLLAPSE);
+		anim.setStartOffset(delay);
+		findViewById(R.id.topic_details).startAnimation(anim);
+	}
+	
+	private void animateSlideInDetails(final int delay){
+		ExpandCollapseAnimation anim = new ExpandCollapseAnimation(findViewById(R.id.topic_details), 500, ExpandCollapseAnimation.EXPAND);
+		anim.setStartOffset(delay);
+		anim.setAnimationListener(new AnimationListener(){
+
+			@Override
+			public void onAnimationEnd(Animation animation) {
+				animateSlideOutDetails(2000);
+			}
+
+			@Override
+			public void onAnimationRepeat(Animation animation) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void onAnimationStart(Animation animation) {
+				// TODO Auto-generated method stub
+				
+			}});
+		findViewById(R.id.topic_details).startAnimation(anim);
 	}
 
 	public void refreshChannel(){
@@ -290,6 +330,10 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 	private boolean isPrivate(){
 		return channel instanceof User;
+	}
+	
+	private boolean isTopic(){
+		return channel instanceof Topic;
 	}
 
 	@Override
