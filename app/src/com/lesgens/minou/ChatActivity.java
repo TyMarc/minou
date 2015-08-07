@@ -31,6 +31,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.lesgens.minou.adapters.ChatAdapter;
 import com.lesgens.minou.controllers.Controller;
@@ -69,7 +70,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	private Channel channel;
 	private ProgressBar audioRecordingProgress;
 	private String mFilename;
-    private MediaRecorder mRecorder = null;
+	private MediaRecorder mRecorder = null;
 	private ImageView audioBtn;
 
 	public static void show(final Context context, final String namespace){
@@ -90,15 +91,15 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 		channelNamespace = getIntent().getStringExtra("namespace");
 		channel = Controller.getInstance().getChannelsContainer().getChannelByName(channelNamespace);
-		
+
 		tvConnectionProblem = (TextView) findViewById(R.id.connection_problem);
 
 		editText = (EditText) findViewById(R.id.editText);
 		editText.clearFocus();
-		
+
 		audioRecordingProgress = (ProgressBar) findViewById(R.id.audio_turn);
 		audioRecordingProgress.getIndeterminateDrawable().setColorFilter(Color.RED,
-                android.graphics.PorterDuff.Mode.SRC_IN);
+				android.graphics.PorterDuff.Mode.SRC_IN);
 		audioBtn = (ImageView) findViewById(R.id.audio_btn);
 		audioBtn.setOnClickListener(this);
 
@@ -120,7 +121,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		listMessages.setOnScrollListener(this);
 
 		networkStateReceiver = new NetworkStateReceiver(this);
-		
+
 		if(isTopic()) {
 			((TextView) findViewById(R.id.name)).setText(Utils.capitalizeFirstLetters(((Topic) channel).getDescription()));
 			((TextView) findViewById(R.id.users_connected)).setText(((Topic) channel).getCount() + "");
@@ -129,13 +130,13 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			findViewById(R.id.topic_details).setVisibility(View.GONE);
 		}
 	}
-	
+
 	private void animateSlideOutDetails(final int delay){
 		ExpandCollapseAnimation anim = new ExpandCollapseAnimation(findViewById(R.id.topic_details), 500, ExpandCollapseAnimation.COLLAPSE);
 		anim.setStartOffset(delay);
 		findViewById(R.id.topic_details).startAnimation(anim);
 	}
-	
+
 	private void animateSlideInDetails(final int delay){
 		ExpandCollapseAnimation anim = new ExpandCollapseAnimation(findViewById(R.id.topic_details), 500, ExpandCollapseAnimation.EXPAND);
 		anim.setStartOffset(delay);
@@ -149,13 +150,13 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			@Override
 			public void onAnimationRepeat(Animation animation) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void onAnimationStart(Animation animation) {
 				// TODO Auto-generated method stub
-				
+
 			}});
 		findViewById(R.id.topic_details).startAnimation(anim);
 	}
@@ -176,7 +177,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	@Override
 	public void onResume(){
 		super.onResume();
-		
+
 		refreshChannel();
 
 		Server.addEventsListener(this);
@@ -191,11 +192,11 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		if(future != null){
 			future.cancel(true);
 		}
-		
+
 		if (mRecorder != null) {
-            mRecorder.release();
-            mRecorder = null;
-        }
+			mRecorder.release();
+			mRecorder = null;
+		}
 
 		Server.removeEventsListener(this);
 		Server.removeCrossbarConnectionListener(this);
@@ -218,21 +219,29 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			ChannelSettingsActivity.show(this, channelNamespace);
 		} else if(v.getId() == R.id.audio_btn){
 			if(audioRecordingProgress.getVisibility() == View.GONE) {
-				audioRecordingProgress.setVisibility(View.VISIBLE);
-				onRecord(true);
+				try{
+					onRecord(true);
+					audioRecordingProgress.setVisibility(View.VISIBLE);
+				} catch(IllegalStateException ise) {
+					ise.printStackTrace();
+					Toast.makeText(this, R.string.audio_already_recording, Toast.LENGTH_SHORT).show();
+				}
 			} else{
 				audioRecordingProgress.setVisibility(View.GONE);
-				new Handler(getMainLooper()).postDelayed(new Runnable(){
+				if(mRecorder != null) {
+					new Handler(getMainLooper()).postDelayed(new Runnable(){
 
-					@Override
-					public void run() {
-						onRecord(false);
-						Message message = FileTransferDialogFragment.sendAudio(ChatActivity.this, mFilename, channelNamespace);
-						chatAdapter.addMessage(message);
-						chatAdapter.notifyDataSetChanged();
-						scrollMyListViewToBottom();
-					}}, 300);
-				
+						@Override
+						public void run() {
+							onRecord(false);
+							Message message = FileTransferDialogFragment.sendAudio(ChatActivity.this, mFilename, channelNamespace);
+							chatAdapter.addMessage(message);
+							chatAdapter.notifyDataSetChanged();
+							scrollMyListViewToBottom();
+						}}, 300);
+				} else {
+					Toast.makeText(this, R.string.audio_error_recording, Toast.LENGTH_SHORT).show();
+				}
 			}
 		}
 	}
@@ -296,7 +305,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	private boolean isPrivate(){
 		return channel instanceof User;
 	}
-	
+
 	private boolean isTopic(){
 		return channel instanceof Topic;
 	}
@@ -325,7 +334,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			final int arg2, final long arg3) {
 		final Message message = chatAdapter.getItem(arg2);
 		MessageDialogFragment.newInstance(this, message.getId().toString()).show(getSupportFragmentManager(), "message_dialog");
-		
+
 		return true;
 	}
 
@@ -416,37 +425,37 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		chatAdapter.notifyDataSetChanged();
 		scrollMyListViewToBottom();
 	}
-	    
 
-	    private void onRecord(boolean start) {
-	        if (start) {
-	            startRecording();
-	        } else {
-	            stopRecording();
-	        }
-	    }
 
-	    private void startRecording() {
-	        mRecorder = new MediaRecorder();
-	        mRecorder.reset();
-	        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-	        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-	        mFilename = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath() + "/" + Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".3gp";
-	        mRecorder.setOutputFile(mFilename);
-	        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+	private void onRecord(boolean start) throws IllegalStateException{
+		if (start) {
+			startRecording();
+		} else {
+			stopRecording();
+		}
+	}
 
-	        try {
-	            mRecorder.prepare();
-	        } catch (IOException e) {
-	            Log.e(TAG, "prepare() failed");
-	        }
+	private void startRecording() throws IllegalStateException {
+		mRecorder = new MediaRecorder();
+		mRecorder.reset();
+		mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+		mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+		mFilename = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath() + "/" + Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".3gp";
+		mRecorder.setOutputFile(mFilename);
+		mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
-	        mRecorder.start();
-	    }
+		try {
+			mRecorder.prepare();
+		} catch (IOException e) {
+			Log.e(TAG, "prepare() failed");
+		}
 
-	    private void stopRecording() {
-	        mRecorder.stop();
-	        mRecorder.release();
-	        mRecorder = null;
-	    }
+		mRecorder.start();
+	}
+
+	private void stopRecording() {
+		mRecorder.stop();
+		mRecorder.release();
+		mRecorder = null;
+	}
 }
