@@ -41,6 +41,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 	private boolean isPrivate;
 	private boolean isLoadImages;
 	private HashMap<String, Bitmap> thumbnailsCache;
+	private HashMap<String, Bitmap> avatarCache;
 
 	public ChatAdapter(Context context, ArrayList<Message> chatValue, boolean isPrivate) {  
 		super(context,-1, chatValue);
@@ -53,6 +54,7 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 		sameYear.set(Calendar.DAY_OF_YEAR, 0);
 		this.isPrivate = isPrivate;
 		thumbnailsCache = new HashMap<String, Bitmap>();
+		avatarCache = new HashMap<String, Bitmap>();
 		isLoadImages = true;
 	}
 
@@ -169,7 +171,14 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 
 		if(holder.avatar != null){
 			if(!isPrivate){
-				holder.avatar.setImageBitmap(Utils.cropToCircle(user.getAvatar()));
+				Bitmap bitmap = null;
+				if(avatarCache.containsKey(user.getId())){
+					bitmap = avatarCache.get(user.getId());
+				} else {
+					bitmap = Utils.cropToCircle(user.getAvatar());
+					avatarCache.put(user.getId(), bitmap);
+				}
+				holder.avatar.setImageBitmap(bitmap);
 			} else{
 				holder.avatar.setVisibility(View.GONE);
 			}

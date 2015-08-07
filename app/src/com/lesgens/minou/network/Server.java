@@ -25,6 +25,7 @@ import ws.wamp.jawampa.WampClientBuilder;
 import ws.wamp.jawampa.WampError;
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.util.JsonReader;
 import android.util.Log;
 
@@ -159,9 +160,14 @@ public class Server {
 							final User user = DatabaseHelper.getInstance().getUser(userId);
 							subscribeToConversation(context, user);
 						}
+						
+						new Handler(context.getMainLooper()).postDelayed(new Runnable(){
 
-						getTopicsCount();
-						getUsers(DatabaseHelper.getInstance().getUsersId());
+							@Override
+							public void run() {
+								getUsers(DatabaseHelper.getInstance().getUsersId());
+								getTopicsCount();
+							}}, 1000);
 
 						timer = new Timer();
 						timer.schedule(new PokeCrossbarServer(), 0, 35000);
@@ -297,8 +303,11 @@ public class Server {
 				Log.i(TAG, "Received new message=" + msg.keywordArguments());
 				String type = msg.keywordArguments().get("content_type").asText();
 				final String id = msg.keywordArguments().get("from").asText();
-				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
-
+				final String username = msg.keywordArguments().get("user_name").asText();
+				User user = DatabaseHelper.getInstance().getUser(id, username);
+				if(user == null) {
+					user = DatabaseHelper.getInstance().addUser(username, id);
+				}
 				String content = msg.keywordArguments().get("content").asText();
 
 				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getId());
@@ -348,7 +357,11 @@ public class Server {
 				Log.i(TAG, "Received new message " + msg.keywordArguments());
 				String type = msg.keywordArguments().get("content_type").asText();
 				final String id = msg.keywordArguments().get("from").asText();
-				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
+				final String username = msg.keywordArguments().get("user_name").asText();
+				User user = DatabaseHelper.getInstance().getUser(id, username);
+				if(user == null) {
+					user = DatabaseHelper.getInstance().addUser(username, id);
+				}
 				String content = msg.keywordArguments().get("content").asText();
 
 				Log.i(TAG, "From=" + id + " me=" + Controller.getInstance().getId());
@@ -396,8 +409,11 @@ public class Server {
 				Log.i(TAG, "Received new private message " + msg.keywordArguments());
 				String type = msg.keywordArguments().get("content_type").asText();
 				final String id = msg.keywordArguments().get("from").asText();
-				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
-				subscribeToConversation(context, user);
+				final String username = msg.keywordArguments().get("user_name").asText();
+				User user = DatabaseHelper.getInstance().getUser(id, username);
+				if(user == null) {
+					user = DatabaseHelper.getInstance().addUser(username, id);
+				}
 				String content = msg.keywordArguments().get("content").asText();
 
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
@@ -533,9 +549,11 @@ public class Server {
 				while(iterator.hasNext()){
 					msg = iterator.next();
 					Log.i(TAG, "Topic=" + msg);
-					final String namespace = msg.get("uri").asText();
-					final int count = msg.get("count").asInt();
-					Controller.getInstance().getChannelsContainer().getChannelByName(namespace).setCount(count);
+					if(msg != null && !msg.toString().equals("null")){
+						final String namespace = msg.get("uri").asText();
+						final int count = msg.get("count").asInt();
+						Controller.getInstance().getChannelsContainer().getChannelByName(namespace).setCount(count);
+					}
 				}
 
 			}}, new Action1<Throwable>(){
@@ -562,7 +580,7 @@ public class Server {
 				while(iterator.hasNext()){
 					msg = iterator.next();
 					Log.i(TAG, "User=" + msg);
-					if(msg != null) {
+					if(msg != null && !msg.toString().equals("null")) {
 						final String userId = msg.get("id").asText();
 						final String username = msg.get("user_name").asText();
 						final String avatarUrl = msg.get("avatar").asText();
@@ -600,10 +618,12 @@ public class Server {
 				while(iterator.hasNext()){
 					msg = iterator.next();
 					Log.i(TAG, "Topic=" + msg);
-					final String namespace = msg.get("uri").asText();
-					final int count = msg.get("count").asInt();
-					ChannelTrending channel = new ChannelTrending(namespace, count);
-					trendings.add(channel);
+					if(msg != null && !msg.toString().equals("null")) {
+						final String namespace = msg.get("uri").asText();
+						final int count = msg.get("count").asInt();
+						ChannelTrending channel = new ChannelTrending(namespace, count);
+						trendings.add(channel);
+					}
 				}
 
 				if(listener != null){
@@ -640,7 +660,10 @@ public class Server {
 					Log.i(TAG, "Message=" + msg);
 					final String type = msg.get("content_type").asText();
 					final String id = msg.get("user").asText();
-					final User user = DatabaseHelper.getInstance().getUser(id);
+					User user = DatabaseHelper.getInstance().getUser(id);
+					if(user == null) {
+						user = DatabaseHelper.getInstance().addUser(id, id);
+					}
 					final long sentAt = msg.get("sent_at").asLong() / 1000;
 					String content = msg.get("content").asText();
 
@@ -687,7 +710,10 @@ public class Server {
 					Log.i(TAG, "Message=" + msg);
 					final String type = msg.get("content_type").asText();
 					final String id = msg.get("user").asText();
-					final User user = DatabaseHelper.getInstance().getUser(id);
+					User user = DatabaseHelper.getInstance().getUser(id);
+					if(user == null) {
+						user = DatabaseHelper.getInstance().addUser(id, id);
+					}
 					final long sentAt = msg.get("sent_at").asLong() / 1000;
 					String content = msg.get("content").asText();
 
@@ -865,13 +891,11 @@ public class Server {
 		reader.close();
 		User user = DatabaseHelper.getInstance().getUser(Controller.getInstance().getId());
 
-		if(!user.getUsername().equals(Controller.getInstance().getId())){
-			Log.i(TAG, "Setting user from cache");
-			Controller.getInstance().setMyOwnUser(user);
-		} else{
-			user = new User(userName, Channel.BASE_CHANNEL + Controller.getInstance().getId(), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), Controller.getInstance().getId(), false);
-			Controller.getInstance().setMyOwnUser(user);
-			DatabaseHelper.getInstance().addUser(user);
+		if(user == null){
+			Log.i(TAG, "Creating my own user");
+			user = DatabaseHelper.getInstance().addUser(userName, Controller.getInstance().getId());
 		}
+		
+		Controller.getInstance().setMyOwnUser(user);
 	}
 }

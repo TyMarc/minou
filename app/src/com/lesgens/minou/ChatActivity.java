@@ -111,6 +111,8 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			((TextView) findViewById(R.id.name)).setText(Utils.capitalizeFirstLetters(((Topic) channel).getDescription()));
 			((TextView) findViewById(R.id.users_connected)).setText(((Topic) channel).getCount() + "");
 			//animateSlideInDetails(0);
+		} else {
+			findViewById(R.id.topic_details).setVisibility(View.GONE);
 		}
 	}
 	

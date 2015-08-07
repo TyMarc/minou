@@ -34,7 +34,7 @@ public class ConversationsAdapter extends ArrayAdapter<String>{
 	private ArrayList<String> usersId;
 
 	public ConversationsAdapter(Context context, ArrayList<String> usersId) {  
-		super(context,R.layout.conversations_item, usersId);
+		super(context, R.layout.conversations_item, usersId);
 		mContext = context;     
 		sameYear = Calendar.getInstance();
 		sameYear.add(Calendar.DAY_OF_MONTH, -7);

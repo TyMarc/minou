@@ -178,7 +178,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		}
 		SQLiteDatabase db = this.getReadableDatabase();
 		Log.i(TAG, "get user with userId=" + userId);
-		
+
 		Cursor c = db.rawQuery("SELECT username, avatar, isContact FROM minou_users WHERE userId = ?;", new String[]{userId} );
 		while(c.moveToNext()){
 			String username = c.getString(0);
@@ -189,12 +189,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			break;
 		}
 
-		if(user == null){
-			user = new User(userId, Utils.getFullPrivateChannel(userId), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), userId, false);
-			addUser(user);
+		if(user != null){
+			userCache.put(userId, user);
 		}
-
-		userCache.put(userId, user);
 
 		return user;
 	}
@@ -228,17 +225,19 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			break;
 		}
 
-		if(user == null){
-			user = new User(username, Utils.getFullPrivateChannel(userId), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), userId, false);
-			addUser(user);
+		if(user != null){
+//			user = new User(username, Utils.getFullPrivateChannel(userId), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), userId, false);
+//			addUser(user);
+			userCache.put(userId, user);
 		}
 
-		userCache.put(userId, user);
+		
 
 		return user;
 	}
 
-	public void addUser(User user){
+	public User addUser(String username, String id){
+		User user = new User(username, Utils.getFullPrivateChannel(id), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), id, false);
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		Log.i(TAG, "adding user to database with userId=" + user.getId() + " and username=" + user.getUsername());
@@ -254,6 +253,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		newBitmap.compress(CompressFormat.JPEG, 70, bos);
 		cv.put("avatar", bos.toByteArray());
 		db.insert("minou_users", null, cv);
+		
+		return user;
 	}
 
 	public void updateUsername(String userId, String username){
@@ -474,7 +475,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		cv.put("avatarURL", avatarUrl);
 		cv.put("avatar", avatar);
 		db.update("minou_users", cv, "userId = ?", new String[]{userId});
-		
+
 		if(userCache.get(userId) != null){
 			userCache.get(userId).setAvatar(BitmapFactory.decodeByteArray(avatar, 0, avatar.length), avatar, avatarUrl);
 		}
@@ -538,7 +539,18 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	}
 
 	public ArrayList<String> getUsersId() {
-		return new ArrayList<String>(userCache.keySet());
+		ArrayList<String> usersId = new ArrayList<String>();
+		SQLiteDatabase db = this.getReadableDatabase();
+		Log.i(TAG, "get usersId");
+
+		Cursor c = db.rawQuery("SELECT userId FROM minou_users WHERE userId != ?;", new String[]{Controller.getInstance().getId()} );
+		while(c.moveToNext()){
+			String userId = c.getString(0);
+			Log.i(TAG, "userId=" + userId);
+			usersId.add(userId);
+		}
+
+		return usersId;
 	}
 
 

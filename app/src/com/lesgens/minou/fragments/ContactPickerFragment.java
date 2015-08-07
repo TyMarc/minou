@@ -24,6 +24,7 @@ import com.lesgens.minou.adapters.ContactPickerAdapter;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.ContactPicker;
 import com.lesgens.minou.models.User;
+import com.lesgens.minou.network.Server;
 
 
 public class ContactPickerFragment extends MinouFragment implements OnItemClickListener, OnClickListener {
@@ -126,7 +127,7 @@ public class ContactPickerFragment extends MinouFragment implements OnItemClickL
 	public void onItemClick(AdapterView<?> arg0, View v, int position, long arg3) {
 		Log.i("ContactPickerFragment", "itemClicked");
 		checkedUsers = listView.getCheckedItemPositions();
-		if(mode == MODE_SINGLE){
+		if(mode != MODE_GROUP){
 			adapter.unCheckAll();
 		}
 		adapter.checkContact(position);
@@ -141,6 +142,12 @@ public class ContactPickerFragment extends MinouFragment implements OnItemClickL
 				ChatActivity.show(getActivity(), user.getNamespace());
 				getActivity().finish();
 			} else if(mode == MODE_GROUP && checkedUsers.size() >= 2) {
+			} else if(mode == MODE_SEEN && checkedUsers.size() > 0){
+				final String userId = adapter.getItem(checkedUsers.keyAt(0)).getUserId();
+				final User user = DatabaseHelper.getInstance().getUser(userId);
+				Server.subscribeToConversation(getActivity(), user);
+				DatabaseHelper.getInstance().setUserAsContact(user);
+				slideOut();
 			} else{
 				slideOut();
 			}
