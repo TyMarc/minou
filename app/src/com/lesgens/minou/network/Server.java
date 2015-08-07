@@ -25,7 +25,6 @@ import ws.wamp.jawampa.WampClientBuilder;
 import ws.wamp.jawampa.WampError;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.util.JsonReader;
 import android.util.Log;
 
@@ -48,8 +47,10 @@ import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.listeners.MinouDownloadAvatarProgressListener;
 import com.lesgens.minou.listeners.MinouUploadFileProgressListener;
+import com.lesgens.minou.listeners.TopicCountListener;
 import com.lesgens.minou.listeners.TrendingChannelsListener;
 import com.lesgens.minou.listeners.UserAuthenticatedListener;
+import com.lesgens.minou.listeners.UserInformationsListener;
 import com.lesgens.minou.listeners.UsernameListener;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.ChannelTrending;
@@ -58,7 +59,6 @@ import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.Topic;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.HTTPRequest.RequestType;
-import com.lesgens.minou.utils.AvatarGenerator;
 import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
 
@@ -160,14 +160,6 @@ public class Server {
 							final User user = DatabaseHelper.getInstance().getUser(userId);
 							subscribeToConversation(context, user);
 						}
-						
-						new Handler(context.getMainLooper()).postDelayed(new Runnable(){
-
-							@Override
-							public void run() {
-								getUsers(DatabaseHelper.getInstance().getUsersId());
-								getTopicsCount();
-							}}, 1000);
 
 						timer = new Timer();
 						timer.schedule(new PokeCrossbarServer(), 0, 35000);
@@ -532,7 +524,7 @@ public class Server {
 		client.publish("heartbeat", new ArrayNode(JsonNodeFactory.instance), getObjectNodeMessage("", MessageType.TEXT.toString()));
 	}
 
-	public static void getTopicsCount(){
+	public static void getTopicsCount(final TopicCountListener listener){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		for(String ns : Controller.getInstance().getChannelsContainer().getAllChannelsNamespace()){
 			an.add(TextNode.valueOf(ns));
@@ -555,7 +547,9 @@ public class Server {
 						Controller.getInstance().getChannelsContainer().getChannelByName(namespace).setCount(count);
 					}
 				}
-
+				if(listener != null) {
+					listener.onCountsReceived();
+				}
 			}}, new Action1<Throwable>(){
 
 				@Override
@@ -564,7 +558,7 @@ public class Server {
 				}});
 	}
 
-	public static void getUsers(final ArrayList<String> usersId){
+	public static void getUsers(final ArrayList<String> usersId, final UserInformationsListener listener){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		for(String userId : usersId){
 			an.add(TextNode.valueOf(userId));
@@ -592,7 +586,9 @@ public class Server {
 					}
 				}
 
-
+				if(listener != null) {
+					listener.onUserInformationsReceived();
+				}
 			}}, new Action1<Throwable>(){
 
 				@Override

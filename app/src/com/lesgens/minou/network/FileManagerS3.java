@@ -15,7 +15,6 @@ import com.amazonaws.mobileconnectors.s3.transfermanager.Upload;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.lesgens.minou.listeners.MinouDownloadAvatarProgressListener;
 import com.lesgens.minou.listeners.MinouDownloadProgressListener;
 
 public class FileManagerS3 {

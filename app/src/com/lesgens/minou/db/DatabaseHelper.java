@@ -319,6 +319,30 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 		return message;
 	}
+	
+	public Message getMessageById(String messageId) {
+		SQLiteDatabase db = this.getReadableDatabase();
+		Log.i(TAG, "get Message with id=" + messageId);
+
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, content, isIncoming, dataPath, userId, status, msgType, channel FROM minou_message WHERE message_id = ?;", new String[]{messageId} );
+		Message message = null;
+		if(c.moveToNext()){
+			UUID id = UUID.fromString(c.getString(0));
+			Timestamp timestamp = new Timestamp(c.getLong(1));
+			String text = c.getString(2);
+			boolean isIncoming = c.getInt(3) == 1;
+			String dataPath = c.getString(4);
+			String userId = c.getString(5);
+			User user = getUser(userId);
+			int status = c.getInt(6);
+			String msgType = c.getString(7);
+			String channelNamespace = c.getString(8);
+			message = new Message(id, timestamp, channelNamespace, 
+					user, text, isIncoming, dataPath, SendingStatus.fromInt(status), MessageType.fromString(msgType));
+		}
+
+		return message;
+	}
 
 	public String getPicturePathFromMessageId(String messageId) {
 		SQLiteDatabase db = this.getReadableDatabase();
@@ -552,9 +576,5 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 		return usersId;
 	}
-
-
-
-
 
 }

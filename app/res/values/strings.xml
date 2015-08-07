@@ -44,9 +44,9 @@
     <string name="delete">Delete</string>
     <string name="location">Location</string>
     <string name="network">Network</string>
-    <string name="take_picture">Take a picture</string>
+    <string name="take_picture">Capture picture</string>
     <string name="pick_picture">Picture from gallery</string>
-    <string name="take_video">Take a video</string>
+    <string name="take_video">Capture video</string>
     <string name="pick_video">Video from gallery</string>
     <string name="file_transfer">Share</string>
     <string name="change_avatar">Change Avatar</string>

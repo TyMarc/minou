@@ -1,9 +1,6 @@
 package com.lesgens.minou.fragments;
 
-import android.app.Activity;
 import android.app.Dialog;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -17,11 +14,13 @@ import android.widget.TextView;
 import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
-import com.lesgens.minou.utils.FileTransferManager;
+import com.lesgens.minou.utils.FileTransferDialogFragment;
+import com.lesgens.minou.utils.FileTransferDialogFragment.FileTransferListener;
 import com.lesgens.minou.utils.Utils;
 
-public class ContactDetailsFragment extends DialogFragment implements OnClickListener {
+public class ContactDetailsFragment extends DialogFragment implements OnClickListener, FileTransferListener {
 	private String userId;
 	private User user;
 	
@@ -56,22 +55,6 @@ public class ContactDetailsFragment extends DialogFragment implements OnClickLis
 		v.findViewById(R.id.share_btn).setOnClickListener(this);
 		return v;
 	}
-
-	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		if ((requestCode == FileTransferManager.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileTransferManager.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == Activity.RESULT_OK) {
-			Uri uri = data.getData();
-			FileTransferManager.prepareAndSendPicture(getActivity(), uri, user.getNamespace());
-			ChatActivity.show(getActivity(), user.getNamespace());
-			getActivity().finish();
-		} else if ((requestCode == FileTransferManager.PICK_VIDEO_ACTIVITY_REQUEST_CODE || requestCode == FileTransferManager.CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) && resultCode == Activity.RESULT_OK) {
-			Uri uri = data.getData();
-			FileTransferManager.prepareAndSendVideo(getActivity(), uri, user.getNamespace());
-			ChatActivity.show(getActivity(), user.getNamespace());
-			getActivity().finish();
-		}
-	}
 	
 	@Override
 	public void onClick(View v) {
@@ -79,7 +62,13 @@ public class ContactDetailsFragment extends DialogFragment implements OnClickLis
 			ChatActivity.show(getActivity(), user.getNamespace());
 			getActivity().finish();
 		} else if(v.getId() == R.id.share_btn) {
-			FileTransferManager.showMenuFT(this);
+			new FileTransferDialogFragment(this, user.getNamespace()).show(getFragmentManager(), "file_share_dialog");
 		}
+	}
+
+	@Override
+	public void onDialogClosed(final Message message) {
+		ChatActivity.show(getActivity(), user.getNamespace());
+		getActivity().finish();
 	}
 }

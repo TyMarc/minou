@@ -8,6 +8,8 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -31,15 +33,18 @@ import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.TopicsAdapter;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.listeners.TopicCountListener;
 import com.lesgens.minou.models.Topic;
+import com.lesgens.minou.network.Server;
 
-public class TopicsFragment extends MinouFragment implements OnClickListener, OnItemClickListener, OnItemLongClickListener, TextWatcher {
+public class TopicsFragment extends MinouFragment implements OnClickListener, OnItemClickListener, OnItemLongClickListener, TextWatcher, OnRefreshListener, TopicCountListener {
 	private GridView gridView;
 	private TopicsAdapter adapter;
 	private EditText editText;
 	private boolean firstLaunch;
 	private Handler handler;
 	private RefreshListRunnable refreshListRunnable;
+	private SwipeRefreshLayout swipeRefreshLayout;
 
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
@@ -62,7 +67,8 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 		View v = inflater.inflate(R.layout.topics, container, false);
 
 		getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-
+		
+		Server.getTopicsCount(this);
 		firstLaunch = true;
 
 		handler = new Handler(getActivity().getMainLooper());
@@ -88,6 +94,8 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 
 		v.findViewById(R.id.add_channel).setOnClickListener(this);
 		v.findViewById(R.id.add_location).setOnClickListener(this);
+		swipeRefreshLayout = ((SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh));
+		swipeRefreshLayout.setOnRefreshListener(this);
 
 		return v;
 	}
@@ -226,6 +234,24 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 				refreshList(Controller.getInstance().getChannelsContainer().getTopics());
 			}
 		}
+	}
+
+	@Override
+	public void onRefresh() {
+		Server.getTopicsCount(this);
+	}
+
+
+
+	@Override
+	public void onCountsReceived() {
+		getActivity().runOnUiThread(new Runnable(){
+
+			@Override
+			public void run() {
+				adapter.notifyDataSetChanged();
+				swipeRefreshLayout.setRefreshing(false);
+			}});
 	}
 
 }

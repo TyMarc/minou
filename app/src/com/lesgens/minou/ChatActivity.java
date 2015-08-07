@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.util.concurrent.Future;
 
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -36,6 +34,7 @@ import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
+import com.lesgens.minou.fragments.MessageDialogFragment;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
 import com.lesgens.minou.models.Channel;
@@ -47,11 +46,12 @@ import com.lesgens.minou.network.Server;
 import com.lesgens.minou.receivers.NetworkStateReceiver;
 import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverListener;
 import com.lesgens.minou.utils.ExpandCollapseAnimation;
-import com.lesgens.minou.utils.FileTransferManager;
+import com.lesgens.minou.utils.FileTransferDialogFragment;
+import com.lesgens.minou.utils.FileTransferDialogFragment.FileTransferListener;
 import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
 
-public class ChatActivity extends MinouFragmentActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener, CrossbarConnectionListener, OnItemClickListener, OnItemLongClickListener, OnScrollListener {
+public class ChatActivity extends MinouFragmentActivity implements OnClickListener, EventsListener, NetworkStateReceiverListener, CrossbarConnectionListener, OnItemClickListener, OnItemLongClickListener, OnScrollListener, FileTransferListener {
 	private static final String TAG = "ChannelChatActivity";
 	private ChatAdapter chatAdapter;
 	private StickyListHeadersListView listMessages;
@@ -60,7 +60,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	private TextView tvConnectionProblem;
 	private TextView channelTextView;
 	private NetworkStateReceiver networkStateReceiver;
-	private Uri imageUri;
 	private String channelNamespace;
 	private Channel channel;
 
@@ -194,7 +193,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		} else if(v.getId() == R.id.back_btn){
 			onBackPressed();
 		} else if(v.getId() == R.id.send_ft){
-			FileTransferManager.showMenuFT(this);
+			new FileTransferDialogFragment(this, channelNamespace).show(getSupportFragmentManager(), "file_share_dialog");
 		} else if(v.getId() == R.id.settings_btn){
 			ChannelSettingsActivity.show(this, channelNamespace);
 		}
@@ -210,86 +209,12 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		scrollMyListViewToBottom();
 	}
 
-	private void showLongClickBubble(final Message message){
-		CharSequence fts[];
-
-		final boolean isContact = DatabaseHelper.getInstance().isContact(message.getUser().getId());
-		if(!isContact){
-			fts = new CharSequence[] {getResources().getString(R.string.dialog_add_contact), 
-					getResources().getString(R.string.dialog_add_contact_pm), getResources().getString(R.string.dialog_delete_message)};
-		} else {
-			fts = new CharSequence[] {getResources().getString(R.string.dialog_pm)
-					, getResources().getString(R.string.dialog_delete_message)};
-		}
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(R.string.options);
-		builder.setItems(fts, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				if(!isContact){
-					switch(which){
-					case 0:
-						addContact(message.getUser());
-						break;
-					case 1:
-						addContact(message.getUser());
-						pmUser(message.getUser());
-						break;
-					case 2:
-						deleteMessage(message);
-						break;
-					}
-				} else{
-					switch(which){
-					case 0:
-						pmUser(message.getUser());
-						break;
-					case 1:
-						deleteMessage(message);
-						break;
-					}
-				}
-			}
-		});
-		builder.show();
-	}
-
-	private void showLongClickBubblePrivateOrOwn(final Message message){
-		CharSequence fts[] = null;
-		Log.i(TAG, "My status is=" + message.getStatus());
-
-		if(message.getStatus() != SendingStatus.FAILED){
-			fts = new CharSequence[] {getResources().getString(R.string.dialog_delete_message)};
-		} else {
-			fts = new CharSequence[] {getResources().getString(R.string.dialog_delete_message), getResources().getString(R.string.dialog_retry_message)};
-		}
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle(R.string.options);
-		builder.setItems(fts, new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-
-				switch(which){
-				case 0:
-					deleteMessage(message);
-					break;
-				case 1:
-					retryMessage(message);
-					break;
-				}
-			}
-		});
-		builder.show();
-	}
-
-	private void retryMessage(final Message message){
+	public void retryMessage(final Message message){
 		deleteMessage(message);
 
 		if(message.getMsgType() == MessageType.IMAGE){
 			try {
-				FileTransferManager.sendPicture(this, Utils.read(new File(message.getDataPath())), channelNamespace);
+				FileTransferDialogFragment.sendPicture(this, Utils.read(new File(message.getDataPath())), channelNamespace);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -298,18 +223,18 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		}
 	}
 
-	private void deleteMessage(final Message message){
+	public void deleteMessage(final Message message){
 		DatabaseHelper.getInstance().removeMessage(message);
 		chatAdapter.remove(message);
 		chatAdapter.notifyDataSetChanged();
 	}
 
-	private void addContact(final User user){
+	public void addContact(final User user){
 		Server.subscribeToConversation(this, user);
 		DatabaseHelper.getInstance().setUserAsContact(user);
 	}
 
-	private void pmUser(final User user){
+	public void pmUser(final User user){
 		ChatActivity.show(ChatActivity.this, user.getNamespace());
 		finish();
 	}
@@ -339,23 +264,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	}
 
 	@Override
-	public void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		if ((requestCode == FileTransferManager.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileTransferManager.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
-			imageUri = data.getData();
-			Message message = FileTransferManager.prepareAndSendPicture(this, imageUri, channelNamespace);
-			chatAdapter.addMessage(message);
-			chatAdapter.notifyDataSetChanged();
-		} else if ((requestCode == FileTransferManager.PICK_VIDEO_ACTIVITY_REQUEST_CODE || requestCode == FileTransferManager.CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) && resultCode == RESULT_OK) {
-			imageUri = data.getData();
-			Message message = FileTransferManager.prepareAndSendVideo(this, imageUri, channelNamespace);
-			chatAdapter.addMessage(message);
-			chatAdapter.notifyDataSetChanged();
-			scrollMyListViewToBottom();
-		}
-	}
-
-	@Override
 	public void onNewEvent(final Event event) {
 		Log.i(TAG, "channel received=" + event.getChannelNamespace()+ " this channel=" + channelNamespace);
 		if(!event.getChannelNamespace().equals(channelNamespace)){
@@ -378,12 +286,8 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	public boolean onItemLongClick(final AdapterView<?> arg0, final View arg1,
 			final int arg2, final long arg3) {
 		final Message message = chatAdapter.getItem(arg2);
-		if(message.getUser().getId().equals(Controller.getInstance().getId()) || isPrivate()){
-			showLongClickBubblePrivateOrOwn(message);
-		} else{
-			showLongClickBubble(message);
-		}
-
+		MessageDialogFragment.newInstance(this, message.getId().toString()).show(getSupportFragmentManager(), "message_dialog");
+		
 		return true;
 	}
 
@@ -464,5 +368,12 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 	public String getNamespace() {
 		return channelNamespace;
+	}
+
+	@Override
+	public void onDialogClosed(Message message) {
+		chatAdapter.addMessage(message);
+		chatAdapter.notifyDataSetChanged();
+		scrollMyListViewToBottom();
 	}
 }

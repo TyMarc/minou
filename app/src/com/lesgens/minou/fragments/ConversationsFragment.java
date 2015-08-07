@@ -6,6 +6,8 @@ import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,12 +20,15 @@ import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.ConversationsAdapter;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.listeners.UserInformationsListener;
 import com.lesgens.minou.models.User;
+import com.lesgens.minou.network.Server;
 
-public class ConversationsFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener, android.view.View.OnClickListener {
+public class ConversationsFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener, android.view.View.OnClickListener, OnRefreshListener, UserInformationsListener {
 	private ListView listView;
 	private ConversationsAdapter adapter;
 	private ContactPickerFragment contactPickerFragment;
+	private SwipeRefreshLayout swipeRefreshLayout;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater,
@@ -36,6 +41,9 @@ public class ConversationsFragment extends MinouFragment implements OnItemClickL
 
 		v.findViewById(R.id.create_single).setOnClickListener(this);
 		v.findViewById(R.id.create_group).setOnClickListener(this);
+		
+		swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh);
+		swipeRefreshLayout.setOnRefreshListener(this);
 
 		listView.setEmptyView(v.findViewById(android.R.id.empty));
 		return v;
@@ -113,6 +121,22 @@ public class ConversationsFragment extends MinouFragment implements OnItemClickL
 		if(contactPickerFragment != null && contactPickerFragment.isFragmentUIActive()){
 			contactPickerFragment.slideOut();
 		}
+	}
+
+	@Override
+	public void onRefresh() {
+		Server.getUsers(adapter.getItems(), this);
+	}
+
+	@Override
+	public void onUserInformationsReceived() {
+		getActivity().runOnUiThread(new Runnable(){
+
+			@Override
+			public void run() {
+				adapter.notifyDataSetChanged();
+				swipeRefreshLayout.setRefreshing(false);
+			}});
 	}
 
 }

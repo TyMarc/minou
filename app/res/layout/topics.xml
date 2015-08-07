@@ -1,88 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/swipe_refresh"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <LinearLayout
-        android:id="@+id/top_bar"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" >
+        android:layout_height="match_parent" >
 
         <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="40dp"
-            android:layout_margin="8dp"
-            android:background="@drawable/rounded_edittext"
-            android:orientation="horizontal" >
+            android:id="@+id/top_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
 
-            <EditText
-                android:id="@+id/editText"
+            <LinearLayout
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:layout_weight="1"
-                android:background="@null"
-                android:inputType="textCapSentences"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                android:windowSoftInputMode="stateHidden" />
+                android:layout_height="40dp"
+                android:layout_margin="8dp"
+                android:background="@drawable/rounded_edittext"
+                android:orientation="horizontal" >
+
+                <EditText
+                    android:id="@+id/editText"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:inputType="textCapSentences"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:windowSoftInputMode="stateHidden" />
+
+                <ImageView
+                    android:id="@+id/search_btn"
+                    android:layout_width="60dp"
+                    android:layout_height="fill_parent"
+                    android:layout_toRightOf="@id/editText"
+                    android:layout_weight="1"
+                    android:background="@drawable/gen_sel"
+                    android:src="@drawable/search" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <GridView
+            android:id="@+id/grid_view"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_above="@+id/bottom_bar"
+            android:layout_below="@id/top_bar"
+            android:numColumns="2" />
+
+        <RelativeLayout
+            android:id="@+id/bottom_bar"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_alignParentBottom="true"
+            android:background="@color/light_main_color" >
 
             <ImageView
-                android:id="@+id/search_btn"
-                android:layout_width="60dp"
-                android:layout_height="fill_parent"
-                android:layout_toRightOf="@id/editText"
-                android:layout_weight="1"
+                android:id="@+id/add_location"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
                 android:background="@drawable/gen_sel"
-                android:src="@drawable/search" />
-        </LinearLayout>
-    </LinearLayout>
+                android:gravity="center_vertical"
+                android:padding="8dp"
+                android:src="@drawable/add_location"
+                android:tint="@color/white"
+                android:visibility="gone" />
 
-    <GridView
-        android:id="@+id/grid_view"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_above="@+id/bottom_bar"
-        android:layout_below="@id/top_bar"
-        android:numColumns="2" />
+            <TextView
+                android:id="@+id/add_channel"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/gen_sel"
+                android:drawablePadding="5dp"
+                android:drawableRight="@drawable/add"
+                android:gravity="center_vertical"
+                android:padding="10dp"
+                android:text="@string/add_topic"
+                android:textColor="@color/white" />
+        </RelativeLayout>
 
-    <RelativeLayout
-        android:id="@+id/bottom_bar"
-        android:layout_width="match_parent"
-        android:layout_height="45dp"
-        android:layout_alignParentBottom="true"
-        android:background="@color/light_main_color" >
-
-        <ImageView
-            android:id="@+id/add_location"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:background="@drawable/gen_sel"
-            android:gravity="center_vertical"
-            android:padding="8dp"
-            android:src="@drawable/add_location"
-            android:tint="@color/white"
+        <ProgressBar
+            android:id="@+id/progress_search"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_centerInParent="true"
             android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/add_channel"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_alignParentRight="true"
-            android:background="@drawable/gen_sel"
-            android:drawablePadding="5dp"
-            android:drawableRight="@drawable/add"
-            android:gravity="center_vertical"
-            android:padding="10dp"
-            android:text="@string/add_topic"
-            android:textColor="@color/white" />
     </RelativeLayout>
 
-    <ProgressBar
-        android:id="@+id/progress_search"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_centerInParent="true"
-        android:visibility="gone" />
-
-</RelativeLayout>
+</android.support.v4.widget.SwipeRefreshLayout>

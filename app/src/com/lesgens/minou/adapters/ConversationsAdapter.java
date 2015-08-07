@@ -123,5 +123,9 @@ public class ConversationsAdapter extends ArrayAdapter<String>{
 			return sdfDayAnotherYear.format(time);
 		}
 	}
+
+	public ArrayList<String> getItems() {
+		return usersId;
+	}
 	
 }

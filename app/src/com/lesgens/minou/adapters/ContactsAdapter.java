@@ -67,5 +67,9 @@ public class ContactsAdapter extends ArrayAdapter<String>{
 
 		return rowView;
 	}
+
+	public ArrayList<String> getItems() {
+		return usersId;
+	}
 	
 }

@@ -307,7 +307,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 					final String city = address.getLocality();
 					final String country = address.getCountryName();
 					final String state = address.getAdminArea();
-					android.util.Log.i("Minou", "City name=" + city);
+					android.util.Log.i("Minou", "Fallback City name=" + city);
 					Controller.getInstance().setCity(new Geolocation(city, state, country));
 					geolocated = true;
 					if(authenticated){

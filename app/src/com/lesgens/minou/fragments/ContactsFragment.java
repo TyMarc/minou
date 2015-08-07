@@ -6,6 +6,8 @@ import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.widget.SwipeRefreshLayout.OnRefreshListener;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,23 +19,31 @@ import android.widget.ListView;
 import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.ContactsAdapter;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.listeners.UserInformationsListener;
 import com.lesgens.minou.models.User;
+import com.lesgens.minou.network.Server;
 
-public class ContactsFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener, android.view.View.OnClickListener {
+public class ContactsFragment extends MinouFragment implements OnItemClickListener, OnItemLongClickListener, android.view.View.OnClickListener, OnRefreshListener, UserInformationsListener {
 	private ListView listView;
 	private ContactsAdapter adapter;
 	private ContactPickerFragment contactPickerFragment;
+	private SwipeRefreshLayout swipeRefreshLayout;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater,
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.contacts, container, false);
+		
+		Server.getUsers(DatabaseHelper.getInstance().getUsersId(), this);
 
 		listView = (ListView) v.findViewById(R.id.list);
 		listView.setOnItemClickListener(this);
 		listView.setOnItemLongClickListener(this);
 		
 		listView.setEmptyView(v.findViewById(android.R.id.empty));
+		
+		swipeRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.swipe_refresh);
+		swipeRefreshLayout.setOnRefreshListener(this);
 		
 		v.findViewById(R.id.add_contact).setOnClickListener(this);
 		return v;
@@ -112,6 +122,22 @@ public class ContactsFragment extends MinouFragment implements OnItemClickListen
 		if(contactPickerFragment != null && contactPickerFragment.isFragmentUIActive()){
 			contactPickerFragment.slideOut();
 		}
+	}
+
+	@Override
+	public void onUserInformationsReceived() {
+		getActivity().runOnUiThread(new Runnable(){
+
+			@Override
+			public void run() {
+				adapter.notifyDataSetChanged();
+				swipeRefreshLayout.setRefreshing(false);
+			}});
+	}
+
+	@Override
+	public void onRefresh() {
+		Server.getUsers(adapter.getItems(), this);
 	}
 
 }

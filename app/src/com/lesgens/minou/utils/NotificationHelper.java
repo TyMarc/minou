@@ -23,10 +23,10 @@ public class NotificationHelper {
 		.setSmallIcon(R.drawable.mail)
 		.setContentTitle(user.getUsername())
 		.setContentText(content)
-		.setColor(Color.BLUE)
+		.setColor(Color.YELLOW)
 		.setVibrate(new long[] { 0, 500})
 		.setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
-		.setLights(Color.BLUE, 1000, 1000)
+		.setLights(context.getResources().getColor(R.color.main_color), 1000, 3000)
 		.setAutoCancel(true);
 		
 		if(channel != null){

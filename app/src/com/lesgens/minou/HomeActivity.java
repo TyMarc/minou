@@ -122,6 +122,10 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 		
 	}
 	
+	public ContactsFragment getContactsFragment(){
+		return contactsFragment;
+	}
+	
 	public void onResume(){
 		super.onResume();
 		Server.addEventsListener(this);
