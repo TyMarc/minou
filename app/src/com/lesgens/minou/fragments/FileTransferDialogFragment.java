@@ -40,6 +40,7 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 	public static final int PICK_VIDEO_ACTIVITY_REQUEST_CODE = 103;
 	private FileTransferListener listener;
 	private String channelNamespace;
+	private static String tempFilename = "file://" + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/tempImage.jpeg";
 	
 	public interface FileTransferListener{
 		public abstract void onDialogClosed(final Message message);
@@ -58,15 +59,18 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		if ((requestCode == FileTransferDialogFragment.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileTransferDialogFragment.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == Activity.RESULT_OK) {
-			Uri uri = data.getData();
-			Message message = FileTransferDialogFragment.prepareAndSendPicture(getActivity(), uri, channelNamespace);
+			Uri uri = data != null ? data.getData() : null;
+			if(uri == null) {
+				uri = Uri.parse(tempFilename);
+			}
+			Message message = prepareAndSendPicture(getActivity(), uri, channelNamespace);
 			if(listener != null) {
 				listener.onDialogClosed(message);
 			}
 			dismiss();
 		} else if ((requestCode == FileTransferDialogFragment.PICK_VIDEO_ACTIVITY_REQUEST_CODE || requestCode == FileTransferDialogFragment.CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) && resultCode == Activity.RESULT_OK) {
 			Uri uri = data.getData();
-			Message message = FileTransferDialogFragment.prepareAndSendVideo(getActivity(), uri, channelNamespace);
+			Message message = prepareAndSendVideo(getActivity(), uri, channelNamespace);
 			if(listener != null) {
 				listener.onDialogClosed(message);
 			}
@@ -105,6 +109,7 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 
 			final byte[] byteArray = Utils.prepareImageFT(context, bitmap, imageUri);
 
+			new File(imageUri.getPath()).delete();
 			return sendPicture(context, byteArray, channelNamespace);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -201,7 +206,8 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 	}
 
 	public void takePhoto() {
-		Intent i = new Intent(getActivity(), CameraActivity.class);
+		Intent i = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+		i.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, Uri.parse(tempFilename));
 		startActivityForResult(i, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
 	}
 

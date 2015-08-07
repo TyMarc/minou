@@ -173,7 +173,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		User user = userCache.get(userId);
 
 		if(user != null){
-			Log.i(TAG, "found userId=" + userId + " in cache");
 			return user;
 		}
 		SQLiteDatabase db = this.getReadableDatabase();
@@ -199,7 +198,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public User getUser(String userId, String username){
 		User user = userCache.get(userId);
 		if(user != null){
-			Log.i(TAG, "found user in cache");
 			if(!user.getUsername().equals(username)){
 				user.setUsername(username);
 				updateUsername(userId, username);
