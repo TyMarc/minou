@@ -112,8 +112,6 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			((TextView) findViewById(R.id.users_connected)).setText(((Topic) channel).getCount() + "");
 			//animateSlideInDetails(0);
 		}
-
-		refreshChannel();
 	}
 	
 	private void animateSlideOutDetails(final int delay){
@@ -162,6 +160,8 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	@Override
 	public void onResume(){
 		super.onResume();
+		
+		refreshChannel();
 
 		Server.addEventsListener(this);
 		Server.addCrossbarConnectionListener(this);
