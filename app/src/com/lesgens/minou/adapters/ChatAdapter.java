@@ -124,23 +124,29 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			holder.picture.setVisibility(View.VISIBLE);
 			Bitmap bitmap = null;
 			if(isLoadImages) {
-				if(thumbnailsCache.containsKey(message.getId().toString())){
-					bitmap = thumbnailsCache.get(message.getId().toString());
-				} else{
-					bitmap = BitmapFactory.decodeByteArray(message.getThumbnail(), 0, message.getThumbnail().length);
-					thumbnailsCache.put(message.getId().toString(), bitmap);
+				if(message.getMsgType() == MessageType.VIDEO || message.getMsgType() == MessageType.IMAGE) {
+					if(thumbnailsCache.containsKey(message.getId().toString())){
+						bitmap = thumbnailsCache.get(message.getId().toString());
+					} else{
+						bitmap = BitmapFactory.decodeByteArray(message.getThumbnail(), 0, message.getThumbnail().length);
+						thumbnailsCache.put(message.getId().toString(), bitmap);
+					}
+					holder.picture.setImageBitmap(bitmap);
+				} else if(message.getMsgType() == MessageType.AUDIO){
+					holder.picture.setImageDrawable(mContext.getResources().getDrawable(R.drawable.audio_thumb));
 				}
-				if(message.getMsgType() == MessageType.VIDEO) {
+				if(message.getMsgType() == MessageType.VIDEO || message.getMsgType() == MessageType.AUDIO) {
 					holder.videoPlay.setVisibility(View.VISIBLE);
 				} else{
 					holder.videoPlay.setVisibility(View.GONE);
 				}
-				holder.picture.setImageBitmap(bitmap);
 			} else{
 				if(message.getMsgType() == MessageType.IMAGE){
 					holder.picture.setImageDrawable(mContext.getResources().getDrawable(R.drawable.image_thumb));
 				} else if(message.getMsgType() == MessageType.VIDEO) {
 					holder.picture.setImageDrawable(mContext.getResources().getDrawable(R.drawable.video_thumb));
+				} else if(message.getMsgType() == MessageType.AUDIO) {
+					holder.picture.setImageDrawable(mContext.getResources().getDrawable(R.drawable.audio_thumb));
 				}
 				holder.videoPlay.setVisibility(View.GONE);
 			}

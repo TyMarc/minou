@@ -141,7 +141,7 @@
             android:layout_marginBottom="10dp"
             android:layout_marginLeft="10dp"
             android:layout_marginTop="10dp"
-            android:layout_toLeftOf="@+id/send"
+            android:layout_toLeftOf="@+id/audio_btn"
             android:layout_toRightOf="@+id/send_ft"
             android:background="@drawable/rounded_edittext"
             android:gravity="center_vertical"
@@ -154,6 +154,18 @@
             android:textSize="14sp" />
 
         <ImageView
+            android:id="@+id/audio_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignBottom="@id/send_ft"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:layout_toLeftOf="@+id/send"
+            android:background="@drawable/gen_black_sel"
+            android:padding="8dp"
+            android:src="@drawable/audio" />
+
+        <ImageView
             android:id="@+id/send"
             android:layout_width="40dp"
             android:layout_height="40dp"
@@ -163,8 +175,17 @@
             android:layout_marginRight="5dp"
             android:background="@drawable/gen_black_sel"
             android:padding="8dp"
-            android:src="@drawable/send" >
-        </ImageView>
+            android:src="@drawable/send" />
     </RelativeLayout>
+
+    <ProgressBar
+        android:id="@+id/audio_turn"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginRight="25dp"
+        android:layout_marginBottom="-20dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:visibility="gone" />
 
 </RelativeLayout>

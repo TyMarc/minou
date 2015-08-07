@@ -1,4 +1,4 @@
-package com.lesgens.minou.utils;
+package com.lesgens.minou.fragments;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -30,6 +31,7 @@ import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.network.Server;
+import com.lesgens.minou.utils.Utils;
 
 public class FileTransferDialogFragment extends DialogFragment implements OnClickListener{
 	public static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
@@ -111,6 +113,22 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 		}
 
 		return null;
+	}
+	
+	public static Message sendAudio(final Context context, final String filepath, final String channelNamespace){
+		String filename = filepath.substring(filepath.lastIndexOf("/") + 1);
+		Log.i("FileTransferDialogFragment", "filename=" + filename);
+
+		Message message = new Message(Controller.getInstance().getMyself(), filename, filepath, false, SendingStatus.PENDING, MessageType.AUDIO);
+
+		try {
+			Server.sendFile(message, channelNamespace);
+			DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace, true);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return message;
 	}
 
 	public static Message sendPicture(final Context context, byte[] byteArray, final String channelNamespace){

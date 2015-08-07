@@ -14,10 +14,9 @@ import android.widget.TextView;
 import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.fragments.FileTransferDialogFragment.FileTransferListener;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
-import com.lesgens.minou.utils.FileTransferDialogFragment;
-import com.lesgens.minou.utils.FileTransferDialogFragment.FileTransferListener;
 import com.lesgens.minou.utils.Utils;
 
 public class ContactDetailsFragment extends DialogFragment implements OnClickListener, FileTransferListener {

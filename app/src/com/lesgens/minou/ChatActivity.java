@@ -10,8 +10,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.net.Uri;
+import android.media.MediaRecorder;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,7 +27,9 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.lesgens.minou.adapters.ChatAdapter;
@@ -34,6 +38,9 @@ import com.lesgens.minou.controllers.PreferencesController;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
+import com.lesgens.minou.fragments.FileTransferDialogFragment;
+import com.lesgens.minou.fragments.FileTransferDialogFragment.FileTransferListener;
+import com.lesgens.minou.fragments.ListenAudioFragment;
 import com.lesgens.minou.fragments.MessageDialogFragment;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
@@ -46,8 +53,6 @@ import com.lesgens.minou.network.Server;
 import com.lesgens.minou.receivers.NetworkStateReceiver;
 import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverListener;
 import com.lesgens.minou.utils.ExpandCollapseAnimation;
-import com.lesgens.minou.utils.FileTransferDialogFragment;
-import com.lesgens.minou.utils.FileTransferDialogFragment.FileTransferListener;
 import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
 
@@ -62,6 +67,10 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	private NetworkStateReceiver networkStateReceiver;
 	private String channelNamespace;
 	private Channel channel;
+	private ProgressBar audioRecordingProgress;
+	private String mFilename;
+    private MediaRecorder mRecorder = null;
+	private ImageView audioBtn;
 
 	public static void show(final Context context, final String namespace){
 		Intent i = new Intent(context, ChatActivity.class);
@@ -86,6 +95,12 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 		editText = (EditText) findViewById(R.id.editText);
 		editText.clearFocus();
+		
+		audioRecordingProgress = (ProgressBar) findViewById(R.id.audio_turn);
+		audioRecordingProgress.getIndeterminateDrawable().setColorFilter(Color.RED,
+                android.graphics.PorterDuff.Mode.SRC_IN);
+		audioBtn = (ImageView) findViewById(R.id.audio_btn);
+		audioBtn.setOnClickListener(this);
 
 		findViewById(R.id.send).setOnClickListener(this);
 
@@ -176,6 +191,11 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		if(future != null){
 			future.cancel(true);
 		}
+		
+		if (mRecorder != null) {
+            mRecorder.release();
+            mRecorder = null;
+        }
 
 		Server.removeEventsListener(this);
 		Server.removeCrossbarConnectionListener(this);
@@ -196,6 +216,24 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			new FileTransferDialogFragment(this, channelNamespace).show(getSupportFragmentManager(), "file_share_dialog");
 		} else if(v.getId() == R.id.settings_btn){
 			ChannelSettingsActivity.show(this, channelNamespace);
+		} else if(v.getId() == R.id.audio_btn){
+			if(audioRecordingProgress.getVisibility() == View.GONE) {
+				audioRecordingProgress.setVisibility(View.VISIBLE);
+				onRecord(true);
+			} else{
+				audioRecordingProgress.setVisibility(View.GONE);
+				new Handler(getMainLooper()).postDelayed(new Runnable(){
+
+					@Override
+					public void run() {
+						onRecord(false);
+						Message message = FileTransferDialogFragment.sendAudio(ChatActivity.this, mFilename, channelNamespace);
+						chatAdapter.addMessage(message);
+						chatAdapter.notifyDataSetChanged();
+						scrollMyListViewToBottom();
+					}}, 300);
+				
+			}
 		}
 	}
 
@@ -338,6 +376,8 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 				ImageViewerActivity.show(this, message.getId().toString());
 			} else if(message.getMsgType() == MessageType.VIDEO) {
 				PlayVideoActivity.show(this, message.getDataPath());
+			} else if(message.getMsgType() == MessageType.AUDIO) {
+				new ListenAudioFragment(message.getDataPath()).show(getSupportFragmentManager(), ListenAudioFragment.class.getName());
 			}
 		}
 	}
@@ -376,4 +416,37 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		chatAdapter.notifyDataSetChanged();
 		scrollMyListViewToBottom();
 	}
+	    
+
+	    private void onRecord(boolean start) {
+	        if (start) {
+	            startRecording();
+	        } else {
+	            stopRecording();
+	        }
+	    }
+
+	    private void startRecording() {
+	        mRecorder = new MediaRecorder();
+	        mRecorder.reset();
+	        mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+	        mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+	        mFilename = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).getAbsolutePath() + "/" + Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".3gp";
+	        mRecorder.setOutputFile(mFilename);
+	        mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+
+	        try {
+	            mRecorder.prepare();
+	        } catch (IOException e) {
+	            Log.e(TAG, "prepare() failed");
+	        }
+
+	        mRecorder.start();
+	    }
+
+	    private void stopRecording() {
+	        mRecorder.stop();
+	        mRecorder.release();
+	        mRecorder = null;
+	    }
 }

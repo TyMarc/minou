@@ -3,7 +3,8 @@ package com.lesgens.minou.enums;
 public enum MessageType {
 	IMAGE("image/jpeg"),
     TEXT("text/plain"),
-    VIDEO("video/mp4");
+    VIDEO("video/mp4"),
+    AUDIO("audio/3gp");
     
     private final String stringValue;
     
@@ -21,6 +22,7 @@ public enum MessageType {
         else if (msgType.equals("image/jpeg")) return IMAGE;
         else if (msgType.equals("text/plain")) return TEXT;
         else if (msgType.equals("video/mp4")) return VIDEO;
+        else if (msgType.equals("audio/3gp")) return AUDIO;
         return TEXT;
     }
 

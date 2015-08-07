@@ -51,7 +51,7 @@ public class Message extends Event{
 		this.msgType = msgType;
 		this.dataPath = dataPath;
 		
-		if((msgType == MessageType.IMAGE || msgType == MessageType.VIDEO) && dataPath == null){
+		if((msgType == MessageType.IMAGE || msgType == MessageType.VIDEO || msgType == MessageType.AUDIO) && dataPath == null){
 			Log.i("Message", "downloading file");
 			status = SendingStatus.PENDING;
 			FileManagerS3.getInstance().downloadFile(content, new MinouDownloadFileProgressListener(this));
@@ -78,7 +78,7 @@ public class Message extends Event{
 		if(thumbnail == null) {
 			if(dataPath != null) {
 				try {
-					if(msgType == MessageType.IMAGE) {
+					if(msgType == MessageType.IMAGE || msgType == MessageType.AUDIO) {
 						byte[] data = Utils.read(new File(dataPath));
 						thumbnail = data;
 					} else if(msgType == MessageType.VIDEO) {
