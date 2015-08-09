@@ -45,6 +45,7 @@ import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.listeners.AvatarUploadListener;
 import com.lesgens.minou.listeners.CrossbarConnectionListener;
 import com.lesgens.minou.listeners.EventsListener;
+import com.lesgens.minou.listeners.FetchMoreMessagesListener;
 import com.lesgens.minou.listeners.MinouDownloadAvatarProgressListener;
 import com.lesgens.minou.listeners.MinouUploadFileProgressListener;
 import com.lesgens.minou.listeners.TopicCountListener;
@@ -55,6 +56,7 @@ import com.lesgens.minou.listeners.UsernameListener;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.ChannelTrending;
 import com.lesgens.minou.models.City;
+import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.Topic;
 import com.lesgens.minou.models.User;
@@ -277,7 +279,7 @@ public class Server {
 
 		Controller.getInstance().getChannelsContainer().addByForceSubscription(user);
 
-		getLastPrivateMessages(user);
+		getLastMessages(user);
 	}
 
 	private static Topic createChannelTopic(final Context context, final String channelName){
@@ -406,6 +408,7 @@ public class Server {
 				if(user == null) {
 					user = DatabaseHelper.getInstance().addUser(username, id);
 				}
+				subscribeToConversation(context, user);
 				String content = msg.keywordArguments().get("content").asText();
 
 				final boolean isIncoming = !id.equals(Controller.getInstance().getId());
@@ -448,7 +451,11 @@ public class Server {
 				Log.i(TAG, "Received new private message " + msg.keywordArguments());
 				String type = msg.keywordArguments().get("content_type").asText();
 				final String id = msg.keywordArguments().get("from").asText();
-				final User user = DatabaseHelper.getInstance().getUser(id, msg.keywordArguments().get("user_name").asText());
+				final String username = msg.keywordArguments().get("user_name").asText();
+				User user = DatabaseHelper.getInstance().getUser(id, username);
+				if(user == null) {
+					user = DatabaseHelper.getInstance().addUser(username, id);
+				}
 				subscribeToConversation(context, user);
 				String content = msg.keywordArguments().get("content").asText();
 
@@ -529,7 +536,7 @@ public class Server {
 		for(String ns : Controller.getInstance().getChannelsContainer().getAllChannelsNamespace()){
 			an.add(TextNode.valueOf(ns));
 		}
-		
+
 		client.call("plugin.population.topics_count", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 
@@ -635,7 +642,58 @@ public class Server {
 				}});
 	}
 
-	private static void getLastMessages(final Topic topic){
+	public static void getMoreMessages(final Channel channel, final FetchMoreMessagesListener listener){
+		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
+		an.add(TextNode.valueOf(channel.getNamespace()));
+		client.call("plugin.history.fetch", an, new ObjectNode(JsonNodeFactory.instance))
+		.forEach(new Action1<Reply>(){
+
+			@Override
+			public void call(Reply reply) {
+				Log.i(TAG, "Received missed messages for=" + channel.getNamespace() + " arguments=" + reply.arguments());
+				ArrayList<Message> messages = new ArrayList<Message>();
+				JsonNode msg = null;
+				Iterator<JsonNode> iterator = reply.arguments().get(0).elements();
+				while(iterator.hasNext()){
+					msg = iterator.next();
+					Log.i(TAG, "Message=" + msg);
+					final String type = msg.get("content_type").asText();
+					final String id = msg.get("user").asText();
+					User user = DatabaseHelper.getInstance().getUser(id);
+					if(user == null) {
+						user = DatabaseHelper.getInstance().addUser(id, id);
+					}
+					final long sentAt = msg.get("sent_at").asLong() / 1000;
+					String content = msg.get("content").asText();
+
+					if(!DatabaseHelper.getInstance().isContainMessage(id, content, type, channel.getNamespace())){
+						final boolean isIncoming = !id.equals(Controller.getInstance().getId());
+						Message m = new Message(user, content, user.getUsername(), channel.getNamespace(), isIncoming, null, isIncoming ? SendingStatus.RECEIVED : SendingStatus.SENT, MessageType.fromString(type));
+
+						messages.add(m);
+						
+						DatabaseHelper.getInstance().addMessage(m, user.getId(), channel.getNamespace(), sentAt, false);
+						if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
+							if(user.getNamespace().equals(((ChatActivity) MinouApplication.getCurrentActivity()).getNamespace())){
+								DatabaseHelper.getInstance().updateMessageAsRead(m.getId().toString());
+							}
+						}
+					}
+					
+				}
+				
+				if(listener != null) {
+					listener.onMessagesFetch(messages);
+				}
+			}}, new Action1<Throwable>() {
+
+				@Override
+				public void call(Throwable arg0) {
+					Log.i(TAG, "Error on last messages, error=" + arg0.getMessage());
+				}});
+	}
+
+	public static void getLastMessages(final Topic topic){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		an.add(TextNode.valueOf(topic.getNamespace()));
 		if(PreferencesController.isTopicFetchAllMessagesEnabled(MinouApplication.getInstance(), topic.getNamespace())) {
@@ -687,18 +745,18 @@ public class Server {
 				}});
 	}
 
-	private static void getLastPrivateMessages(final User userMessages){
+	private static void getLastMessages(final User userMessages){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		final String fullChannelName = Utils.getFullPrivateChannel(userMessages.getId());
 		an.add(fullChannelName);
-		final long lastMessage = DatabaseHelper.getInstance().getLastMessageFetched(fullChannelName);
-		an.add(lastMessage);
+		//		final long lastMessage = DatabaseHelper.getInstance().getLastMessageFetched(fullChannelName);
+		//		an.add(lastMessage);
 		client.call("plugin.history.fetch", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 
 			@Override
 			public void call(Reply reply) {
-				Log.i(TAG, "LastMessage=" + lastMessage + " Received missed messages for=" + fullChannelName + " arguments=" + reply.arguments());
+				//Log.i(TAG, "LastMessage=" + lastMessage + " Received missed messages for=" + fullChannelName + " arguments=" + reply.arguments());
 				JsonNode msg = null;
 				Iterator<JsonNode> iterator = reply.arguments().get(0).elements();
 				while(iterator.hasNext()){
@@ -891,7 +949,7 @@ public class Server {
 			Log.i(TAG, "Creating my own user");
 			user = DatabaseHelper.getInstance().addUser(userName, Controller.getInstance().getId());
 		}
-		
+
 		Controller.getInstance().setMyOwnUser(user);
 	}
 }

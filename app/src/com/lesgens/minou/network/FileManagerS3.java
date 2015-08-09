@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.InputStream;
 
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.util.Log;
 
 import com.amazonaws.event.ProgressListener;
@@ -15,6 +14,7 @@ import com.amazonaws.mobileconnectors.s3.transfermanager.Upload;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.lesgens.minou.application.MinouApplication;
 import com.lesgens.minou.listeners.MinouDownloadProgressListener;
 
 public class FileManagerS3 {
@@ -53,7 +53,8 @@ public class FileManagerS3 {
 			protected Integer doInBackground(Void... arg0) {
 				try{
 					GetObjectRequest gor = new GetObjectRequest(BUCKET_NAME, filename);
-					File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), filename);
+					MinouApplication.getInstance().getFilesDir().mkdirs();
+					File file = new File(MinouApplication.getInstance().getFilesDir(), "/" + filename);
 					listener.setFileDownload(file);
 					Download download = transferManager.download(gor, file);
 					download.addProgressListener(listener);

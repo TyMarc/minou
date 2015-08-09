@@ -3,8 +3,10 @@ package com.lesgens.minou.utils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
@@ -30,9 +32,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.lesgens.minou.controllers.Controller;
-import com.lesgens.minou.models.Channel;
-
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -54,17 +53,42 @@ import android.util.Base64;
 import android.util.Log;
 import android.util.TypedValue;
 
+import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.models.Channel;
+
 public class Utils {
 
 	public static final String MINOU_IMAGE_BASE = "MINOU_IMAGE_BASE:";
 	public static final int MAX_IMAGE_DIMEN = 1600;
 	private static final String TAG = "Utils";
-	
+
 	public static String getFullPrivateChannel(String userId){
 		final long myId = Long.parseLong(Controller.getInstance().getId());
 		final long otherId = Long.parseLong(userId);
 		return Channel.BASE_PRIVATE_CHANNEL + "." + String.valueOf(Math.min(myId, otherId)) + "." + String.valueOf(Math.max(myId, otherId));
 
+	}
+
+	public static void copyFile(File source, File dest)
+			throws IOException {
+		InputStream input = null;
+		OutputStream output = null;
+		try {
+			input = new FileInputStream(source);
+			output = new FileOutputStream(dest);
+			byte[] buf = new byte[1024];
+			int bytesRead;
+			while ((bytesRead = input.read(buf)) > 0) {
+				output.write(buf, 0, bytesRead);
+			}
+		} finally {
+			if(input != null){
+				input.close();
+			}
+			if(output != null){
+				output.close();
+			}
+		}
 	}
 
 	public static int dpInPixels(Context context, int dp) {
@@ -240,7 +264,7 @@ public class Utils {
 		}
 		return m.appendTail(stringbf).toString();
 	}
-	
+
 	public static String capitalizeFirstLetter(String str) {
 		return str.substring(0, 1).toUpperCase() + str.substring(1);
 	}
@@ -325,7 +349,7 @@ public class Utils {
 
 		return null;
 	}
-	
+
 	public static byte[] read(String absolutePath) throws IOException {
 		return read(new File(absolutePath));
 	}
@@ -359,20 +383,20 @@ public class Utils {
 
 	public static int getStatusBarHeight(final Context context){
 		int result = 0;
-	      int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
-	      if (resourceId > 0) {
-	          result = context.getResources().getDimensionPixelSize(resourceId);
-	      } 
-	      return result;
+		int resourceId = context.getResources().getIdentifier("status_bar_height", "dimen", "android");
+		if (resourceId > 0) {
+			result = context.getResources().getDimensionPixelSize(resourceId);
+		} 
+		return result;
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	public static String getRealPathFromURI(Activity activity, Uri contentUri) {
-	    String[] proj = { MediaStore.Images.Media.DATA };
-	    Cursor cursor = activity.managedQuery(contentUri, proj, null, null, null);
-	    int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-	    cursor.moveToFirst();
-	    return cursor.getString(column_index);
+		String[] proj = { MediaStore.Images.Media.DATA };
+		Cursor cursor = activity.managedQuery(contentUri, proj, null, null, null);
+		int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+		cursor.moveToFirst();
+		return cursor.getString(column_index);
 	}
 
 }

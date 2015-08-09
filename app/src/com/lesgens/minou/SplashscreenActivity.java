@@ -116,8 +116,6 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 			locationManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, this, getMainLooper());
 		}
 
-		File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), getResources().getString(R.string.app_name));
-		file.mkdirs();
 		Server.addUserAuthenticatedListener(this);
 		Server.addCrossbarConnectionListener(this);
 		LoginButton authButton = (LoginButton)findViewById(R.id.authButton);
@@ -257,7 +255,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
-				executeGeocoderFallback(mLastLocation.getLatitude(), mLastLocation.getLongitude());
+				executeGeocoderFallback(mLastLocation.getLatitude(), mLastLocation.getLongitude(), this);
 			}
 		}
 	}
@@ -292,7 +290,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 
 	}
 
-	public static void executeGeocoderFallback(double lat, double lng){
+	public static void executeGeocoderFallback(double lat, double lng, final Context context){
 		AsyncTask<Double, Void, Address> request = new AsyncTask<Double, Void, Address>() {
 
 			@Override
@@ -311,14 +309,14 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 					Controller.getInstance().setCity(new Geolocation(city, state, country));
 					geolocated = true;
 					if(authenticated){
-						Server.connectToCrossbar(MinouApplication.getInstance());
+						Server.connectToCrossbar(context);
 					}
 				} else{
-					new AlertDialog.Builder(MinouApplication.getInstance()).setPositiveButton(R.string.retry, new OnClickListener(){
+					new AlertDialog.Builder(context).setPositiveButton(R.string.retry, new OnClickListener(){
 
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							SplashscreenActivity.show(MinouApplication.getInstance());
+							SplashscreenActivity.show(context);
 							if(MinouApplication.getCurrentActivity() != null) {
 								MinouApplication.getCurrentActivity().finish();
 							}

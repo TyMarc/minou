@@ -1,7 +1,15 @@
 package com.lesgens.minou.fragments;
 
+import java.io.File;
+import java.io.IOException;
+
 import android.app.Dialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.provider.MediaStore.Images.Media;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,11 +18,13 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
+import com.lesgens.minou.enums.MessageType;
 import com.lesgens.minou.enums.SendingStatus;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.utils.Utils;
@@ -81,6 +91,12 @@ public class MessageDialogFragment extends DialogFragment implements OnClickList
 			v.findViewById(R.id.delete_message_btn).setOnClickListener(this);
 		}
 		
+		if(message.getDataPath() != null) {
+			v.findViewById(R.id.save_file_btn).setOnClickListener(this);
+		} else {
+			v.findViewById(R.id.save_file_btn).setVisibility(View.GONE);
+		}
+		
 		return v;
 	}
 	
@@ -100,8 +116,36 @@ public class MessageDialogFragment extends DialogFragment implements OnClickList
 			chatActivity.retryMessage(message);
 			dismiss();
 		} else if(v.getId() == R.id.delete_message_btn) {
-			chatActivity.deleteMessage(message);
+			chatActivity.deleteMessage(message, true);
 			dismiss();
+		} else if(v.getId() == R.id.save_file_btn) {
+			saveFile();
+			dismiss();
+		}
+	}
+	
+	private void saveFile(){
+		File fileTo = null;
+		if(message.getMsgType() == MessageType.AUDIO) {
+			fileTo = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), message.getContent());
+		} else if(message.getMsgType() == MessageType.VIDEO) {
+			fileTo = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), message.getContent());
+		} else if(message.getMsgType() == MessageType.IMAGE) {
+			fileTo = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), message.getContent());
+		}
+		
+		if(fileTo != null) {
+			try {
+				Utils.copyFile(new File(message.getDataPath()), fileTo);
+		        Intent mediaScannerIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+		        Uri fileContentUri = Uri.fromFile(fileTo);
+		        mediaScannerIntent.setData(fileContentUri);
+		        getActivity().sendBroadcast(mediaScannerIntent);
+				Toast.makeText(getActivity(), R.string.success_save_file, Toast.LENGTH_SHORT).show();
+			} catch (IOException e) {
+				Toast.makeText(getActivity(), R.string.error_save_file, Toast.LENGTH_SHORT).show();
+				e.printStackTrace();
+			}
 		}
 	}
 }

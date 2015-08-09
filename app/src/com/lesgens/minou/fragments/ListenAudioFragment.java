@@ -3,6 +3,7 @@ package com.lesgens.minou.fragments;
 import java.io.IOException;
 
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
@@ -75,6 +76,16 @@ public class ListenAudioFragment extends DialogFragment implements OnClickListen
 		} catch (IOException e) {
 			Log.e(TAG, "prepare() failed");
 		}
+	}
+	
+	
+
+	@Override
+	public void onDismiss(DialogInterface dialog) {
+		if(mPlayer != null) {
+			stopPlaying();
+		}
+		super.onDismiss(dialog);
 	}
 
 	private void stopPlaying() {

@@ -167,6 +167,9 @@ public class PreferencesController {
 	}
 	
 	public static boolean isTopicFetchAllMessagesEnabled(final Context context, final String channelNamespace) {
+		if(context == null) {
+			return false;
+		}
 		SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE); 
 		String restoredText = prefs.getString(FETCH_ALL_MESSAGES, "");
 		return restoredText.contains(channelNamespace);

@@ -22,7 +22,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 
-import com.desmond.squarecamera.CameraActivity;
 import com.desmond.squarecamera.ImageUtility;
 import com.lesgens.minou.R;
 import com.lesgens.minou.controllers.Controller;
@@ -40,21 +39,21 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 	public static final int PICK_VIDEO_ACTIVITY_REQUEST_CODE = 103;
 	private FileTransferListener listener;
 	private String channelNamespace;
-	private static String tempFilename = "file://" + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/tempImage.jpeg";
-	
+	private static final String tempFilename = "file://" + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/tempImage.jpeg";
+
 	public interface FileTransferListener{
 		public abstract void onDialogClosed(final Message message);
 	}
-	
+
 	public static FileTransferDialogFragment newInstance(final FileTransferListener listener, final String channelNamespace) {
 		return new FileTransferDialogFragment(listener, channelNamespace);
 	}
-	
+
 	public FileTransferDialogFragment(final FileTransferListener listener, final String channelNamespace){
 		this.listener = listener;
 		this.channelNamespace = channelNamespace;
 	}
-	
+
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -95,17 +94,15 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 		v.findViewById(R.id.capture_picture_btn).setOnClickListener(this);
 		v.findViewById(R.id.pick_video_btn).setOnClickListener(this);
 		v.findViewById(R.id.capture_video_btn).setOnClickListener(this);
-		
+
 		return v;
 	}
 
 	public static Message prepareAndSendPicture(final Context context, final Uri imageUri, final String channelNamespace){
-		context.getContentResolver().notifyChange(imageUri, null);
-
 		Bitmap bitmap;
 		try {
-			bitmap = android.provider.MediaStore.Images.Media
-					.getBitmap(context.getContentResolver(), imageUri);
+			byte[] bitmapArray = Utils.read(new File(imageUri.getPath()));
+			bitmap = BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
 
 			final byte[] byteArray = Utils.prepareImageFT(context, bitmap, imageUri);
 
@@ -119,7 +116,7 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 
 		return null;
 	}
-	
+
 	public static Message sendAudio(final Context context, final String filepath, final String channelNamespace){
 		String filename = filepath.substring(filepath.lastIndexOf("/") + 1);
 		Log.i("FileTransferDialogFragment", "filename=" + filename);
@@ -138,19 +135,23 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 
 	public static Message sendPicture(final Context context, byte[] byteArray, final String channelNamespace){
 		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
+		String filepath = context.getFilesDir().getAbsolutePath() + "/" + filename;
+		try{
+			FileOutputStream fos = new FileOutputStream(filepath);
+			fos.write(byteArray);
+			fos.close();
+			Message message = new Message(Controller.getInstance().getMyself(), filename, filepath, false, SendingStatus.PENDING, MessageType.IMAGE);
 
-		Uri filenameSaved = ImageUtility.savePicture(context, BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length), false);
-		Message message = new Message(Controller.getInstance().getMyself(), filename, filenameSaved.getPath(), false, SendingStatus.PENDING, MessageType.IMAGE);
 
-
-		try {
 			Server.sendFile(message, channelNamespace);
 			DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace, true);
+			
+			return message;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		return message;
+		return null;
 	}
 
 	public static Message prepareAndSendVideo(final Activity activity, final Uri uri, final String channelNamespace){
@@ -169,7 +170,7 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 	public static Message sendVideo(final Context context, byte[] byteArray, final String channelNamespace){
 		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".mp4";
 
-		File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/" + context.getResources().getString(R.string.app_name) + "/" + filename);
+		File file = new File(context.getFilesDir().getAbsoluteFile().getAbsolutePath() + "/" + context.getResources().getString(R.string.app_name) + "/" + filename);
 		String absolutePath = file.getAbsolutePath();
 		try {
 			FileOutputStream fos = new FileOutputStream(file);

@@ -15,6 +15,7 @@
     <color name="gray">#e2e2e2</color>
     <color name="transparent">#00000000</color>
     <color name="red">#FF6666</color>
+    <color name="red_70">#B3FF3333</color>
     <color name="dark_red">#CC5252</color>
     <color name="faded_white">#26FFFFFF</color>
     <color name="dark_grey">#666666</color>

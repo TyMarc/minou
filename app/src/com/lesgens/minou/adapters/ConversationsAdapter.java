@@ -98,6 +98,8 @@ public class ConversationsAdapter extends ArrayAdapter<String>{
 				holder.lastMessage.setText(R.string.picture);
 			} else if(lastMessage.getMsgType() == MessageType.VIDEO){
 				holder.lastMessage.setText(R.string.video);
+			} else if(lastMessage.getMsgType() == MessageType.AUDIO){
+				holder.lastMessage.setText(R.string.audio);
 			}
 			holder.timeLastMessage.setText(sdfMessage.format(lastMessage.getTimestamp()));
 			holder.dayLastMessage.setText(getTimeText(lastMessage.getTimestamp()));
