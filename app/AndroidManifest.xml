@@ -16,7 +16,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:name="com.lesgens.minou.application.MinouApplication"
@@ -54,19 +54,17 @@
         </activity>
         <activity
             android:name="com.lesgens.minou.AddTopicActivity"
-            android:configChanges="orientation|keyboard|screenSize" >
-        </activity>
+            android:configChanges="orientation|keyboard|screenSize" />
         <activity
             android:name="com.lesgens.minou.HomeActivity"
-            android:configChanges="orientation|keyboard|screenSize" >
-        </activity>
-        <activity android:name="com.lesgens.minou.ChannelSettingsActivity" >
-        </activity>
-        <activity android:name="com.desmond.squarecamera.CameraActivity"></activity>
+            android:configChanges="orientation|keyboard|screenSize" />
+        <activity android:name="com.lesgens.minou.ChannelSettingsActivity" />
+        <activity android:name="com.desmond.squarecamera.CameraActivity" />
         <activity
             android:name="com.lesgens.minou.PlayVideoActivity"
-            android:configChanges="orientation|keyboard|screenSize" >
-        </activity>
+            android:configChanges="orientation|keyboard|screenSize" />
+        <receiver android:name="com.lesgens.minou.receivers.NetworkStateReceiver" />
+        <receiver android:name="com.lesgens.minou.receivers.ReplyVoiceReceiver" />
     </application>
 
 </manifest>

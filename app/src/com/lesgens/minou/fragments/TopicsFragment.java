@@ -67,7 +67,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 		View v = inflater.inflate(R.layout.topics, container, false);
 
 		getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-		
+
 		Server.getTopicsCount(this);
 		firstLaunch = true;
 
@@ -106,13 +106,13 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 		editText.setText("");
 		refreshList();
 	}
-	
+
 	public void notifyDataSet(){
 		if(adapter != null) {
 			adapter.notifyDataSetChanged();
 		}
 	}
-	
+
 	public void refreshList() {
 		if(adapter != null) {
 			ArrayList<Topic> topics = adapter.getItems();
@@ -249,8 +249,13 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 
 			@Override
 			public void run() {
-				adapter.notifyDataSetChanged();
-				swipeRefreshLayout.setRefreshing(false);
+				if(adapter != null){
+					adapter.notifyDataSetChanged();
+				}
+				if(swipeRefreshLayout != null) {
+					swipeRefreshLayout.setRefreshing(false);
+				}
+
 			}});
 	}
 

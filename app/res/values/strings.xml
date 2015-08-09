@@ -12,6 +12,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="ok">OK</string>
+    <string name="reply">Reply</string>
     <string name="options">Options</string>
     <string name="title_activity_private_chat">Private Chat</string>
     <string name="title_activity_slideshow">SlideshowActivity</string>
