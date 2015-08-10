@@ -21,6 +21,7 @@ import com.lesgens.minou.utils.Utils;
 
 
 public class Message extends Event{
+	private static final long MAX_TIMEOUT = 30000;
 	private String content;
 	private boolean isIncoming;
 	private byte[] thumbnail;
@@ -50,6 +51,12 @@ public class Message extends Event{
 		this.status = status;
 		this.msgType = msgType;
 		this.dataPath = dataPath;
+		
+		if(status == SendingStatus.PENDING){
+			if( (System.currentTimeMillis() - timestamp.getTime()) > MAX_TIMEOUT) {
+				setStatus(SendingStatus.FAILED);
+			}
+		}
 		
 		if((msgType == MessageType.IMAGE || msgType == MessageType.VIDEO || msgType == MessageType.AUDIO) && dataPath == null){
 			Log.i("Message", "downloading file");

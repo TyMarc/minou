@@ -1,6 +1,5 @@
 package com.lesgens.minou;
 
-import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
@@ -19,7 +18,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;

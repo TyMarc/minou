@@ -22,7 +22,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 
-import com.desmond.squarecamera.ImageUtility;
 import com.lesgens.minou.R;
 import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;

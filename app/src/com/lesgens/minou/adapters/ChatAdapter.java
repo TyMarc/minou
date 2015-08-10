@@ -85,7 +85,6 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 		View rowView;
 		Message message = messages.get(position);
 
-		android.util.Log.i("ChannelChatAdapter", "isIncoming="+message.isIncoming() + " message=" + message.getContent() + " data path=" + message.getDataPath());
 		if(!message.isIncoming()){
 			rowView = getInflater().inflate(R.layout.chat_odd, parent, false);
 

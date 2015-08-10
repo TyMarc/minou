@@ -56,7 +56,6 @@ import com.lesgens.minou.listeners.UsernameListener;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.ChannelTrending;
 import com.lesgens.minou.models.City;
-import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.Topic;
 import com.lesgens.minou.models.User;
