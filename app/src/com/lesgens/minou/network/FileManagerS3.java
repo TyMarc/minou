@@ -53,8 +53,8 @@ public class FileManagerS3 {
 			protected Integer doInBackground(Void... arg0) {
 				try{
 					GetObjectRequest gor = new GetObjectRequest(BUCKET_NAME, filename);
-					MinouApplication.getInstance().getFilesDir().mkdirs();
-					File file = new File(MinouApplication.getInstance().getFilesDir(), "/" + filename);
+					MinouApplication.getInstance().getCacheDir().mkdirs();
+					File file = new File(MinouApplication.getInstance().getCacheDir(), "/" + filename);
 					listener.setFileDownload(file);
 					Download download = transferManager.download(gor, file);
 					download.addProgressListener(listener);

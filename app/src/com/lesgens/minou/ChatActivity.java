@@ -533,7 +533,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		mRecorder.reset();
 		mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
 		mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-		mFilename = getFilesDir().getAbsolutePath() + Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".3gp";
+		mFilename = getCacheDir().getAbsolutePath() + Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".3gp";
 		mRecorder.setOutputFile(mFilename);
 		mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
