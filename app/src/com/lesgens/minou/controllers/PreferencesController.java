@@ -13,7 +13,6 @@ public class PreferencesController {
 	public static final String NOTIFICATIONS_PUBLIC_CHANNEL = "USER_PREF_NOTIFICATIONS_PUBLIC_CHANNEL";
 	public static final String BLOCKED_NOTIFICATIONS_PRIVATE_CHANNEL = "USER_PREF_BLOCKED_NOTIFICATIONS_PRIVATE_CHANNEL";
 	public static final String BLOCKED_NOTIFICATIONS_MENTION_CHANNEL = "USER_PREF_BLOCKED_NOTIFICATIONS_MENTION_CHANNEL";
-	public static final String FETCH_ALL_MESSAGES = "USER_PREF_FETCH_ALL_MESSAGES";
 
 	public static void setPreference(final Context context, final String preference, final String value){
 		SharedPreferences.Editor editor = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
@@ -164,43 +163,5 @@ public class PreferencesController {
 
 		return blockedPeople;
 
-	}
-	
-	public static boolean isTopicFetchAllMessagesEnabled(final Context context, final String channelNamespace) {
-		if(context == null) {
-			return false;
-		}
-		SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE); 
-		String restoredText = prefs.getString(FETCH_ALL_MESSAGES, "");
-		return restoredText.contains(channelNamespace);
-	}
-	
-	public static void addTopicFetchAllMessages(final Context context, final String channelNamespace){
-		SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE); 
-		String restoredText = prefs.getString(FETCH_ALL_MESSAGES, "");
-		if(!restoredText.contains(channelNamespace)){
-			if(!restoredText.isEmpty()){
-				restoredText += ",";
-			}
-			restoredText += channelNamespace;
-			SharedPreferences.Editor editor = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
-			editor.putString(FETCH_ALL_MESSAGES, restoredText);
-			editor.commit();
-		}
-	}
-	
-	public static void removeTopicFetchAllMessages(final Context context, final String channelNamespace){
-		SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE); 
-		String restoredText = prefs.getString(FETCH_ALL_MESSAGES, "");
-		if(restoredText.contains(channelNamespace)){
-			if(restoredText.indexOf(channelNamespace) > 0){
-				restoredText = restoredText.replace("," + channelNamespace, "");
-			} else{
-				restoredText = restoredText.replace(channelNamespace, "");
-			}
-			SharedPreferences.Editor editor = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE).edit();
-			editor.putString(FETCH_ALL_MESSAGES, restoredText);
-			editor.commit();
-		}
 	}
 }

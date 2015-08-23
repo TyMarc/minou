@@ -77,6 +77,7 @@
     <string name="no_channel_entered">Start to write to add channel</string>
     <string name="error_save_file">Error when saving file</string>
     <string name="success_save_file">Saved file</string>
+    <string name="send_a_message">Send a message...</string>
     
     
     <string name="pull_to_refresh_pull_label">Pull to load more...</string>

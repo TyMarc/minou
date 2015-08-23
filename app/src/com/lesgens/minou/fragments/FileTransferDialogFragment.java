@@ -38,7 +38,7 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 	public static final int PICK_VIDEO_ACTIVITY_REQUEST_CODE = 103;
 	private FileTransferListener listener;
 	private String channelNamespace;
-	private static final String tempFilename = "file://" + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/tempImage.jpeg";
+	public static final String tempFilename = "file://" + Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath() + "/tempImage.jpeg";
 
 	public interface FileTransferListener{
 		public abstract void onDialogClosed(final Message message);
@@ -97,10 +97,18 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 		return v;
 	}
 
-	public static Message prepareAndSendPicture(final Context context, final Uri imageUri, final String channelNamespace){
+	public static Message prepareAndSendPicture(final Activity context, final Uri imageUri, final String channelNamespace){
 		Bitmap bitmap;
 		try {
-			byte[] bitmapArray = Utils.read(new File(imageUri.getPath()));
+			String imagePath = Utils.getRealPathFromURI(context, imageUri);
+			
+			byte[] bitmapArray = null;
+			
+			if(imagePath != null) {
+				bitmapArray = Utils.read(new File(imagePath));
+			} else {
+				bitmapArray = Utils.read(new File(imageUri.getPath()));
+			}
 			bitmap = BitmapFactory.decodeByteArray(bitmapArray, 0, bitmapArray.length);
 
 			final byte[] byteArray = Utils.prepareImageFT(context, bitmap, imageUri);
@@ -134,6 +142,8 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 
 	public static Message sendPicture(final Context context, byte[] byteArray, final String channelNamespace){
 		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".jpeg";
+		File cacheDir = new File(context.getCacheDir().getAbsoluteFile().getAbsolutePath());
+		cacheDir.mkdirs();
 		String filepath = context.getCacheDir().getAbsolutePath() + "/" + filename;
 		try{
 			FileOutputStream fos = new FileOutputStream(filepath);
@@ -144,7 +154,7 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 
 			Server.sendFile(message, channelNamespace);
 			DatabaseHelper.getInstance().addMessage(message, Controller.getInstance().getId(), channelNamespace, true);
-			
+
 			return message;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -168,8 +178,9 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 
 	public static Message sendVideo(final Context context, byte[] byteArray, final String channelNamespace){
 		String filename = Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".mp4";
-
-		File file = new File(context.getCacheDir().getAbsoluteFile().getAbsolutePath() + "/" + context.getResources().getString(R.string.app_name) + "/" + filename);
+		File cacheDir = new File(context.getCacheDir().getAbsoluteFile().getAbsolutePath());
+		cacheDir.mkdirs();
+		File file = new File(context.getCacheDir().getAbsoluteFile().getAbsolutePath() + "/" + filename);
 		String absolutePath = file.getAbsolutePath();
 		try {
 			FileOutputStream fos = new FileOutputStream(file);

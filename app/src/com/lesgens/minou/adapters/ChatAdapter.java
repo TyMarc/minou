@@ -14,7 +14,6 @@ import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -26,7 +25,7 @@ import com.lesgens.minou.models.Message;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.utils.Utils;
 
-public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHeadersAdapter{
+public class ChatAdapter extends MinouArrayAdapter<Message> implements StickyListHeadersAdapter{
 	private Context mContext;
 	private LayoutInflater mInflater = null;
 
@@ -213,6 +212,16 @@ public class ChatAdapter extends ArrayAdapter<Message> implements StickyListHead
 			}
 		} else{
 			super.add(message);
+		}
+	}
+	
+	public void addMessage(Message message, int position){
+		if(!messages.isEmpty()){
+			if(!messages.contains(message)){
+				super.add(message, position);
+			}
+		} else{
+			super.add(message, position);
 		}
 	}
 

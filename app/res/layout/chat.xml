@@ -122,93 +122,100 @@
         android:layout_alignParentBottom="true"
         android:background="@color/white" >
 
-        <ImageView
-            android:id="@+id/send_ft"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignBottom="@id/editText"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/gen_black_sel"
-            android:padding="5dp"
-            android:src="@drawable/share" />
-
         <EditText
             android:id="@+id/editText"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginBottom="10dp"
             android:layout_marginLeft="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_toLeftOf="@+id/audio_btn"
-            android:layout_toRightOf="@+id/send_ft"
-            android:background="@drawable/rounded_edittext"
+            android:layout_marginTop="3dp"
+            android:layout_toLeftOf="@+id/send"
             android:gravity="center_vertical"
+            android:hint="@string/send_a_message"
+            android:background="@drawable/apptheme_edit_text_holo_light"
             android:inputType="textCapSentences|textMultiLine"
             android:minHeight="40dp"
-            android:paddingBottom="3dp"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp"
-            android:paddingTop="3dp"
+            android:padding="5dp"
             android:textSize="14sp" />
-
-        <ImageView
-            android:id="@+id/audio_btn"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_alignBottom="@id/send_ft"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:layout_toLeftOf="@+id/send"
-            android:background="@drawable/gen_black_sel"
-            android:padding="8dp"
-            android:src="@drawable/audio" />
 
         <ImageView
             android:id="@+id/send"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_alignBottom="@id/send_ft"
+            android:layout_alignBottom="@id/editText"
             android:layout_alignParentRight="true"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
             android:background="@drawable/gen_black_sel"
-            android:padding="8dp"
-            android:src="@drawable/send" />
+            android:src="@drawable/ic_menu_send" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/editText" >
+
+            <ImageView
+                android:id="@+id/send_ft"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:background="@drawable/gen_black_sel"
+                android:padding="5dp"
+                android:visibility="gone"
+                android:src="@drawable/share" />
+            
+            <ImageView
+                android:id="@+id/take_picture_ft"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:background="@drawable/gen_black_sel"
+                android:padding="5dp"
+                android:src="@drawable/ic_menu_camera" />
+            
+            <ImageView
+                android:id="@+id/pick_picture_ft"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_toRightOf="@id/take_picture_ft"
+                android:background="@drawable/gen_black_sel"
+                android:padding="5dp"
+                android:src="@drawable/ic_menu_gallery" />
+            
+            <ImageView
+                android:id="@+id/pick_video_ft"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_toRightOf="@id/pick_picture_ft"
+                android:background="@drawable/gen_black_sel"
+                android:padding="5dp"
+                android:src="@drawable/ic_menu_slideshow" />
+
+            <ImageView
+                android:id="@+id/audio_btn"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_toRightOf="@+id/pick_video_ft"
+                android:background="@drawable/gen_black_sel"
+                android:padding="8dp"
+                android:src="@drawable/ic_btn_speak_now" />
+
+            <ProgressBar
+                android:id="@+id/audio_progress"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_toRightOf="@+id/pick_video_ft"
+                android:visibility="gone" />
+        </RelativeLayout>
     </RelativeLayout>
-
-    <View
-        android:id="@+id/audio_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/bg_overlay"
-        android:clickable="true"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:visibility="gone" />
-
-    <com.lesgens.minou.views.PulseVoiceView
-        android:id="@+id/audio_pulse"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="-45dp"
-        android:visibility="gone" />
-
-    <TextView
-        android:id="@+id/audio_countdown"
-        android:layout_width="30dp"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="20dp"
-        android:layout_marginRight="60dp"
-        android:gravity="center"
-        android:text="10"
-        android:textColor="@color/white"
-        android:textSize="16sp"
-        android:visibility="gone" />
 
 </RelativeLayout>

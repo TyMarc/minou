@@ -206,7 +206,7 @@ public class HomeActivity extends FragmentActivity implements OnPageChangeListen
 	}
 
 	@Override
-	public void onDisonnected() {
+	public void onDisconnected() {
 		findViewById(R.id.connection_problem).setVisibility(View.VISIBLE);
 	}
 }

@@ -283,7 +283,7 @@ UserAuthenticatedListener, CrossbarConnectionListener, LocationListener {
 	}
 
 	@Override
-	public void onDisonnected() {
+	public void onDisconnected() {
 		// TODO Auto-generated method stub
 
 	}

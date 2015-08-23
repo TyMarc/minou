@@ -86,9 +86,6 @@ public class AddTopicActivity extends MinouActivity implements OnClickListener, 
 				final String channelName = Utils.getNormalizedString(currentCity.getNamespace() + "." + text);
 				if(!Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
 					DatabaseHelper.getInstance().addPublicChannel(channelName);
-					if(((CheckBox) findViewById(R.id.setting_fetch_all_messages)).isChecked()) {
-						PreferencesController.addTopicFetchAllMessages(this, channelName);
-					}
 					Server.subscribeToTopic(this, channelName);
 					finish();
 				}
@@ -142,9 +139,6 @@ public class AddTopicActivity extends MinouActivity implements OnClickListener, 
 		final String channelName = channelTrending.getNamespace();
 		if(!Controller.getInstance().getChannelsContainer().isContainSubscription(channelName)){
 			DatabaseHelper.getInstance().addPublicChannel(channelName);
-			if(((CheckBox) findViewById(R.id.setting_fetch_all_messages)).isChecked()) {
-				PreferencesController.addTopicFetchAllMessages(this, channelName);
-			}
 			Server.subscribeToTopic(this, channelName);
 			finish();
 		}

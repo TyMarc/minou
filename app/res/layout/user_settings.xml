@@ -56,21 +56,6 @@
             android:background="@drawable/gen_sel"
             android:text="@string/notifications_on_mention"
             android:textSize="18sp" />
-
-        <View
-            android:id="@+id/setting_fetch_all_messages_sep"
-            android:layout_width="match_parent"
-            android:layout_height="2px"
-            android:background="@color/grey" />
-        
-        <CheckBox
-            android:id="@+id/setting_fetch_all_messages"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_below="@id/search_bar"
-            android:background="@drawable/gen_sel"
-            android:text="@string/fetch_all_messages"
-            android:textSize="14sp" />
     </LinearLayout>
 
 </RelativeLayout>

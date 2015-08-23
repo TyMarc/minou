@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.LongNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.lesgens.minou.ChatActivity;
@@ -644,6 +645,9 @@ public class Server {
 	public static void getMoreMessages(final Channel channel, final FetchMoreMessagesListener listener){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		an.add(TextNode.valueOf(channel.getNamespace()));
+		long timestamp = DatabaseHelper.getInstance().getFirstMessageFetched(channel.getNamespace());
+		an.add(LongNode.valueOf(timestamp));
+		Log.i(TAG, "Get more messages, timestamp=" + timestamp);
 		client.call("plugin.history.fetch", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 
@@ -695,11 +699,7 @@ public class Server {
 	public static void getLastMessages(final Topic topic){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		an.add(TextNode.valueOf(topic.getNamespace()));
-		if(PreferencesController.isTopicFetchAllMessagesEnabled(MinouApplication.getInstance(), topic.getNamespace())) {
-			long lastMessages = DatabaseHelper.getInstance().getLastMessageFetched(topic.getNamespace());
-			Log.i(TAG, "Receiving all messages for " + topic.getNamespace() + " since " + lastMessages);
-			an.add(lastMessages);
-		}
+		
 		client.call("plugin.history.fetch", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 

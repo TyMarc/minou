@@ -96,10 +96,11 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 		cv = new ContentValues();
 		cv.put("timestamp", timestamp);
-		if(getLastMessageFetched(channel.toLowerCase().replace("-", "_")) == 0){
+		long firstMessageFetched = getFirstMessageFetched(channel.toLowerCase().replace("-", "_"));
+		if(firstMessageFetched == 0){
 			cv.put("channel", channel);
 			db.insert("minou_last_message", null, cv);
-		} else{
+		} else if(firstMessageFetched > timestamp){
 			db.update("minou_last_message", cv, "channel = ?", new String[]{channel.toLowerCase().replace("-", "_")});
 		}
 
@@ -474,8 +475,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		db.delete("minou_public", "channel = ?", new String[]{channel.toLowerCase().replace("-", "_")});
 		db.delete("minou_public", "channel LIKE ?", new String[]{channel.toLowerCase().replace("-", "_") + ".%"});
 	}
-
-	public long getLastMessageFetched(String channel){
+	
+	public long getFirstMessageFetched(String channel){
 		SQLiteDatabase db = this.getReadableDatabase();
 
 		Cursor c = db.rawQuery("SELECT timestamp FROM minou_last_message WHERE channel = ?;", new String[]{channel.toLowerCase().replace("-", "_")} );

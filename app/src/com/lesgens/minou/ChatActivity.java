@@ -7,12 +7,14 @@ import java.util.concurrent.Future;
 
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 import se.emilsjolander.stickylistheaders.WrapperViewList.OnRefreshListener;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -20,9 +22,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.animation.Animation;
-import android.view.animation.Animation.AnimationListener;
-import android.view.animation.AnimationUtils;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
@@ -31,6 +30,7 @@ import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,7 +57,6 @@ import com.lesgens.minou.receivers.NetworkStateReceiver;
 import com.lesgens.minou.receivers.NetworkStateReceiver.NetworkStateReceiverListener;
 import com.lesgens.minou.utils.NotificationHelper;
 import com.lesgens.minou.utils.Utils;
-import com.lesgens.minou.views.PulseVoiceView;
 
 public class ChatActivity extends MinouFragmentActivity implements OnClickListener, EventsListener, 
 			NetworkStateReceiverListener, CrossbarConnectionListener, OnItemClickListener, 
@@ -76,12 +75,8 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	private String mFilename;
 	private MediaRecorder mRecorder = null;
 	private ImageView audioBtn;
-	private PulseVoiceView pulseVoiceView;
-	private View audioOverlay;
-	private TextView audioCountdown;
-	private static final int MAX_AUDIO_RECORDING = 10;
-	private int currentTime = MAX_AUDIO_RECORDING;
 	private Handler handler;
+	private ProgressBar progressAudio;
 
 	public static void show(final Context context, final String namespace){
 		Intent i = new Intent(context, ChatActivity.class);
@@ -111,11 +106,8 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 		audioBtn = (ImageView) findViewById(R.id.audio_btn);
 		audioBtn.setOnClickListener(this);
-
-		pulseVoiceView = (PulseVoiceView) findViewById(R.id.audio_pulse);
-		pulseVoiceView.setOnClickListener(this);
-		audioOverlay = findViewById(R.id.audio_overlay);
-		audioCountdown = (TextView) findViewById(R.id.audio_countdown);
+		
+		progressAudio = (ProgressBar) findViewById(R.id.audio_progress);
 
 		findViewById(R.id.send).setOnClickListener(this);
 
@@ -124,6 +116,10 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		} else{
 			findViewById(R.id.send_ft).setOnClickListener(this);
 		}
+		
+		findViewById(R.id.take_picture_ft).setOnClickListener(this);
+		findViewById(R.id.pick_picture_ft).setOnClickListener(this);
+		findViewById(R.id.pick_video_ft).setOnClickListener(this);
 
 		findViewById(R.id.back_btn).setOnClickListener(this);
 		findViewById(R.id.settings_btn).setOnClickListener(this);
@@ -139,13 +135,13 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 		networkStateReceiver = new NetworkStateReceiver(this);
 
-		if(isTopic()) {
-			((TextView) findViewById(R.id.name)).setText(Utils.capitalizeFirstLetters(((Topic) channel).getDescription()));
-			((TextView) findViewById(R.id.users_connected)).setText(((Topic) channel).getCount() + "");
-			//animateSlideInDetails(0);
-		} else {
+//		if(isTopic()) {
+//			((TextView) findViewById(R.id.name)).setText(Utils.capitalizeFirstLetters(((Topic) channel).getDescription()));
+//			((TextView) findViewById(R.id.users_connected)).setText(((Topic) channel).getCount() + "");
+//			//animateSlideInDetails(0);
+//		} else {
 			findViewById(R.id.topic_details).setVisibility(View.GONE);
-		}
+//		}
 	}
 
 	//	private void animateSlideOutDetails(final int delay){
@@ -187,6 +183,28 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 		chatAdapter = new ChatAdapter(this, DatabaseHelper.getInstance().getMessages(channel), channel instanceof User);
 		listMessages.setAdapter(chatAdapter);
+	}
+	
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		Log.i(TAG, "onActivityResult");
+		if ((requestCode == FileTransferDialogFragment.PICK_IMAGE_ACTIVITY_REQUEST_CODE || requestCode == FileTransferDialogFragment.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) && resultCode == Activity.RESULT_OK) {
+			Uri uri = data != null ? data.getData() : null;
+			if(uri == null) {
+				uri = Uri.parse(FileTransferDialogFragment.tempFilename);
+			}
+			Message message = FileTransferDialogFragment.prepareAndSendPicture(this, uri, channelNamespace);
+			chatAdapter.addMessage(message);
+			chatAdapter.notifyDataSetChanged();
+			scrollMyListViewToBottom();
+		} else if ((requestCode == FileTransferDialogFragment.PICK_VIDEO_ACTIVITY_REQUEST_CODE || requestCode == FileTransferDialogFragment.CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE) && resultCode == Activity.RESULT_OK) {
+			Uri uri = data.getData();
+			Message message = FileTransferDialogFragment.prepareAndSendVideo(this, uri, channelNamespace);
+			chatAdapter.addMessage(message);
+			chatAdapter.notifyDataSetChanged();
+			scrollMyListViewToBottom();
+		}
 	}
 
 	@Override
@@ -232,98 +250,43 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 			new FileTransferDialogFragment(this, channelNamespace).show(getSupportFragmentManager(), "file_share_dialog");
 		} else if(v.getId() == R.id.settings_btn){
 			ChannelSettingsActivity.show(this, channelNamespace);
-		} else if(v.getId() == R.id.audio_btn || v.getId() == R.id.audio_pulse){
+		} else if(v.getId() == R.id.audio_btn){
 			toggleAudioRecording();
+		} else if(v.getId() == R.id.take_picture_ft) {
+			takePhoto();
+		} else if(v.getId() == R.id.pick_picture_ft) {
+			pickPicture();
+		} else if(v.getId() == R.id.pick_video_ft){
+			pickVideo();
 		}
 	}
 
-	private Runnable audioAmplitude = new Runnable(){
-
-		@Override
-		public void run() {
-			if(mRecorder != null) {
-				float max = mRecorder.getMaxAmplitude();
-				pulseVoiceView.setAmplitude(max / 32000);
-				pulseVoiceView.invalidate();
-				handler.postDelayed(audioAmplitude, 100);
-			}
-		}
-
-	};
-
-	private void animateCountdown(){
-		if(currentTime > 0) {
-			Animation anim = AnimationUtils.loadAnimation(this, R.anim.slide_countdown_up);
-			anim.setAnimationListener(new AnimationListener(){
-
-				@Override
-				public void onAnimationStart(Animation animation) {
-					audioCountdown.setText("" + currentTime);
-				}
-
-				@Override
-				public void onAnimationEnd(Animation animation) {
-					currentTime -= 1;
-					if(currentTime == -1) {
-
-					} else if(currentTime == 0 || mRecorder == null) {
-						prepareStopRecording();
-					} else {
-						animateCountdown();
-					}
-				}
-
-				@Override
-				public void onAnimationRepeat(Animation animation) {
-				}});
-
-
-			audioCountdown.startAnimation(anim);
-		}
-	}
-
+	
 	private void toggleAudioRecording(){
-		if(pulseVoiceView.getVisibility() == View.GONE) {
+		if(progressAudio.getVisibility() == View.GONE) {
 			try{
 				onRecord(true);
-				handler.post(audioAmplitude);
-				pulseVoiceView.setVisibility(View.VISIBLE);
-				audioOverlay.setVisibility(View.VISIBLE);
-				audioCountdown.setVisibility(View.VISIBLE);
-				currentTime = MAX_AUDIO_RECORDING;
-				animateCountdown();
+				progressAudio.setVisibility(View.VISIBLE);
 			} catch(IllegalStateException ise) {
 				ise.printStackTrace();
 				Toast.makeText(this, R.string.audio_already_recording, Toast.LENGTH_SHORT).show();
 			}
 		} else{
-			prepareStopRecording();
-		}
-	}
+			progressAudio.setVisibility(View.GONE);
+			if(mRecorder != null) {
+				handler.postDelayed(new Runnable(){
 
-	private void prepareStopRecording(){
-		pulseVoiceView.setVisibility(View.GONE);
-		audioOverlay.setVisibility(View.GONE);
-		currentTime = -1;
-		if(audioCountdown.getAnimation() != null){ 			
-			audioCountdown.getAnimation().cancel();
-		}
-		audioCountdown.clearAnimation();
-		audioCountdown.setVisibility(View.GONE);
-		handler.removeCallbacks(audioAmplitude);
-		if(mRecorder != null) {
-			handler.postDelayed(new Runnable(){
-
-				@Override
-				public void run() {
-					onRecord(false);
-					Message message = FileTransferDialogFragment.sendAudio(ChatActivity.this, mFilename, channelNamespace);
-					chatAdapter.addMessage(message);
-					chatAdapter.notifyDataSetChanged();
-					scrollMyListViewToBottom();
-				}}, 300);
-		} else {
-			Toast.makeText(this, R.string.audio_error_recording, Toast.LENGTH_SHORT).show();
+					@Override
+					public void run() {
+						onRecord(false);
+						Message message = FileTransferDialogFragment.sendAudio(ChatActivity.this, mFilename, channelNamespace);
+						chatAdapter.addMessage(message);
+						chatAdapter.notifyDataSetChanged();
+						scrollMyListViewToBottom();
+					}}, 300);
+			} else {
+				Toast.makeText(this, R.string.audio_error_recording, Toast.LENGTH_SHORT).show();
+			}
 		}
 	}
 
@@ -464,7 +427,7 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	}
 
 	@Override
-	public void onDisonnected() {
+	public void onDisconnected() {
 		tvConnectionProblem.setVisibility(View.VISIBLE);
 	}
 
@@ -533,7 +496,9 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 		mRecorder.reset();
 		mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
 		mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-		mFilename = getCacheDir().getAbsolutePath() + Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".3gp";
+		File cacheDir = new File(getCacheDir().getAbsoluteFile().getAbsolutePath());
+		cacheDir.mkdirs();
+		mFilename = getCacheDir().getAbsolutePath() + "/" + Controller.getInstance().getId() + "_" + System.currentTimeMillis() + ".3gp";
 		mRecorder.setOutputFile(mFilename);
 		mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
@@ -558,8 +523,8 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 
 			@Override
 			public void run() {
-				for(Message m : messages) {
-					chatAdapter.addMessage(m);
+				for(int i = messages.size() - 1 ; i >= 0; i--) {
+					chatAdapter.addMessage(messages.get(i), 0);
 				}
 				listMessages.onRefreshComplete();
 			}});
@@ -568,6 +533,32 @@ public class ChatActivity extends MinouFragmentActivity implements OnClickListen
 	@Override
 	public void onRefresh() {
 		Server.getMoreMessages(channel, ChatActivity.this);
-		Log.i(TAG, "LOAD MORE");
+	}
+	
+	public void pickPicture() {
+		Intent i = new Intent(
+				Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+		startActivityForResult(i, FileTransferDialogFragment.PICK_IMAGE_ACTIVITY_REQUEST_CODE);
+	}
+
+	public void pickVideo() {
+		Intent i = new Intent(
+				Intent.ACTION_PICK, android.provider.MediaStore.Video.Media.EXTERNAL_CONTENT_URI);
+
+		startActivityForResult(i, FileTransferDialogFragment.PICK_VIDEO_ACTIVITY_REQUEST_CODE);
+	}
+
+	public void takePhoto() {
+		Intent i = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+		i.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, Uri.parse(FileTransferDialogFragment.tempFilename));
+		startActivityForResult(i, FileTransferDialogFragment.CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+	}
+
+	public void takeVideo() {
+		Intent i = new Intent(android.provider.MediaStore.ACTION_VIDEO_CAPTURE);
+		//MMS video quality for smaller transfers (400ko for 5 seconds video instead of 10mo)
+		i.putExtra(android.provider.MediaStore.EXTRA_VIDEO_QUALITY, 0);
+		startActivityForResult(i, FileTransferDialogFragment.CAPTURE_VIDEO_ACTIVITY_REQUEST_CODE);
 	}
 }

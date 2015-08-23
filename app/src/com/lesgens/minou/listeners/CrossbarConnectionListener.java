@@ -5,6 +5,6 @@ public interface CrossbarConnectionListener {
 	
 	public void onConnected();
 	public void onConnecting();
-	public void onDisonnected();
+	public void onDisconnected();
 	
 }
