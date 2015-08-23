@@ -69,7 +69,7 @@ public class Server {
 	private static ArrayList<EventsListener> eventsListeners = new ArrayList<EventsListener>();
 	private static ArrayList<CrossbarConnectionListener> connectionListeners = new ArrayList<CrossbarConnectionListener>();
 	private static String address = "http://minou.blindr.me/";
-	private static String ADDRESS_CROSSBAR = "ws://router.minou.blindr.me/ws";
+	private static String ADDRESS_CROSSBAR = "ws://router.minou.blindr.me";
 	private static String TAG = "Server";
 	private static boolean isConnected = false;
 	private static WampClient client;
@@ -324,7 +324,7 @@ public class Server {
 								|| m.getContent().toLowerCase().contains(Controller.getInstance().getMyself().getUsername().toLowerCase()))
 								&& isIncoming){
 					Log.i(TAG, "Application not visible, should send notification");
-					NotificationHelper.notify(context, topic, user, content);
+					NotificationHelper.notify(context, topic, user, m);
 				}
 			}}, new Action1<Throwable>() {
 
@@ -378,7 +378,7 @@ public class Server {
 								|| m.getContent().toLowerCase().contains(Controller.getInstance().getMyself().getUsername().toLowerCase()))
 								&& isIncoming){
 					Log.i(TAG, "Application not visible, should send notification");
-					NotificationHelper.notify(context, city, user, content);
+					NotificationHelper.notify(context, city, user, m);
 				}
 			}}, new Action1<Throwable>() {
 
@@ -429,7 +429,7 @@ public class Server {
 						!PreferencesController.isPrivateNotificationsDisabled(context, fullChannelName) 
 						&& isIncoming && DatabaseHelper.getInstance().getConversations().contains(user.getId())){
 					Log.i(TAG, "Application not visible, should send notification");
-					NotificationHelper.notify(context, null, user, content);
+					NotificationHelper.notify(context, null, user, m);
 				}
 			}}, new Action1<Throwable>() {
 
@@ -477,7 +477,7 @@ public class Server {
 						!PreferencesController.isPrivateNotificationsDisabled(context, secondFullChannelName) 
 						&& isIncoming && DatabaseHelper.getInstance().getConversations().contains(user.getId())){
 					Log.i(TAG, "Application not visible, should send notification");
-					NotificationHelper.notify(context, null, user, content);
+					NotificationHelper.notify(context, null, user, m);
 				}
 			}}, new Action1<Throwable>() {
 

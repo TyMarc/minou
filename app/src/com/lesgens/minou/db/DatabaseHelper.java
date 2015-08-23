@@ -294,6 +294,31 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 		return messages;
 	}
+	
+	public ArrayList<Message> getLast25Messages(String namespace) {
+		ArrayList<Message> messages = new ArrayList<Message>();
+		SQLiteDatabase db = this.getReadableDatabase();
+		Log.i(TAG, "get Messages for channel=" + namespace.toLowerCase().replace("-", "_"));
+
+		Cursor c = db.rawQuery("SELECT message_id, timestamp, content, isIncoming, dataPath, userId, status, msgType FROM minou_message WHERE channel = ? ORDER BY timestamp DESC LIMIT 25;", new String[]{namespace.toLowerCase().replace("-", "_")} );
+		Message message;
+		while(c.moveToNext()){
+			UUID id = UUID.fromString(c.getString(0));
+			Timestamp timestamp = new Timestamp(c.getLong(1));
+			String text = c.getString(2);
+			boolean isIncoming = c.getInt(3) == 1;
+			String dataPath = c.getString(4);
+			String userId = c.getString(5);
+			User user = getUser(userId);
+			int status = c.getInt(6);
+			String msgType = c.getString(7);
+			message = new Message(id, timestamp, namespace, 
+					user, text, isIncoming, dataPath, SendingStatus.fromInt(status), MessageType.fromString(msgType));
+			messages.add(message);
+		}
+
+		return messages;
+	}
 
 	public Message getLastMessage(String channelNamespace){
 		SQLiteDatabase db = this.getReadableDatabase();
@@ -574,5 +599,4 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 		return usersId;
 	}
-
 }
