@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/splash_text"
         android:layout_centerHorizontal="true"
-        android:src="@drawable/minou_small"
+        android:src="@drawable/subjest"
         android:tint="@color/white" />
 
     <com.facebook.widget.LoginButton

@@ -99,8 +99,13 @@ public class FileTransferDialogFragment extends DialogFragment implements OnClic
 
 	public static Message prepareAndSendPicture(final Activity context, final Uri imageUri, final String channelNamespace){
 		Bitmap bitmap;
+		String imagePath = null;
+		try{
+			imagePath = Utils.getRealPathFromURI(context, imageUri);
+		} catch(NullPointerException npe) {
+			npe.printStackTrace();
+		}
 		try {
-			String imagePath = Utils.getRealPathFromURI(context, imageUri);
 			
 			byte[] bitmapArray = null;
 			

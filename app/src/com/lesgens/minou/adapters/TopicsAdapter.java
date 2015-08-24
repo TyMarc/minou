@@ -75,7 +75,7 @@ public class TopicsAdapter extends ArrayAdapter<Topic>{
 		
 		Bitmap image = topic.getImage();
 		if(image == null) {
-			image = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.default_topic);
+			image = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.subjest);
 		}
 		holder.image.setImageBitmap(image);
 		holder.name.setText(channelName);
