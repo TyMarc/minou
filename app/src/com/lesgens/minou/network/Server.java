@@ -503,12 +503,20 @@ public class Server {
 			@Override
 			public void call(Long arg0) {
 				message.setStatus(SendingStatus.SENT);
+				if(MinouApplication.getCurrentActivity() != null 
+						&& MinouApplication.getCurrentActivity() instanceof ChatActivity) {
+					((ChatActivity) MinouApplication.getCurrentActivity()).notifyAdapter();
+				}
 			}}
 		, new Action1<Throwable>(){
 
 			@Override
 			public void call(Throwable arg0) {
 				message.setStatus(SendingStatus.FAILED);
+				if(MinouApplication.getCurrentActivity() != null 
+						&& MinouApplication.getCurrentActivity() instanceof ChatActivity) {
+					((ChatActivity) MinouApplication.getCurrentActivity()).notifyAdapter();
+				}
 			}});
 	}
 
