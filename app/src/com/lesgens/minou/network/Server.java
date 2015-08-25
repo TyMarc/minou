@@ -69,8 +69,8 @@ public class Server {
 	private static List<UserAuthenticatedListener> userAuthenticatedListeners = new ArrayList<UserAuthenticatedListener>();
 	private static ArrayList<EventsListener> eventsListeners = new ArrayList<EventsListener>();
 	private static ArrayList<CrossbarConnectionListener> connectionListeners = new ArrayList<CrossbarConnectionListener>();
-	private static String address = "http://minou.blindr.me/";
-	private static String ADDRESS_CROSSBAR = "ws://router.minou.blindr.me";
+	private static String address = "http://subjest.xyz/";
+	private static String ADDRESS_CROSSBAR = "ws://router.subjest.xyz";
 	private static String TAG = "Server";
 	private static boolean isConnected = false;
 	private static WampClient client;
