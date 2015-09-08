@@ -23,7 +23,6 @@ import com.lesgens.minou.listeners.FetchMoreMessagesListener;
 import com.lesgens.minou.models.Channel;
 import com.lesgens.minou.models.Event;
 import com.lesgens.minou.models.Message;
-import com.lesgens.minou.models.Topic;
 import com.lesgens.minou.models.User;
 import com.lesgens.minou.network.Server;
 import com.lesgens.minou.receivers.NetworkStateReceiver;
@@ -273,10 +272,10 @@ OnItemLongClickListener, FileTransferListener, FetchMoreMessagesListener {
 
 	public void retryMessage(final Message message){
 		deleteMessage(message, false);
-
+		Message newMessage = null;
 		if(message.getMsgType() == MessageType.IMAGE){
 			try {
-				FileTransferDialogFragment.sendPicture(this, Utils.read(new File(message.getDataPath())), channelNamespace);
+				newMessage = FileTransferDialogFragment.sendPicture(this, Utils.read(new File(message.getDataPath())), channelNamespace);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -284,12 +283,17 @@ OnItemLongClickListener, FileTransferListener, FetchMoreMessagesListener {
 			sendMessage(message.getContent());
 		} else if(message.getMsgType() == MessageType.VIDEO){
 			try {
-				FileTransferDialogFragment.sendVideo(this, Utils.read(new File(message.getDataPath())), channelNamespace);
+				newMessage = FileTransferDialogFragment.sendVideo(this, Utils.read(new File(message.getDataPath())), channelNamespace);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		} else if(message.getMsgType() == MessageType.AUDIO){
-			FileTransferDialogFragment.sendAudio(this, message.getDataPath(), channelNamespace);
+			newMessage = FileTransferDialogFragment.sendAudio(this, message.getDataPath(), channelNamespace);
+		}
+		
+		if(newMessage != null){
+			chatAdapter.addMessage(newMessage);
+			chatAdapter.notifyDataSetChanged();
 		}
 	}
 
