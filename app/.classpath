@@ -8,13 +8,13 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/FacebookSDK"/>
 	<classpathentry kind="lib" path="libs/rxjava-1.0.8.jar"/>
 	<classpathentry kind="lib" path="libs/jackson-core-2.4.4.jar"/>
-	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="libs/jackson-annotations-2.4.4.jar"/>
-	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="lib" path="libs/jawampa-0.2.1.jar"/>
 	<classpathentry kind="lib" path="libs/netty-all-4.0.28.Final.jar"/>
 	<classpathentry kind="lib" path="libs/aws-android-sdk-cognito-2.2.3.jar"/>
 	<classpathentry kind="lib" path="libs/aws-android-sdk-core-2.2.3.jar"/>
 	<classpathentry kind="lib" path="libs/aws-android-sdk-s3-2.2.3.jar"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

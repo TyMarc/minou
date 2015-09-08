@@ -252,6 +252,8 @@ public class Server {
 		}
 
 		final City city = createChannelCity(context, channelName);
+		
+		subscribeToTopicOnDB(Controller.getInstance().getId(), Utils.getNormalizedString(channelName));
 
 		Controller.getInstance().getChannelsContainer().addByForceSubscription(city);
 	}
@@ -262,6 +264,8 @@ public class Server {
 		}
 
 		final Topic topic = createChannelTopic(context, channelName);
+		
+		subscribeToTopicOnDB(Controller.getInstance().getId(), Utils.getNormalizedString(channelName));
 
 		Controller.getInstance().getChannelsContainer().addSubscription(topic);
 
@@ -276,6 +280,8 @@ public class Server {
 		if(user.getId().equals(Controller.getInstance().getId())) {
 			user = createConversation(context, user);
 		}
+		
+		subscribeToTopicOnDB(Controller.getInstance().getId(), Utils.getNormalizedString(user.getNamespace()));
 
 		Controller.getInstance().getChannelsContainer().addByForceSubscription(user);
 
@@ -505,7 +511,7 @@ public class Server {
 				message.setStatus(SendingStatus.SENT);
 				if(MinouApplication.getCurrentActivity() != null 
 						&& MinouApplication.getCurrentActivity() instanceof ChatActivity) {
-					((ChatActivity) MinouApplication.getCurrentActivity()).notifyAdapter();
+					((ChatActivity) MinouApplication.getCurrentActivity()).notifyAdapter(message.getId());
 				}
 			}}
 		, new Action1<Throwable>(){
@@ -515,7 +521,7 @@ public class Server {
 				message.setStatus(SendingStatus.FAILED);
 				if(MinouApplication.getCurrentActivity() != null 
 						&& MinouApplication.getCurrentActivity() instanceof ChatActivity) {
-					((ChatActivity) MinouApplication.getCurrentActivity()).notifyAdapter();
+					((ChatActivity) MinouApplication.getCurrentActivity()).notifyAdapter(message.getId());
 				}
 			}});
 	}
@@ -570,6 +576,25 @@ public class Server {
 				@Override
 				public void call(Throwable throwable) {
 					Log.i(TAG, "Get topics count" + throwable.getMessage());
+				}});
+	}
+	
+	public static void subscribeToTopicOnDB(final String userId, final String topicUri){
+		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
+		an.add(TextNode.valueOf(userId));
+		an.add(TextNode.valueOf(topicUri));
+
+		client.call("plugin.profile.subscribe", an, new ObjectNode(JsonNodeFactory.instance))
+		.forEach(new Action1<Reply>(){
+
+			@Override
+			public void call(Reply reply) {
+				Log.i(TAG, "Subscribed to topic: reply=" + reply);
+			}}, new Action1<Throwable>(){
+
+				@Override
+				public void call(Throwable throwable) {
+					Log.i(TAG, "Subscribed to topic " + throwable.getMessage());
 				}});
 	}
 
@@ -696,6 +721,8 @@ public class Server {
 				if(listener != null) {
 					listener.onMessagesFetch(messages);
 				}
+				
+				getUsers(DatabaseHelper.getInstance().getUsersId(), null);
 			}}, new Action1<Throwable>() {
 
 				@Override
@@ -744,6 +771,8 @@ public class Server {
 						}
 					}
 				}
+				
+				getUsers(DatabaseHelper.getInstance().getUsersId(), null);
 			}}, new Action1<Throwable>() {
 
 				@Override
@@ -756,8 +785,6 @@ public class Server {
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		final String fullChannelName = Utils.getFullPrivateChannel(userMessages.getId());
 		an.add(fullChannelName);
-		//		final long lastMessage = DatabaseHelper.getInstance().getLastMessageFetched(fullChannelName);
-		//		an.add(lastMessage);
 		client.call("plugin.history.fetch", an, new ObjectNode(JsonNodeFactory.instance))
 		.forEach(new Action1<Reply>(){
 
@@ -793,6 +820,7 @@ public class Server {
 						}
 					}
 				}
+				getUsers(DatabaseHelper.getInstance().getUsersId(), null);
 			}}, new Action1<Throwable>() {
 
 				@Override

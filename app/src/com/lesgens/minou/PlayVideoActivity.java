@@ -2,11 +2,13 @@ package com.lesgens.minou;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -43,6 +45,34 @@ public class PlayVideoActivity extends MinouActivity implements OnClickListener,
 		findViewById(R.id.container).setOnClickListener(this);
 	}
 	
+	
+	
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+		
+		Log.i("PlayVideoActivity", "onConfigurationChanged");
+		int width = vidSurface.getWidth();
+		int height = vidSurface.getHeight();
+		float boxWidth = width;
+		float boxHeight = height;
+
+		float videoWidth = mediaPlayer.getVideoWidth();
+		float videoHeight = mediaPlayer.getVideoHeight();
+
+		float wr = boxWidth / videoWidth;
+		float hr = boxHeight / videoHeight;
+		float ar = videoWidth / videoHeight;
+
+		if (wr > hr){
+		    width = (int) (boxHeight * ar);
+		}else{
+		    height = (int) (boxWidth / ar);
+		}
+
+		vidHolder.setFixedSize(width, height);
+	}
+
 	@Override
 	public void onBackPressed(){
 		mediaPlayer.stop();
@@ -104,6 +134,26 @@ public class PlayVideoActivity extends MinouActivity implements OnClickListener,
 			mediaPlayer.setDisplay(vidHolder);
 			mediaPlayer.setDataSource(dataPath);
 			mediaPlayer.prepare();
+			int width = vidSurface.getWidth();
+			int height = vidSurface.getHeight();
+			float boxWidth = width;
+			float boxHeight = height;
+
+			float videoWidth = mediaPlayer.getVideoWidth();
+			float videoHeight = mediaPlayer.getVideoHeight();
+
+			float wr = boxWidth / videoWidth;
+			float hr = boxHeight / videoHeight;
+			float ar = videoWidth / videoHeight;
+
+			if (wr > hr){
+			    width = (int) (boxHeight * ar);
+			}else{
+			    height = (int) (boxWidth / ar);
+			}
+
+			vidHolder.setFixedSize(width, height);
+
 			mediaPlayer.setOnPreparedListener(this);
 			mediaPlayer.setOnCompletionListener(this);
 			mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);

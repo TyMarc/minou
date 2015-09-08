@@ -27,13 +27,13 @@ public class MinouUploadFileProgressListener implements ProgressListener {
 			message.setStatus(message.isIncoming() ? SendingStatus.RECEIVED : SendingStatus.SENT);
 			
 			if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
-				((ChatActivity) MinouApplication.getCurrentActivity()).notifyAdapter();
+				((ChatActivity) MinouApplication.getCurrentActivity()).notifyAdapter(message.getId());
 			}
 			
 		} else if(event.getEventCode() == ProgressEvent.FAILED_EVENT_CODE) {
 			message.setStatus(SendingStatus.FAILED);
 			if(MinouApplication.getCurrentActivity() instanceof ChatActivity){
-				((ChatActivity) MinouApplication.getCurrentActivity()).notifyAdapter();
+				((ChatActivity) MinouApplication.getCurrentActivity()).notifyAdapter(message.getId());
 			}
 		}
 	}

@@ -32,6 +32,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.lesgens.minou.controllers.Controller;
+import com.lesgens.minou.models.Channel;
+
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -52,9 +55,6 @@ import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.util.TypedValue;
-
-import com.lesgens.minou.controllers.Controller;
-import com.lesgens.minou.models.Channel;
 
 public class Utils {
 
@@ -361,6 +361,31 @@ public class Utils {
 			byte[] buffer = new byte[4096];
 			ous = new ByteArrayOutputStream();
 			ios = new FileInputStream(file);
+			int read = 0;
+			while ( (read = ios.read(buffer)) != -1 ) {
+				ous.write(buffer, 0, read);
+			}
+		} finally { 
+			try {
+				if ( ous != null ) 
+					ous.close();
+			} catch ( IOException e) {
+			}
+
+			try {
+				if ( ios != null ) 
+					ios.close();
+			} catch ( IOException e) {
+			}
+		}
+		return ous.toByteArray();
+	}
+	
+	public static byte[] read(InputStream ios) throws IOException {
+		ByteArrayOutputStream ous = null;
+		try {
+			byte[] buffer = new byte[4096];
+			ous = new ByteArrayOutputStream();
 			int read = 0;
 			while ( (read = ios.read(buffer)) != -1 ) {
 				ous.write(buffer, 0, read);

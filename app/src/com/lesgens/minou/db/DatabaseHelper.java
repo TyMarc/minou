@@ -134,6 +134,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		while(c.moveToNext()){
 			return true;
 		}
+		
+		c.close();
 
 		return false;
 	}
@@ -147,6 +149,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		while(c.moveToNext()){
 			channels.add(c.getString(0));
 		}
+		
+		c.close();
 
 		return channels;
 	}
@@ -168,6 +172,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			user = new User(username, Utils.getFullPrivateChannel(userId), avatar, userId, isContact);
 			userCache.put(userId, user);
 		}
+		
+		c.close();
 	}
 
 	public User getUser(String userId){
@@ -188,6 +194,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			user = new User(username, Utils.getFullPrivateChannel(userId), avatar, userId, isContact);
 			break;
 		}
+		c.close();
 
 		if(user != null){
 			userCache.put(userId, user);
@@ -223,6 +230,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			}
 			break;
 		}
+		c.close();
 
 		if(user != null){
 //			user = new User(username, Utils.getFullPrivateChannel(userId), AvatarGenerator.generate(Controller.getInstance().getDimensionAvatar(), Controller.getInstance().getDimensionAvatar()), userId, false);
@@ -292,6 +300,22 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			messages.add(message);
 			updateMessageAsRead(id.toString());
 		}
+		c.close();
+
+		return messages;
+	}
+	
+	public ArrayList<UUID> getMessagesId(Channel channel){
+		ArrayList<UUID> messages = new ArrayList<UUID>();
+		SQLiteDatabase db = this.getReadableDatabase();
+		Log.i(TAG, "get Messages for channel=" + channel.getNamespace().toLowerCase().replace("-", "_"));
+
+		Cursor c = db.rawQuery("SELECT message_id FROM minou_message WHERE channel = ? ORDER BY timestamp ASC;", new String[]{channel.getNamespace().toLowerCase().replace("-", "_")} );
+		while(c.moveToNext()){
+			UUID id = UUID.fromString(c.getString(0));
+			messages.add(id);
+		}
+		c.close();
 
 		return messages;
 	}
@@ -317,6 +341,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 					user, text, isIncoming, dataPath, SendingStatus.fromInt(status), MessageType.fromString(msgType));
 			messages.add(message);
 		}
+		c.close();
 
 		return messages;
 	}
@@ -340,6 +365,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			message = new Message(id, timestamp, channelNamespace, 
 					user, text, isIncoming, dataPath, SendingStatus.fromInt(status), MessageType.fromString(msgType));
 		}
+		c.close();
 
 		return message;
 	}
@@ -363,7 +389,9 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			String channelNamespace = c.getString(8);
 			message = new Message(id, timestamp, channelNamespace, 
 					user, text, isIncoming, dataPath, SendingStatus.fromInt(status), MessageType.fromString(msgType));
+			updateMessageAsRead(id.toString());
 		}
+		c.close();
 
 		return message;
 	}
@@ -377,6 +405,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			String dataPath = c.getString(0);
 			return dataPath;
 		}
+		c.close();
 
 		return null;
 	}
@@ -389,6 +418,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		if(c.moveToNext()){
 			return c.getInt(0);
 		}
+		c.close();
 
 		return 0;
 	}
@@ -423,6 +453,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			String userId = c.getString(0).replace(Channel.BASE_PRIVATE_CHANNEL, "").replace(Controller.getInstance().getId(), "").replace(".", "");
 			usersId.add(userId);
 		}
+		c.close();
 
 		return usersId;		
 	}
@@ -437,6 +468,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			String userId = c.getString(0);
 			usersId.add(userId);
 		}
+		
+		c.close();
 
 		return usersId;		
 	}
@@ -451,6 +484,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			String userId = c.getString(0);
 			contacts.add(new ContactPicker(userId));
 		}
+		
+		c.close();
 
 		return contacts;		
 	}
@@ -465,6 +500,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			String userId = c.getString(0);
 			contacts.add(new ContactPicker(userId));
 		}
+		
+		c.close();
 
 		return contacts;
 	}
@@ -484,6 +521,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		if(c.moveToFirst()){
 			return c.getLong(0);
 		}
+		
+		c.close();
 
 		return 0;		
 	}
@@ -496,6 +535,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		if(c.moveToFirst()){
 			return c.getInt(0) > 0;
 		}
+		
+		c.close();
 
 		return false;
 	}
@@ -512,6 +553,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		while(c.moveToNext()){
 			return c.getInt(0) == 0;
 		}
+		
+		c.close();
 
 		return true;		
 	}
@@ -545,6 +588,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 		while(c.moveToNext()){
 			return c.getInt(0) == 1;
 		}
+		
+		c.close();
 
 		return false;		
 	}
@@ -597,6 +642,8 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			Log.i(TAG, "userId=" + userId);
 			usersId.add(userId);
 		}
+		
+		c.close();
 
 		return usersId;
 	}

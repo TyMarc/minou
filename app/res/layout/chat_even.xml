@@ -57,7 +57,7 @@
         android:layout_marginRight="58dp"
         android:layout_toRightOf="@id/avatar"
         android:background="@color/white"
-        android:paddingLeft="6dp"
+        android:paddingLeft="9dp"
         android:scaleType="centerCrop"
         android:src="@drawable/image_thumb"
         android:visibility="gone" />

@@ -1,7 +1,7 @@
 package se.emilsjolander.stickylistheaders;
 
-import se.emilsjolander.stickylistheaders.WrapperViewList.LifeCycleListener;
-import se.emilsjolander.stickylistheaders.WrapperViewList.OnRefreshListener;
+import com.lesgens.minou.R;
+
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -25,8 +25,7 @@ import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.SectionIndexer;
-
-import com.lesgens.minou.R;
+import se.emilsjolander.stickylistheaders.WrapperViewList.LifeCycleListener;
 
 /**
  * Even though this is a FrameLayout subclass we still consider it a ListView.
@@ -1084,13 +1083,5 @@ public class StickyListHeadersListView extends FrameLayout {
     public void setStackFromBottom(boolean stackFromBottom){
     	mList.setStackFromBottom(stackFromBottom);
     }
-    
-    public void onRefreshComplete(){
-    	mList.onRefreshComplete();
-    }
-
-	public void setOnRefreshListener(OnRefreshListener onRefreshListener) {
-		mList.setOnRefreshListener(onRefreshListener);
-	}
 
 }
