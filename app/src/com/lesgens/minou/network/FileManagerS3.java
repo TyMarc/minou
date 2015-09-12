@@ -31,6 +31,15 @@ public class FileManagerS3 {
 	private static TransferManager transferManager;
 	
 	private FileManagerS3(){
+		// Initialize the Amazon Cognito credentials provider
+		CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+		    MinouApplication.getInstance(),
+		    "us-east-1:b47785cd-b8ee-4348-97e5-8d15eff329fe", // Identity Pool ID
+		    Regions.US_EAST_1 // Region
+		);
+
+
+		//transferManager = new TransferManager(credentialsProvider);
 		transferManager = new TransferManager(new com.amazonaws.auth.BasicAWSCredentials(ACCESS_KEY, SECRET));
 	}
 	

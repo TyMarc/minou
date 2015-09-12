@@ -126,6 +126,7 @@ public class ConversationsFragment extends MinouFragment implements OnItemClickL
 	@Override
 	public void onRefresh() {
 		Server.getUsers(adapter.getItems(), this);
+		refreshList();
 	}
 
 	@Override

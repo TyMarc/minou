@@ -74,6 +74,7 @@ OnItemLongClickListener, FileTransferListener, FetchMoreMessagesListener {
 	private ImageView audioBtn;
 	private Handler handler;
 	private ProgressBar progressAudio;
+	private boolean isLoading;
 
 	public static void show(final Context context, final String namespace){
 		Intent i = new Intent(context, ChatActivity.class);
@@ -90,6 +91,8 @@ OnItemLongClickListener, FileTransferListener, FetchMoreMessagesListener {
 		setContentView(R.layout.chat);
 
 		handler = new Handler(getMainLooper());
+		
+		isLoading = false;
 
 		channelTextView = (TextView) findViewById(R.id.channel_name);
 
@@ -146,7 +149,10 @@ OnItemLongClickListener, FileTransferListener, FetchMoreMessagesListener {
 			@Override
 			public void onLoadMore(int page, int totalItemsCount) {
 				Log.i(TAG, "onLoadMore");
-				Server.getMoreMessages(channel, ChatActivity.this);
+				if(!isLoading) {
+					isLoading = true;
+					Server.getMoreMessages(channel, ChatActivity.this);
+				}
 			}
 		});
 	}
@@ -309,6 +315,7 @@ OnItemLongClickListener, FileTransferListener, FetchMoreMessagesListener {
 
 	public void addContact(final User user){
 		Server.subscribeToConversation(this, user);
+		Server.addContact(Controller.getInstance().getId(), user.getId());
 		DatabaseHelper.getInstance().setUserAsContact(user);
 	}
 
@@ -484,6 +491,7 @@ OnItemLongClickListener, FileTransferListener, FetchMoreMessagesListener {
 					chatAdapter.addMessage(messages.get(i), 0);
 				}
 				chatAdapter.notifyDataSetChanged();
+				isLoading = false;
 			}});
 	}
 

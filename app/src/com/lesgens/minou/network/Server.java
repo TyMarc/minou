@@ -147,6 +147,8 @@ public class Server {
 					if (t1 instanceof WampClient.ClientConnected) {		
 
 						initChannels(context);
+						
+						getMyself(context, null);
 
 						subscribeToConversation(context, Controller.getInstance().getMyself());
 
@@ -267,7 +269,7 @@ public class Server {
 		
 		subscribeToTopicOnDB(Controller.getInstance().getId(), Utils.getNormalizedString(channelName));
 
-		Controller.getInstance().getChannelsContainer().addSubscription(topic);
+		Controller.getInstance().getChannelsContainer().addByForceSubscription(topic);
 
 		getLastMessages(topic);
 	}
@@ -286,6 +288,15 @@ public class Server {
 		Controller.getInstance().getChannelsContainer().addByForceSubscription(user);
 
 		getLastMessages(user);
+	}
+	
+	public static void subscribeToConversation(final Context context, String namespace){
+		String userId = namespace.replace(User.BASE_PRIVATE_CHANNEL + ".", "").replace(Controller.getInstance().getId(), "").replace(".", "");
+		Log.i(TAG, "subscribe To Conversation=" + userId);
+		final User user = DatabaseHelper.getInstance().getUser(userId);
+		if(user != null) {
+			subscribeToConversation(context, user);
+		}
 	}
 
 	private static Topic createChannelTopic(final Context context, final String channelName){
@@ -589,12 +600,31 @@ public class Server {
 
 			@Override
 			public void call(Reply reply) {
-				Log.i(TAG, "Subscribed to topic: reply=" + reply);
+				Log.i(TAG, "Subscribed to topic: reply=" + reply.arguments());
 			}}, new Action1<Throwable>(){
 
 				@Override
 				public void call(Throwable throwable) {
 					Log.i(TAG, "Subscribed to topic " + throwable.getMessage());
+				}});
+	}
+	
+	public static void addContact(final String userId, final String contactId){
+		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
+		an.add(TextNode.valueOf(userId));
+		an.add(TextNode.valueOf(contactId));
+
+		client.call("plugin.profile.add_contact", an, new ObjectNode(JsonNodeFactory.instance))
+		.forEach(new Action1<Reply>(){
+
+			@Override
+			public void call(Reply reply) {
+				Log.i(TAG, "Added contact: reply=" + reply.arguments());
+			}}, new Action1<Throwable>(){
+
+				@Override
+				public void call(Throwable throwable) {
+					Log.i(TAG, "Added contact: " + throwable.getMessage());
 				}});
 	}
 
@@ -618,6 +648,65 @@ public class Server {
 						final String userId = msg.get("id").asText();
 						final String username = msg.get("user_name").asText();
 						final String avatarUrl = msg.get("avatar").asText();
+						if(!avatarUrl.equals("null") && DatabaseHelper.getInstance().isAvatarNeededToChange(userId, avatarUrl)) {
+							MinouDownloadAvatarProgressListener listener = new MinouDownloadAvatarProgressListener(userId, avatarUrl);
+							FileManagerS3.getInstance().downloadFile(avatarUrl, listener);
+						}
+						DatabaseHelper.getInstance().updateUsername(userId, username);
+					}
+				}
+
+				if(listener != null) {
+					listener.onUserInformationsReceived();
+				}
+			}}, new Action1<Throwable>(){
+
+				@Override
+				public void call(Throwable throwable) {
+					Log.i(TAG, "Get users information" + throwable.getMessage());
+				}});
+	}
+	
+	public static void getMyself(final Context context, final UserInformationsListener listener){
+		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
+		an.add(TextNode.valueOf(Controller.getInstance().getId()));
+		client.call("plugin.profile.get_info", an, new ObjectNode(JsonNodeFactory.instance))
+		.forEach(new Action1<Reply>(){
+
+			@Override
+			public void call(Reply reply) {
+				Log.i(TAG, "Received users");
+				JsonNode msg = null;
+				Iterator<JsonNode> iterator = reply.arguments().get(0).elements();
+				while(iterator.hasNext()){
+					msg = iterator.next();
+					Log.i(TAG, "User=" + msg);
+					if(msg != null && !msg.toString().equals("null")) {
+						final String userId = msg.get("id").asText();
+						final String username = msg.get("user_name").asText();
+						final String avatarUrl = msg.get("avatar").asText();
+						final Iterator<JsonNode> contacts = msg.get("contacts").elements();
+						String contact = null;
+						while(contacts.hasNext()){
+							contact = contacts.next().asText();
+							Log.i(TAG, "Received contact=" + contact);
+							DatabaseHelper.getInstance().setUserAsContact(contact);
+						}
+						if(userId.equals(Controller.getInstance().getId())) {
+							final Iterator<JsonNode> subscriptions = msg.get("subscriptions").elements();
+							String subscription = null;
+							while(subscriptions.hasNext()){
+								subscription = subscriptions.next().asText();
+								Log.i(TAG, "subscription=" + subscription);
+								if(subscription.startsWith(City.BASE_PUBLIC_CHANNEL)) {
+									Log.i(TAG, "subscription is a topic");
+									subscribeToTopic(context, subscription);
+								} else if(subscription.startsWith(User.BASE_PRIVATE_CHANNEL)) {
+									Log.i(TAG, "subscription is a private one");
+									subscribeToConversation(context, subscription);
+								}
+							}
+						}
 						if(!avatarUrl.equals("null") && DatabaseHelper.getInstance().isAvatarNeededToChange(userId, avatarUrl)) {
 							MinouDownloadAvatarProgressListener listener = new MinouDownloadAvatarProgressListener(userId, avatarUrl);
 							FileManagerS3.getInstance().downloadFile(avatarUrl, listener);

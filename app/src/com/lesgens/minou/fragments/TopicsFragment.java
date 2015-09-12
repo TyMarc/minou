@@ -239,6 +239,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 	@Override
 	public void onRefresh() {
 		Server.getTopicsCount(this);
+		refreshList();
 	}
 
 

@@ -609,6 +609,22 @@ public class DatabaseHelper extends SQLiteOpenHelper
 			userCache.put(userId, user);
 		}
 	}
+	
+	public void setUserAsContact(String userId) {
+		Log.i(TAG, " setUserAsContact: userId=" + userId);
+		SQLiteDatabase db = this.getWritableDatabase();
+
+		ContentValues cv = new ContentValues();
+		cv.put("isContact", 1);
+		db.update("minou_users", cv, "userId = ?", new String[]{userId});
+
+		if(userCache.containsKey(userId)){
+			userCache.get(userId).setIsContact(true);
+		} else{
+			final User user = getUser(userId);
+			userCache.put(userId, user);
+		}
+	}
 
 	public void removeMessage(Message message) {
 		SQLiteDatabase db = this.getWritableDatabase();
@@ -647,4 +663,6 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 		return usersId;
 	}
+
+	
 }

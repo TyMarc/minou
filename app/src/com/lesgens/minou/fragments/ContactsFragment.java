@@ -33,8 +33,6 @@ public class ContactsFragment extends MinouFragment implements OnItemClickListen
 	public View onCreateView(LayoutInflater inflater,
 			@Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 		View v = inflater.inflate(R.layout.contacts, container, false);
-		
-		Server.getUsers(DatabaseHelper.getInstance().getUsersId(), this);
 
 		listView = (ListView) v.findViewById(R.id.list);
 		listView.setOnItemClickListener(this);
@@ -138,6 +136,7 @@ public class ContactsFragment extends MinouFragment implements OnItemClickListen
 	@Override
 	public void onRefresh() {
 		Server.getUsers(adapter.getItems(), this);
+		Server.getMyself(getActivity(), this);
 	}
 
 }

@@ -22,6 +22,7 @@ import com.lesgens.minou.ChatActivity;
 import com.lesgens.minou.HomeActivity;
 import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.ContactPickerAdapter;
+import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.models.ContactPicker;
 import com.lesgens.minou.models.User;
@@ -147,6 +148,7 @@ public class ContactPickerFragment extends MinouFragment implements OnItemClickL
 				final String userId = adapter.getItem(checkedUsers.keyAt(0)).getUserId();
 				final User user = DatabaseHelper.getInstance().getUser(userId);
 				Server.subscribeToConversation(getActivity(), user);
+				Server.addContact(Controller.getInstance().getId(), userId);
 				DatabaseHelper.getInstance().setUserAsContact(user);
 				if(getActivity() instanceof HomeActivity){
 					((HomeActivity) getActivity()).getContactsFragment().refreshList();
