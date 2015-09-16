@@ -50,6 +50,7 @@ public class ProfileFragment extends MinouFragment implements OnClickListener, A
 
 		avatar = ((ImageView) v.findViewById(R.id.avatar));
 
+		avatar.setOnClickListener(this);
 		v.findViewById(R.id.change_picture).setOnClickListener(this);
 		v.findViewById(R.id.change_username).setOnClickListener(this);
 
@@ -196,7 +197,7 @@ public class ProfileFragment extends MinouFragment implements OnClickListener, A
 
 	@Override
 	public void onClick(View v) {
-		if(v.getId() == R.id.change_picture) {
+		if(v.getId() == R.id.change_picture || v.getId() == R.id.avatar) {
 			showChangeAvatar();
 		} else if(v.getId() == R.id.change_username) {
 			showChangeUsername();

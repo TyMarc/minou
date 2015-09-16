@@ -69,7 +69,7 @@ public class Server {
 	private static List<UserAuthenticatedListener> userAuthenticatedListeners = new ArrayList<UserAuthenticatedListener>();
 	private static ArrayList<EventsListener> eventsListeners = new ArrayList<EventsListener>();
 	private static ArrayList<CrossbarConnectionListener> connectionListeners = new ArrayList<CrossbarConnectionListener>();
-	private static String address = "http://subjest.xyz/";
+	private static String address = "http://backend.subjest.xyz/";
 	private static String ADDRESS_CROSSBAR = "ws://router.subjest.xyz";
 	private static String TAG = "Server";
 	private static boolean isConnected = false;
@@ -728,6 +728,10 @@ public class Server {
 						while(contacts.hasNext()){
 							contact = contacts.next().asText();
 							Log.i(TAG, "Received contact=" + contact);
+							User user = DatabaseHelper.getInstance().getUser(contact);
+							if(user == null) {
+								DatabaseHelper.getInstance().addUser(contact, contact);
+							}
 							DatabaseHelper.getInstance().setUserAsContact(contact);
 						}
 						if(userId.equals(Controller.getInstance().getId())) {

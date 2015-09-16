@@ -619,19 +619,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	}
 
 	public void setUserAsContact(final User user) {
-		Log.i(TAG, " setUserAsContact: userId=" + user.getId());
-		SQLiteDatabase db = this.getWritableDatabase();
-
-		final String userId = user.getId();
-		ContentValues cv = new ContentValues();
-		cv.put("isContact", 1);
-		db.update("minou_users", cv, "userId = ?", new String[]{userId});
-
-		if(userCache.containsKey(userId)){
-			userCache.get(userId).setIsContact(true);
-		} else{
-			userCache.put(userId, user);
-		}
+		setUserAsContact(user.getId());
 	}
 	
 	public void setUserAsContact(String userId) {
