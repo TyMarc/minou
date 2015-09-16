@@ -53,6 +53,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	public void onCreate(SQLiteDatabase db)
 	{
 		db.execSQL("CREATE TABLE minou_message (id INTEGER PRIMARY KEY AUTOINCREMENT, message_id TEXT, channel TEXT, userId TEXT, content TEXT, dataPath String DEFAULT null, timestamp LONG, isIncoming INTEGER DEFAULT 0, status INTEGER DEFAULT 0, msgType TEXT, thumbnail BLOB, read INTEGER DEFAULT 0);");
+		db.execSQL("CREATE TABLE minou_first_message (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT, timestamp LONG);");
 		db.execSQL("CREATE TABLE minou_last_message (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT, timestamp LONG);");
 		db.execSQL("CREATE TABLE minou_public (id INTEGER PRIMARY KEY AUTOINCREMENT, channel TEXT);");
 		db.execSQL("CREATE TABLE minou_users (id INTEGER PRIMARY KEY AUTOINCREMENT, userId TEXT, username TEXT, avatarURL TEXT, avatar BLOB, isContact INTEGER DEFAULT 0);");
@@ -61,6 +62,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		db.execSQL("DROP TABLE if exists minou_message");
+		db.execSQL("DROP TABLE if exists minou_first_message");
 		db.execSQL("DROP TABLE if exists minou_last_message");
 		db.execSQL("DROP TABLE if exists minou_public");
 		db.execSQL("DROP TABLE if exists minou_users");
@@ -96,14 +98,22 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
 		cv = new ContentValues();
 		cv.put("timestamp", timestamp);
+		
 		long firstMessageFetched = getFirstMessageFetched(channel.toLowerCase().replace("-", "_"));
 		if(firstMessageFetched == 0){
 			cv.put("channel", channel);
-			db.insert("minou_last_message", null, cv);
+			db.insert("minou_first_message", null, cv);
 		} else if(firstMessageFetched > timestamp){
-			db.update("minou_last_message", cv, "channel = ?", new String[]{channel.toLowerCase().replace("-", "_")});
+			db.update("minou_first_message", cv, "channel = ?", new String[]{channel.toLowerCase().replace("-", "_")});
 		}
 
+		long lastMessageFetched = getLastMessageFetched(channel.toLowerCase().replace("-", "_"));
+		if(lastMessageFetched == 0){
+			cv.put("channel", channel);
+			db.insert("minou_last_message", null, cv);
+		} else if(lastMessageFetched < timestamp){
+			db.update("minou_last_message", cv, "channel = ?", new String[]{channel.toLowerCase().replace("-", "_")});
+		}
 	}
 
 	public void updateMessageData(Message m){
@@ -514,6 +524,20 @@ public class DatabaseHelper extends SQLiteOpenHelper
 	}
 	
 	public long getFirstMessageFetched(String channel){
+		SQLiteDatabase db = this.getReadableDatabase();
+
+		Cursor c = db.rawQuery("SELECT timestamp FROM minou_first_message WHERE channel = ?;", new String[]{channel.toLowerCase().replace("-", "_")} );
+
+		if(c.moveToFirst()){
+			return c.getLong(0);
+		}
+		
+		c.close();
+
+		return 0;		
+	}
+	
+	public long getLastMessageFetched(String channel){
 		SQLiteDatabase db = this.getReadableDatabase();
 
 		Cursor c = db.rawQuery("SELECT timestamp FROM minou_last_message WHERE channel = ?;", new String[]{channel.toLowerCase().replace("-", "_")} );

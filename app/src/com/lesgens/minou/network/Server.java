@@ -609,6 +609,25 @@ public class Server {
 				}});
 	}
 	
+	public static void unsubscribeToTopicOnDB(final String userId, final String topicUri){
+		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
+		an.add(TextNode.valueOf(userId));
+		an.add(TextNode.valueOf(topicUri));
+
+		client.call("plugin.profile.unsubscribe", an, new ObjectNode(JsonNodeFactory.instance))
+		.forEach(new Action1<Reply>(){
+
+			@Override
+			public void call(Reply reply) {
+				Log.i(TAG, "Unsubscribed to topic: reply=" + reply.arguments());
+			}}, new Action1<Throwable>(){
+
+				@Override
+				public void call(Throwable throwable) {
+					Log.i(TAG, "Unsubscribed to topic " + throwable.getMessage());
+				}});
+	}
+	
 	public static void addContact(final String userId, final String contactId){
 		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
 		an.add(TextNode.valueOf(userId));
@@ -625,6 +644,25 @@ public class Server {
 				@Override
 				public void call(Throwable throwable) {
 					Log.i(TAG, "Added contact: " + throwable.getMessage());
+				}});
+	}
+	
+	public static void removeContact(final String userId, final String contactId){
+		ArrayNode an = new ArrayNode(JsonNodeFactory.instance);
+		an.add(TextNode.valueOf(userId));
+		an.add(TextNode.valueOf(contactId));
+
+		client.call("plugin.profile.remove_contact", an, new ObjectNode(JsonNodeFactory.instance))
+		.forEach(new Action1<Reply>(){
+
+			@Override
+			public void call(Reply reply) {
+				Log.i(TAG, "Removed contact: reply=" + reply.arguments());
+			}}, new Action1<Throwable>(){
+
+				@Override
+				public void call(Throwable throwable) {
+					Log.i(TAG, "Removed contact: " + throwable.getMessage());
 				}});
 	}
 

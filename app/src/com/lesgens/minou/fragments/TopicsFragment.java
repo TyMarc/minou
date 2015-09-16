@@ -175,6 +175,7 @@ public class TopicsFragment extends MinouFragment implements OnClickListener, On
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				final Topic channel = adapter.getItem(arg2);
+				Server.unsubscribeToTopicOnDB(Controller.getInstance().getId(), channel.getNamespace());
 				DatabaseHelper.getInstance().removeTopic(channel.getNamespace());
 				DatabaseHelper.getInstance().removeAllMessages(channel.getNamespace());
 				channel.getParent().remove(channel);

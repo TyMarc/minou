@@ -18,6 +18,7 @@ import android.widget.ListView;
 
 import com.lesgens.minou.R;
 import com.lesgens.minou.adapters.ContactsAdapter;
+import com.lesgens.minou.controllers.Controller;
 import com.lesgens.minou.db.DatabaseHelper;
 import com.lesgens.minou.listeners.UserInformationsListener;
 import com.lesgens.minou.models.User;
@@ -71,6 +72,7 @@ public class ContactsFragment extends MinouFragment implements OnItemClickListen
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
+				Server.removeContact(Controller.getInstance().getId(), userId);
 				DatabaseHelper.getInstance().removeContact(user);
 				adapter.remove(userId);
 				adapter.notifyDataSetChanged();
